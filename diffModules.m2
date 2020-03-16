@@ -144,6 +144,7 @@ RRfunctor(Module,List,ZZ,ZZ) := (M,low,c,r) ->(
 --Input:  F a free differential module
 --Output:  a differential module which is acylic
 --         in one lower degree... some total grading?  not working here.
+--         The "degree" function is just (i_0,i_1) --> i_0+i_1.  I tried other ones too.
 oneStepCornerHirz = (bot,F) -> (
     r := max apply(degrees F_0,i-> i_1+1);
     G := res(coker F.dd_1,LengthLimit => 2);
@@ -162,6 +163,19 @@ oneStepCornerHirz = (bot,F) -> (
     chainComplex map(target d, source d, d)
 )
 
+
+--  Input:  F a free diff modeul
+--  Output:  the degrees homology elements
+homologyDegrees = F->(
+    G := res(coker F.dd_1,LengthLimit => 2);
+    newSpots = {};
+    T := tally degrees G_0;
+    D := degrees G_2;
+    scan(#D, i->(if T#?{(D#i)_0 , (D#i)_1 , 0} == false then(
+		    newSpots = newSpots|{D#i};)));
+    tally newSpots	
+    )
+
 --  Iterates oneStepCornerHirz
 resCornerHirz = (bot,F,n)->(
     scan(n, i-> F = oneStepCornerHirz(bot-i,F));
@@ -170,10 +184,12 @@ resCornerHirz = (bot,F,n)->(
 -*
 M = S^1
 low = {2,2}
-F = RRfunctor(M,low,2,2)
+F = RRfunctor(M,low,4,4)
+homologyDegrees F
 -- where is it acylic???
 G := res(coker F.dd_1,LengthLimit => 2);
 tally degrees G_2
+tally degrees G_0
 bot = (low_0)+(low_1)
 tally degrees F_0
 G = resCornerHirz(bot,F,0)
