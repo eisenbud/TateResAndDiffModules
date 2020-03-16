@@ -186,7 +186,6 @@ M = S^1
 low = {2,2}
 F = RRfunctor(M,low,4,4)
 homologyDegrees F
--- where is it acylic???
 G := res(coker F.dd_1,LengthLimit => 2);
 tally degrees G_2
 tally degrees G_0
@@ -494,6 +493,7 @@ G = tateCompute(M,{0,0},4,8,8)
 --Here it's between free modules of rank 402.
 --We check that it is square zero and homogeneous
 G.dd_1^2 == 0
+--tally degrees G_0
 isHomogeneous G
 --Regarding the input: the parameters ({0,0},4,8,8).
 --    The {0,0} and the 4 are used in determining the starting
@@ -532,7 +532,7 @@ G = tateCompute(M,{1,2},6,4,4)
 tally degrees G_0
 --You can see its genus by seeing {0,0,1} => 1 in the above.
 checkCohomGroups(M,G)
-
+                  
 --There are still some bugs around the boundaries, though.
 --The issue seems to be if you push the parameters too far, or something.
 --In this sequence, all I'm doing is changing the starting degree
@@ -554,3 +554,46 @@ T = tally degrees G_0
 G = tateCompute(M,{2,2},2,8,5)
 checkCohomGroups(M,G)
 --Anyways, not sure exactly what is happening there.
+
+
+
+
+
+
+--  Generalize DM-cover algorithm
+
+--  Input:  a differential module (expressed as a complex M<--M)
+--  Output: one step of the minimal free cover 
+oneStepCover = (F) -> (
+    --r := max apply(degrees F_0,i-> i_1+1);
+    --G := res(coker F.dd_1,LengthLimit => 2);
+    F' = chainComplex(F.dd_1,F.dd_1);
+    G := res HH_1 F';
+    psi := map(F_0,G_0,gens (HH_1 F'));
+--    psi := map(F_0,source pm,pm);
+--    G := res ker F.dd_1;
+--    psi := map(F_0,G_0,gens ker F.dd_1);
+    newD = map(F_0++G_0,F_0++G_0,matrix{{F.dd_1,psi},{map(G_0,F_0,0),map(G_0,G_0,0)}});
+    assert (newD^2 == 0);
+    chainComplex newD
+)
+--F0 = F
+F1 = oneStepCover(F)
+F2 = oneStepCover(F1)
+F3 = oneStepCover(F2)
+F4 = oneStepCover(F3)
+
+betti F4_0
+F4.dd_1
+
+F' = chainComplex(F.dd_1,F.dd_1)
+
+
+F = F2
+newD
+S = ZZ/101[x]
+M = S^1/(x^3)
+phi = map(M,M,matrix{{x^2}})
+phi^2
+F = chainComplex({phi})
+--betti res HH_1 F
