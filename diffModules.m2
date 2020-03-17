@@ -176,6 +176,13 @@ homologyDegrees = F->(
     tally newSpots	
     )
 
+--  Input: F a free diff module
+--  Output:  the degrees of homology (computed a different way)
+homDegs2 = F->(
+    F' = chainComplex(F.dd_1,(F.dd_1)**E^{{0,0,-1}});
+    G := res HH_1 F';
+    tally degrees G_0
+)
 --  Iterates oneStepCornerHirz
 resCornerHirz = (bot,F,n)->(
     scan(n, i-> F = oneStepCornerHirz(bot-i,F));
@@ -183,9 +190,17 @@ resCornerHirz = (bot,F,n)->(
     )
 -*
 M = S^1
-low = {2,2}
+low = {1,1}
 F = RRfunctor(M,low,4,4)
 homologyDegrees F
+homDegs2 F
+--why does this give such a different answer???
+tally degrees F_0
+dF = F.dd_1;
+target dF
+source dF
+target (dF**E^{{0,0,-1}})
+source F.dd_1
 G := res(coker F.dd_1,LengthLimit => 2);
 tally degrees G_2
 tally degrees G_0
