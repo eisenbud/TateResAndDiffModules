@@ -164,7 +164,7 @@ oneStepCornerHirz = (bot,F) -> (
 )
 
 
---  Input:  F a free diff modeul
+--  Input:  F a free diff module
 --  Output:  the degrees homology elements
 homologyDegrees = F->(
     G := res(coker F.dd_1,LengthLimit => 2);
@@ -179,8 +179,8 @@ homologyDegrees = F->(
 --  Input: F a free diff module
 --  Output:  the degrees of homology (computed a different way)
 homDegs2 = F->(
-    F' = chainComplex(F.dd_1,(F.dd_1)**E^{{0,0,-1}});
-    G := res HH_1 F';
+    F' := chainComplex(F.dd_1,(F.dd_1)**E^{{0,0,-1}});
+    G := res prune HH_1 F';
     tally degrees G_0
 )
 --  Iterates oneStepCornerHirz
@@ -189,10 +189,61 @@ resCornerHirz = (bot,F,n)->(
     F
     )
 -*
+restart
+load "diffModules.m2"
+X = hirzebruchSurface(1);
+S = ring X;
+E = dualRingToric S;
+
 M = S^1
-low = {1,1}
-F = RRfunctor(M,low,4,4)
+low = {2,2}
+F = RRfunctor(M,low,2,2)
+
+homDegs2 F
+tally degrees F_0
+tallyToCohom = N ->(
+    L := degrees N;
+    T := tally degrees(N);
+    topX := max apply(degrees N, d-> d_0);
+    botX := min apply(degrees N, d-> d_0);
+    topY := max apply(degrees N, d-> d_1);
+    botY := min apply(degrees N, d-> d_1);
+    matrix apply(toList(-6..5),i->(
+	    apply(toList(-6..5),j->(
+		  sum apply(max apply(L,d-> d_2)+1,k->(
+			  if T#?{i,j,k} then t^k*(T#{i,j,k}) else 0  
+	    ))))))
+    )
+F' = chainComplex(F.dd_1,(F.dd_1)**E^{{0,0,-1}});
+G = res prune HH_1 F';
+
+tallyToCohom(G_0)
+tallyToCohom(F_0)
+cohomMat
 homologyDegrees F
+HH^2(X,sheaf S^{{-2,-1}})
+R = QQ[t]
+cohomMat = matrix apply(toList(-6..5),i-> apply(toList(-6..5),j->
+	sum apply(3,k-> t^k*(rank HH^k(X,sheaf S^{{i,j}})))
+	))
+HH^0(X,sheaf S^{{2,1}})
+cohomMat
+matrix apply(toList(-6..5),i-> apply(toList(-6..5),j->
+	rank HH^1(X,sheaf S^{{i,j}})
+	))
+
+matrix apply(toList(-6..5),i-> apply(toList(-6..5),j->
+	rank HH^2(X,sheaf S^{{i,j}})
+	))
+
+tally degrees F_0
+
+HH^2(X,sheaf S^{{-2,-4}})
+HH^2(X,sheaf S^{{-4,-3}})
+
+hh^0( O_X(-i,i)) = 1.
+
+
 homDegs2 F
 --why does this give such a different answer???
 tally degrees F_0
