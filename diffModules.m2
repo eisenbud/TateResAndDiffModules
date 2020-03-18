@@ -188,6 +188,24 @@ resCornerHirz = (bot,F,n)->(
     scan(n, i-> F = oneStepCornerHirz(bot-i,F));
     F
     )
+
+
+--  Input: a free module
+--  Output:  the corresponding cohomology table, as a matrix
+tallyToCohom = N ->(
+    L := degrees N;
+    T := tally degrees(N);
+    topX := max apply(degrees N, d-> d_0);
+    botX := min apply(degrees N, d-> d_0);
+    topY := max apply(degrees N, d-> d_1);
+    botY := min apply(degrees N, d-> d_1);
+    matrix apply(toList(-6..5),i->(
+	    apply(toList(-6..5),j->(
+		  sum apply(max apply(L,d-> d_2)+1,k->(
+			  if T#?{j,-i,k} then t^k*(T#{j,-i,k}) else 0  
+	    ))))))
+    )
+
 -*
 restart
 load "diffModules.m2"
@@ -320,7 +338,7 @@ RRfunctor(Module,List,List) := (M,L,v) ->(
 
 
 
-
+--  NOTE:   this next function is vesitigial!  Ignore.
 --  Input:  M a module on Cox ring of a Hirzebruch
 --          low the starting bidegree     
 --          r = # rows
@@ -347,6 +365,9 @@ hirzRowRR = (M,low,c,r)->(
     g' := sub(newg,E);
     chainComplex map(E^df0,E^df1, g')
     ) 
+
+
+
 
 --Input:  M a module
 --        low = a corner bidegree
@@ -421,8 +442,8 @@ oneStepHirz = (bot,F) -> (
 
 
 --  Iterates oneStepHirz.  But this is vestigial, replaced by multiResAndExtend
-resHirz = (bot,F,r,n)->(
-    scan(n, i-> F = oneStepHirz(bot-i,F,r));
+resHirz = (bot,F,n)->(
+    scan(n, i-> F = oneStepHirz(bot-i,F));
     F
     )
 
