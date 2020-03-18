@@ -106,6 +106,14 @@ multiStepNonMin = (bot,G,n)->(
     G
     )
 
+--Hacky code for producing the a cohom table from a non-minimal free DM
+nonMinCohom = G ->(
+    barD := G.dd_1 %( ideal gens E);
+    Gbar := chainComplex(barD**E^{{0,1}}, barD);
+    rbar := res(prune HH_1(Gbar), LengthLimit => 0);
+    tallyToCohomWeighted(rbar_0)
+)
+
 end;
 
 
@@ -142,74 +150,19 @@ tallyToCohomWeighted(G_0)
 H = res(coker F.dd_1,LengthLimit => 2);
 T = tally degrees(H_2)
 
-G = multiStepNonMin(2,F,8)
-
-
-nonMinCohom = G ->(
-    MM = G.dd_1;
-    toRemove = {};
-    scan(rank G_0,i->(scan(rank G_0,j->(
-		    if isUnit(MM_(i,j)) then toRemove = toRemove|{i,j}
-		    ))));
-    toRemove = sort unique toRemove;
-    toKeep = {};
-    scan(rank G_0, k-> if member(k,toRemove) == false then toKeep = toKeep|{k});
-    E^(-degrees source (G_0)_toKeep)
-    )
-
-scan(rank G_0,i->(scan rank G_0,j->(( if isUnit(-1)
---
-oGb = (G.dd_1 % ideal gens E)**E^{{0,1}}
-nGb = Gddbar**E^{{0,1}}
-tally degrees source newGddbar
-tally degrees target newGddbar
-
-source oGb == target nGb
-target oGb == source nGb
-Gbar = chainComplex(nGb,oGb)
-degrees prune HH_1 Gbar
-newG = chainComplex(G.dd_1**E^{{0,1}},G.dd_1)
-needsPackage "Complexes"
-viewHelp "Complexes"
-installPackage "Complexes"
-minimize newG
-
-
-betti Gddbar
-Gddbar
-tally degrees source Gddbar
-tally degrees target Gddbar
-Gbar = chainComplex{Gddbar, Gddbar}
-
-Gbar = chainComplex(Gddbar**E^{{0,1}})
-
-isHomogeneous Gbar
-resGbar = res coker Gddbar;
-tallyToCohomWeighted(resGbar_0)
-
-
-
-tallyToCohomWeighted(G_0)
-
-(G.dd_1)_{0,14}^{0,14}
-
-degrees G_0
-degrees G_1
-G.dd_1 % 
-
-
---  We kept the {1,2} generator but did not include the {-2,4} gens.
---  Those disappear somehow as the computation proceeds....
 
 --  multiStep iterates over oneStep
 H = multiStep(2,F,10)
 tallyToCohomWeighted(H_0)
---  sheaf cohomoology table for structure sheaf on P(1,1,2).
---  This is read off from the generators of H_0:
-tally degrees H_0
---  where {i,j} => k means rank HH^j(OO(i)) = k
---  Note in particular that there is **no** homology in degree -2.
---  So those {-2,4} gens from above were "noise"
+
+--  now we try the nonminimal code:
+G = multiStepNonMin(2,F,10)
+--  noMinCohom computes the Betti table of the minimization (but not the minimization_
+nonMinCohom(G)
+--  checking that they give the same thing.
+nonMinCohom(G) == tallyToCohomWeighted(H_0)
+--  Woo hoo!
+
 
 
 --Let's do a degree 10 curve in P(1,1,2), which has genus 16.
@@ -228,6 +181,11 @@ betti(G_0)
 --To see the cohomology groups we do:
 tallyToCohomWeighted(G_0)
 
+--  goes slower with non=minimal code
+H = multiStepNonMin(L_0,F,20);
+CT = nonMinCohom(H)
+CT == tallyToCohomWeighted(G_0)
+
 --For instance, let's check that H^1(M) = QQ^16 (the genus of the curve):
 T = tally degrees G_0;
 T#{0,1}
@@ -238,16 +196,22 @@ T#{0,1}
 M = S^1/ideal(x_0,x_2);
 L = toList(4..8);
 F = bggWeighted(L,M,E);
-G = multiStep(L_0,F,15);
+G = multiStep(L_0,F,12);
 tallyToCohomWeighted(G_0)
+H = multiStepNonMin(L_0,F,12);
+nonMinCohom(H)
 
 --  Or the stacky point on P(1,1,2):
 M = S^1/ideal(x_0,x_1);
 L = toList(4..8);
 F = bggWeighted(L,M,E);
-G = multiStep(L_0,F,15);
+G = multiStep(L_0,F,12);
 tallyToCohomWeighted(G_0)
+H = multiStepNonMin(L_0,F,12);
+nonMinCohom(H)
 
+
+--
 --  Finally let's do a crazy curve on P(1,2,3,4):
 S = ZZ/101[x_0..x_3, Degrees =>{1,2,3,4}];
 E = dualRingToric S;
