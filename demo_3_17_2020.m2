@@ -181,7 +181,7 @@ betti(G_0)
 --To see the cohomology groups we do:
 tallyToCohomWeighted(G_0)
 
---  goes slower with non=minimal code
+--  goes slower with the non-minimal code.
 H = multiStepNonMin(L_0,F,20);
 CT = nonMinCohom(H)
 CT == tallyToCohomWeighted(G_0)
