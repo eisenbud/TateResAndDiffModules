@@ -113,6 +113,12 @@ tallyToCohomWeighted(F_0)
 --  The following assumes F is exact in degree 2 and then proceeds 10 steps.
 G = oneStep(2,F)
 tallyToCohomWeighted(G_0)
+--  so we added 2 generators of degree 2.
+--  But we threw out some of the other homology of G.  Let's lookt it by hand.
+H = res(coker F.dd_1,LengthLimit => 2);
+T = tally degrees(H_2)
+--  We kept the {1,2} generator but did not include the {-2,4} gens.
+--  Those disappear somehow as the computation proceeds....
 
 --  multiStep iterates over oneStep
 H = multiStep(2,F,10)
@@ -121,7 +127,8 @@ tallyToCohomWeighted(H_0)
 --  This is read off from the generators of H_0:
 tally degrees H_0
 --  where {i,j} => k means rank HH^j(OO(i)) = k
-
+--  Note in particular that there is **no** homology in degree -2.
+--  So those {-2,4} gens from above were "noise"
 
 
 --Let's do a degree 10 curve in P(1,1,2), which has genus 16.
