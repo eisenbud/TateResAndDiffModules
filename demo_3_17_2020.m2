@@ -109,8 +109,12 @@ R = QQ[t];
 tallyToCohomWeighted(F_0)
 --  
 
---  multiStep "resolves" F degree by degree.
+--  oneStep "resolves" F for one extra degree.
 --  The following assumes F is exact in degree 2 and then proceeds 10 steps.
+G = oneStep(2,F)
+tallyToCohomWeighted(G_0)
+
+--  multiStep iterates over oneStep
 H = multiStep(2,F,10)
 tallyToCohomWeighted(H_0)
 --  sheaf cohomoology table for structure sheaf on P(1,1,2).
@@ -122,7 +126,7 @@ tally degrees H_0
 
 --Let's do a degree 10 curve in P(1,1,2), which has genus 16.
 --We make sure that L encompasses degree 10.
-L = toList(7..14)
+L = toList(7..14);
 M = S^1/(random(10,S));
 F = bggWeighted(L,M,E);
 betti (F_0)
