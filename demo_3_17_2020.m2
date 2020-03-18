@@ -141,9 +141,23 @@ tallyToCohomWeighted(G_0)
 --  But we threw out some of the other homology of G.  Let's lookt it by hand.
 H = res(coker F.dd_1,LengthLimit => 2);
 T = tally degrees(H_2)
-(H.dd_2)_{25}
-(H.dd_2)^{3}
 
+G = multiStepNonMin(2,F,8)
+
+
+nonMinCohom = G ->(
+    MM = G.dd_1;
+    toRemove = {};
+    scan(rank G_0,i->(scan(rank G_0,j->(
+		    if isUnit(MM_(i,j)) then toRemove = toRemove|{i,j}
+		    ))));
+    toRemove = sort unique toRemove;
+    toKeep = {};
+    scan(rank G_0, k-> if member(k,toRemove) == false then toKeep = toKeep|{k});
+    E^(-degrees source (G_0)_toKeep)
+    )
+
+scan(rank G_0,i->(scan rank G_0,j->(( if isUnit(-1)
 --
 oGb = (G.dd_1 % ideal gens E)**E^{{0,1}}
 nGb = Gddbar**E^{{0,1}}
@@ -174,7 +188,7 @@ resGbar = res coker Gddbar;
 tallyToCohomWeighted(resGbar_0)
 
 
-G = multiStepNonMin(2,F,3)
+
 tallyToCohomWeighted(G_0)
 
 (G.dd_1)_{0,14}^{0,14}
