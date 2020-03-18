@@ -74,6 +74,26 @@ oneStep = (bot,F) -> (
 )
 
 
+--This ``resolves'' a free differential module one degree at a time.
+--Input: A free differential module G which is exact up in degrees \geq bot
+--Output: A larger free differential module G' which is exact in
+--        degrees \geq bot - 1.
+oneStepNonMin = (bot,F) -> (
+    G := res(coker F.dd_1,LengthLimit => 2);
+    newSpots = {};
+    D = degrees G_2;
+    scan(#D, i->(if (D#i)_0 <= bot-1 then  newSpots = newSpots|{i};));
+    Gpre = E^(apply(newSpots,i-> -D#i + {0,1}));
+    phi = map(G_0,Gpre,(G.dd_2)_(newSpots));
+    psi = gens trim image(phi % (matrix G.dd_1));
+    Gnew = source psi;
+    d1 = psi|G.dd_1;    
+    d2 = map(Gnew**E^{{0,1}},Gnew++G_1, (i,j)->0);
+    d = (d2||d1);
+    chainComplex d 
+)
+
+
 --This just iterates the oneStep code, adjusting the bottom
 --degree accordingly.
 multiStep = (bot,G,n)->(
@@ -81,6 +101,10 @@ multiStep = (bot,G,n)->(
     G
     )
 
+multiStepNonMin = (bot,G,n)->(
+    scan(n, i-> G = oneStepNonMin(bot-i,G));
+    G
+    )
 
 end;
 
@@ -117,6 +141,49 @@ tallyToCohomWeighted(G_0)
 --  But we threw out some of the other homology of G.  Let's lookt it by hand.
 H = res(coker F.dd_1,LengthLimit => 2);
 T = tally degrees(H_2)
+(H.dd_2)_{25}
+(H.dd_2)^{3}
+
+--
+oGb = (G.dd_1 % ideal gens E)**E^{{0,1}}
+nGb = Gddbar**E^{{0,1}}
+tally degrees source newGddbar
+tally degrees target newGddbar
+
+source oGb == target nGb
+target oGb == source nGb
+Gbar = chainComplex(nGb,oGb)
+degrees prune HH_1 Gbar
+newG = chainComplex(G.dd_1**E^{{0,1}},G.dd_1)
+needsPackage "Complexes"
+viewHelp "Complexes"
+installPackage "Complexes"
+minimize newG
+
+
+betti Gddbar
+Gddbar
+tally degrees source Gddbar
+tally degrees target Gddbar
+Gbar = chainComplex{Gddbar, Gddbar}
+
+Gbar = chainComplex(Gddbar**E^{{0,1}})
+
+isHomogeneous Gbar
+resGbar = res coker Gddbar;
+tallyToCohomWeighted(resGbar_0)
+
+
+G = multiStepNonMin(2,F,3)
+tallyToCohomWeighted(G_0)
+
+(G.dd_1)_{0,14}^{0,14}
+
+degrees G_0
+degrees G_1
+G.dd_1 % 
+
+
 --  We kept the {1,2} generator but did not include the {-2,4} gens.
 --  Those disappear somehow as the computation proceeds....
 
