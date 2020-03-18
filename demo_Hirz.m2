@@ -116,10 +116,7 @@ G = tateCompute(M,{1,3},6,6,6)
 tallyToCohom(G_0)
 checkCohomGroups(M,G)
 
-G = tateCompute(M,{4,4},2,8,6)
-tallyToCohom(G_0)
-checkCohomGroups(M,G)
-
 --There is still a very notable flaw: to get a big chunk of the cohomology table
---you need to start with a more positive chunk of RR(M).
---Not clear that this will work in general.
+--you seem need to start with a more positive chunk of RR(M).
+--Computationally problematic.  Also not even clear you can reach arbitrarily
+--negative portions of the cohomology table...
