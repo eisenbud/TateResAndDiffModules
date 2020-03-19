@@ -1,95 +1,130 @@
---code to lift a complex to a double complex 
+--code to create a 1-step Cartan-Eilenberg resolution of a 3-term complex C;
+-- that is, a free complex surjecting to C such that the induced map on homology is surjective,
+--and the induced map on cycles and boundaries are also surjective.
 
+///
+restart
+load "CartanEilenberg.m2"
+S = ZZ/101[a,b,c]
+m1 = map(S^2, S^{3:-1}, matrix{{a,b,c},{b,c,a}})
+m2 = map(S^{3:-1},S^{-2},matrix{{c},{b},{a}})
+I = ideal(m1*m2)
+R = S^1/I
+C = chainComplex(R**m1, R**m2)
+prune HH_1 C
+Ures C
+e = CE C
+F = source e
+assert(prune coker HH_1 e == 0)
 
-CE = C -> (
-    --C is a 2-step chain complex. Output is a split  chain complex F of free modules, together with a 
-    --chainComplexMap to C, such that the homology of F is a free module mapping
-    --onto the homology of C.
+F = source CE C
+///
+
+CE = C ->(
+    K := ker C.dd_1;
+    inc := inducedMap(C_1,K);
+    H := coker map(K,C_2,C.dd_2//inc);
+    PH := prune H;
+    HtoPH := (PH.cache#pruningMap)^-1;
+    KtoPH := HtoPH *map(H,K,1);
+    B := image C.dd_1;
+    C1toB := map(B,C_1,1);
+    BtoC0 := map(C_0, B, C.dd_1);
     
-    --first construct the right exact seq C1:  C_2 -> K -> H, where K = ker C.dd_1.
-N' := C_2; 
-N := ker C.dd_1; -- K
-inc := map(C_1 , N, gens N);
-d' := map(N,N',C.dd_2//inc);
-N'' := coker d'; --H
-d'' := map(N'', N, 1);
-assert(prune N'' == prune HH_1 C);
-C1 := chainComplex{d'',d'};
+    eB := map(B, cover B, 1);
+    FB := source eB;
+    e0 := map(C_0, cover C_0, 1);
+    F0 := source e0;
+    FBtoF0 := map(F0,FB, (BtoC0*eB)//e0);
+        
+    e2 := map(C_2,cover C_2, 1);
+    F2 := source e2;
+    ePH := map(PH, cover PH, 1);
+    FPH := source ePH;
+        
+    FK := F2++FPH;
+    eK := (C.dd_2*e2*FK^[0])//inc + ((ePH*FK^[1])//KtoPH);
+        
+    F1:= (F2++FPH)++FB;
+    F1':= F2++(FPH++FB);
+    d2 := F1'_[0];
+    d1 := FBtoF0*F1^[1];
+    e1 := inc * eK *(F1^[0]) + (eB*F1^[1])//C1toB;
+    e := {e0,e1,e2};
+    F := chainComplex(d1,d2);
 
-e1 := Ures C1; --map of complexes F1 -> C1
+    assert (F.dd^2==0);
+    assert(e_1*F.dd_2 == C.dd_2*e_2);
+    assert(e_0*F.dd_1 == C.dd_1*e_1);
 
---now construct the complex C2: K -> C_1 -> B
-N1' = N;
-N1 = C_1;
-N1'' = coker C.dd_2;
-d1' = map(N1, N1', matrix C.dd_2);
-d1'' = map(N1'', N1,1);
-C2 = chainComplex{d1'',d1'};
-assert(C2.dd^2 ==0);
-
-e2 = Ures (C2, e1_1, map(N1'', source gens N1'', 1)); map of complexes F2 -> C2
-F2 = source e2;
-
-FF0 = cover C_0
-inc = map(C_0, C2_0, matrix C.dd_1)
-inc2 = map(FF0, F2_0, (inc*e2_0)//map(C_0, FF0, 1))
-dd2 = inc2*F2.dd_1
-
-FF2 = 
-
-eC0 = map(C_0, source gens C_0, 1);
-eC1 = e2_1;
-eC2 = e1_2;
-e' = e1_0;
-e = e2_1;
-e'' = map(C_0, source gens C_0, 1);
-error();
-(e', e, e'')
-
-d' = map(source e, source e',(C.dd_2*(e'//map(target e', C_2,1)))
-d'' = map(C_0
---target e
+    map(C,F,i->e_i)
 )
-
+    
+    
 Ures = method()
 Ures ChainComplex := C -> (
-    --C is a right exact chain complex N' -> N -> N'' -> 0 of modules. Output is a 
-    --split exact sequence of free modules
-    --with a ChainComplexMap to MM.
+    --C is a right exact chain complex C_2 -> C_1 -> C_0 -> 0 of modules. 
 --construct the diagram
---     FN' -->FN     -->          FN''
---     |eN' d' |eN           d''  |eN''
---N' = C_2 --> N = ker C.dd_1 --> N'' = HH_1 C --> 0
---with FN = FN'++FN'' free modules
---from the complex
---C: C_2 --> C_1 --> C_0
-    N' = C_2;N = C_1;N'' = C_0;
-    eN' := map(N', source gens N', 1);
-    eN'':= map(N'', source gens N'', 1);
-    eN := map(N, source eN'++source eN'', matrix{{C.dd_2*eN', eN''//C.dd_1}});
-    F := chainComplex{(source eN)^[1],(source eN)_[0]};
-    map(C,F, i-> {eN'', eN, eN'}_i)
+--     F_2 --> F_1     -->   F_0
+--     |e_2 d' |e_1     d''  |e_0
+--    C_2 --> C_1 -->        C_0
+--with F_1 = F_2++F_0 free modules
+    e2 := map(C_2, source gens C_2, 1);
+    e0:= map(C_0, source gens C_0, 1);
+    Ures0(C,{e0,e2})
 )
 
-Ures(ChainComplex, Matrix, Matrix) :=  (C, e',e'') ->(
-    N' = C_2;N = C_1;N'' = C_0;
-    eN' := e';
-    eN'':= e'';
-    eN := map(N, source eN'++source eN'', matrix{{C.dd_2*eN', eN''//C.dd_1}});
-    F := chainComplex{(source eN)^[1],(source eN)_[0]};
-    map(C,F, i-> {eN'', eN, eN'}_i)
-)
+
+Ures0 = (C, e) ->(
+    --C is a right exact chain complex N' -> N -> N'' -> 0 of modules. Output is a 
+    --split exact sequence of free modules
+    --with a surjective ChainComplexMap to MM
+    --construct the diagram
+    --     F_2 -->F_1     -->   F_0
+    --     |e_2 d_2 |e_1  d_1   |e_0
+    --    C_2 --> C_1     -->   C_0 --> 0
+    --with FN = FN'++FN'' free modules
+    --from the complex
+    --C: C_2 --> C_1 --> C_0 -->0
+    --
+    --e = {e_0,e_2}, maps from free modules are given
+    (e0,e2) := (e_0,e_1);
+    e1 := map(C_1, source e0 ++ source e2, matrix{{e0//C.dd_1 , C.dd_2*e2}});
+    e' := {e0,e1,e2};
+    dF1 := map(source e'_0, source e'_1, (C.dd_1*e'_1)//e'_0);
+    dF2 := (source (e'_1))_[1];
+    F := chainComplex{dF1,dF2};
+    assert (F.dd^2==0);
+    assert(e'_1*F.dd_2 == C.dd_2*e'_2);
+    assert(e'_0*F.dd_1 == C.dd_1*e'_1);
+    map(C,F,i->e'_i)
+    )
     
 end--
 restart
 load "CartanEilenberg.m2"
+
+TEST///
 S = ZZ/101[x]
 M = S^1/x^3
 d = map(M, M**S^{-1}, x^2)
 C=chainComplex{d**S^{1},d}
 C.dd^2==0
-CE C
+e0 = map(C_0, cover C_0,1)
+e2 = map(C_2, cover C_2,1)
+e = {e0,e2}
+e' = Ures0(C,e)
+F = source e'
+assert (F.dd^2==0);
+assert(e'_1*F.dd_2 == C.dd_2*e'_2)
+assert(e'_0*F.dd_1 == C.dd_1*e'_1)
+assert(Ures C == Ures0(C,e))
+e = CE C
+///
 
+
+--------
+CE C
 N' = C_2
 N = ker C.dd_1
 inc = map(C_1 , N, gens N)
