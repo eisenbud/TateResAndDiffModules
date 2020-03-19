@@ -2,23 +2,6 @@
 -- that is, a free complex surjecting to C such that the induced map on homology is surjective,
 --and the induced map on cycles and boundaries are also surjective.
 
-///
-restart
-load "CartanEilenberg.m2"
-S = ZZ/101[a,b,c]
-m1 = map(S^2, S^{3:-1}, matrix{{a,b,c},{b,c,a}})
-m2 = map(S^{3:-1},S^{-2},matrix{{c},{b},{a}})
-I = ideal(m1*m2)
-R = S^1/I
-C = chainComplex(R**m1, R**m2)
-prune HH_1 C
-Ures C
-e = CE C
-F = source e
-assert(prune coker HH_1 e == 0)
-
-F = source CE C
-///
 
 CE = C ->(
     K := ker C.dd_1;
@@ -104,42 +87,34 @@ end--
 restart
 load "CartanEilenberg.m2"
 
+S = ZZ/101[a,b,c]
+m1 = map(S^2, S^{3:-1}, matrix{{a,b,c},{b,c,a}})
+m2 = map(S^{3:-1},S^{-2},matrix{{c},{b},{a}})
+I = ideal(m1*m2)
+R = S^1/I
+C = chainComplex(R**m1, R**m2)
+prune HH_1 C
+Ures C
+e = CE C
+F = source e
+assert(prune coker HH_1 e == 0)
+
+F = source CE C
+
+
+
 TEST///
 S = ZZ/101[x]
 M = S^1/x^3
 d = map(M, M**S^{-1}, x^2)
 C=chainComplex{d**S^{1},d}
 C.dd^2==0
-e0 = map(C_0, cover C_0,1)
-e2 = map(C_2, cover C_2,1)
-e = {e0,e2}
-e' = Ures0(C,e)
-F = source e'
-assert (F.dd^2==0);
-assert(e'_1*F.dd_2 == C.dd_2*e'_2)
-assert(e'_0*F.dd_1 == C.dd_1*e'_1)
-assert(Ures C == Ures0(C,e))
 e = CE C
+F = source e
+assert (F.dd^2==0);
+assert(e_1*F.dd_2 == C.dd_2*e_2)
+assert(e_0*F.dd_1 == C.dd_1*e_1)
+assert(prune coker HH_1 e == 0)
 ///
 
 
---------
-CE C
-N' = C_2
-N = ker C.dd_1
-inc = map(C_1 , N, gens N)
-d' = map(N,N',C.dd_2//inc)
-N'' = coker d'
-d'' = map(N'', N, 1)
-assert(prune N'' == prune HH_1 C)
-eN'' = map(coker d', source gens coker d', 1)
-eN' = map(N', source gens N', 1)
-C.dd_2*eN' ++ eN''//d''
-
-
-C = chainComplex{d'',d'}
-e = Ures C
-F = source e
-prune HH_1 F
-(ker e).dd^2
-Ures ker e
