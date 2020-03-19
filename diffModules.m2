@@ -323,8 +323,8 @@ RRfunctor(Module,List,List) := (M,L,v) ->(
     f0 := gens image basis(L_0,M);
     scan(#L-1,i-> f0 = f0 | gens image basis(L_(i+1),M));
     --f0 is the basis for M in degrees given by L
-    df0 := apply(degrees source f0,i-> i|{0});
-    df1 := apply(degrees source f0,i-> i|{-1});
+    df0 := apply(degrees source f0,i-> (-1)*i|{0});
+    df1 := apply(degrees source f0,i-> (-1)*i|{-1});
     SE := S**E;
     tr := sum(v, i-> SE_i*SE_(dim S+i));
     newf0 := sub(f0,SE)*tr;
