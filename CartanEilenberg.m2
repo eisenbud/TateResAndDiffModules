@@ -5,16 +5,20 @@ CE = C -> (
     --C is a 2-step chain complex. Output is a split  chain complex F of free modules, together with a 
     --chainComplexMap to C, such that the homology of F is a free module mapping
     --onto the homology of C.
-N' := C_2;
-N := ker C.dd_1;
+    
+    --first construct the right exact seq C1:  C_2 -> K -> H, where K = ker C.dd_1.
+N' := C_2; 
+N := ker C.dd_1; -- K
 inc := map(C_1 , N, gens N);
 d' := map(N,N',C.dd_2//inc);
-N'' := coker d';
+N'' := coker d'; --H
 d'' := map(N'', N, 1);
 assert(prune N'' == prune HH_1 C);
 C1 := chainComplex{d'',d'};
-e1 := Ures C1;
 
+e1 := Ures C1; --map of complexes F1 -> C1
+
+--now construct the complex C2: K -> C_1 -> B
 N1' = N;
 N1 = C_1;
 N1'' = coker C.dd_2;
@@ -22,16 +26,29 @@ d1' = map(N1, N1', matrix C.dd_2);
 d1'' = map(N1'', N1,1);
 C2 = chainComplex{d1'',d1'};
 assert(C2.dd^2 ==0);
-e2 = Ures (C2, e1_1, map(N1'', source gens N1'', 1));
 
-map(C_0, N1'', matrix C.dd_1);
+e2 = Ures (C2, e1_1, map(N1'', source gens N1'', 1)); map of complexes F2 -> C2
+F2 = source e2;
+
+FF0 = cover C_0
+inc = map(C_0, C2_0, matrix C.dd_1)
+inc2 = map(FF0, F2_0, (inc*e2_0)//map(C_0, FF0, 1))
+dd2 = inc2*F2.dd_1
+
+FF2 = 
+
 eC0 = map(C_0, source gens C_0, 1);
 eC1 = e2_1;
 eC2 = e1_2;
 e' = e1_0;
 e = e2_1;
 e'' = map(C_0, source gens C_0, 1);
-(source e1_0, source e2_1,source e'')
+error();
+(e', e, e'')
+
+d' = map(source e, source e',(C.dd_2*(e'//map(target e', C_2,1)))
+d'' = map(C_0
+--target e
 )
 
 Ures = method()
