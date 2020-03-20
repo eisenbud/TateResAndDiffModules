@@ -82,11 +82,57 @@ Ures0 = (C, e) ->(
     assert(e'_0*F.dd_1 == C.dd_1*e'_1);
     map(C,F,i->e'_i)
     )
-    
+
+cplxToDM = method()
+cplxToDM ChainComplex := F -> (
+    --F is a 3-term complex
+    minF := min F;
+    maxF := max F;
+    evens := positions (toList(minF..maxF), i->i%2==0);
+    odds := positions (toList(minF..maxF), i->i%2!=0);
+    F0 := directSum apply(evens, i-> F_i);
+    F1 := directSum apply(odds, i-> F_i);
+    D1 := F0_[0]*F.dd_1;
+    D0 := map(F1,F0,F.dd_2*F0^[1]);
+    map(F0++F1,F0++F1, matrix{{0*id_F0,D1},{D0,0*id_F1}})
+	)
+cplxToDM ChainComplex := F -> (
+    --F is a 3-term complex
+    minF := min F;
+    maxF := max F;
+    evens := positions (toList(minF..maxF), i->i%2==0);
+    odds := positions (toList(minF..maxF), i->i%2!=0);
+    F0 := directSum apply(evens, i-> F_i);
+    F1 := directSum apply(odds, i-> F_i);
+    D1 := F0_[0]*F.dd_1;
+    D0 := map(F1,F0,F.dd_2*F0^[1]);
+    map(F0++F1,F0++F1, matrix{{0*id_F0,D1},{D0,0*id_F1}})
+	)
+cplxToDM ChainComplexMap := e -> (
+    --e: F -->C  is a map of complexes
+    --assumes that C is the unfolding of a DM, ie the terms of C are
+    --all the same
+    S := ring e;
+    F := source e;
+    C := target e;
+    minF := min F;
+    maxF := max F;
+    DC := cplxToDM C;
+    DF := cplxToDM F;    
+esum := directSum apply(toList(minF..maxF), i -> e_i);
+etot0 := map(source DC, source DF,esum);
+etot1 := map(target DC, target DF,esum);
+assert(etot0*DF == DC*etot1);
+(etot0, etot1)
+)
+
+DMToCplx = (M,d) -> (
+    d2 = map(source d, , matrix d);
+    chainComplex(d,d2))
+
 end--
 restart
 load "CartanEilenberg.m2"
-
 S = ZZ/101[a,b,c]
 m1 = map(S^2, S^{3:-1}, matrix{{a,b,c},{b,c,a}})
 m2 = map(S^{3:-1},S^{-2},matrix{{c},{b},{a}})
@@ -96,10 +142,21 @@ C = chainComplex(R**m1, R**m2)
 prune HH_1 C
 Ures C
 e = CE C
+etot = cplxToDM e
 F = source e
+Ftot = cplxToDM F
+Ctot = cplxToDM C
+needsPackage "PruneComplex"
+pF = prune F
+pTot = prune Ftot
+F.dd
+pF.dd 
+Ftot == source etot
+Ftot
 assert(prune coker HH_1 e == 0)
 
-F = source CE C
+cplxToDM C
+cplxToDM F
 
 
 
