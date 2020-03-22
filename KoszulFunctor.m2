@@ -1,6 +1,3 @@
-
-
-
 sortedMonomials=method()
 sortedMonomials(Ring) := E -> (
     -- input: E = \Lambda V, an exterior algebra
@@ -10,12 +7,14 @@ sortedMonomials(Ring) := E -> (
     E' := kk[gens E,SkewCommutative=>true];
     bases:= apply(numgens E+1,i->(
     matrix{reverse (entries gens trim (ideal  vars E')^i)_0}));
-    bases1:= apply(numgens E,i->i=>map(E^1,,sub(bases_i,E)));
+    bases1:= apply(numgens E+1,i->i=>map(E^1,,sub(bases_i,E)));
     new HashTable from bases1
     )
 
 -*TEST  /// 
 --Hirzebruch S(2,0)xPP(1,2)
+restart
+load "KoszulFunctor.m2"
 kk=ZZ/101
 S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
 E=kk[e_0..e_5,SkewCommutative=>true,Degrees=>-degrees S ]
@@ -96,14 +95,11 @@ addZeroTerms(1,K2)
 /// 
 *-
 
-
-      
-
 completeToMapOfChainComplexes=method()
 completeToMapOfChainComplexes(ChainComplex,RingElement) := (K,m) -> (
 -- Input: m a monomial in \Lambda^i \subset E, 
 --        K the KoszulComplex
--- Goal:
+-- Goal: map of complexes given by contraction with m
 -- m: K_0 <- K_i the  map which maps m to 1 and the other generators to 0
 -- complete this to a map
 -- K <- K[i]**S^{deg m} of complexes
@@ -118,7 +114,7 @@ completeToMapOfChainComplexes(ChainComplex,RingElement) := (K,m) -> (
    phi1 := extend(K,tstK,phi0,Verify=>true);
    Ke := addZeroTerms(min K- min stK,K);
    stKe :=addZeroTerms(stK,max K-max stK);
-   -- map(K,stK,i->phi1_i)
+-- map(K,stK,i->phi1_i)
    map(Ke,stKe,i->if i >= min K and i <= max stKe then phi1_i else map(Ke_i,stKe_i,0))
 )
 -* TEST ///
@@ -148,19 +144,50 @@ strictlyGreater({1,1},{1,1})
 
 degreeTruncation=method()
 degreeTruncation(Matrix,List) := (M,d) -> (
+    --rows and cols with degrees <= d.
     rows:= positions(degrees target M,d'-> greaterEqual(d,d'));
     columns:= positions(degrees source M,d'-> greaterEqual(d,d'));
-    (M^rows)_columns
+    sourceInc := (id_(source M))_columns;
+    targetInc := (id_(target M))_rows;    
+    ((M^rows)_columns,targetInc,sourceInc)
     )
+-*
+TEST///
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
+S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{1,0,1},{0,0,2}}]
+degrees S
+E=kk[e_0..e_5,SkewCommutative=>true,Degrees=>-degrees S ]
+K=koszul vars S
+M = K.dd_3
+degrees source M
+(tM,ti,ts) = degreeTruncation(M,{1,4,0})
+M*ts == ti*tM
+///
+*-
+isChainComplexMap = phi -> (
+    so = source phi;
+    ta = target phi;
+    mini = max(min so, min ta);
+    maxi = min(max so, max ta);
+   all(toList(mini..maxi-1),i-> phi_(i)*so.dd_(i+1) == ta.dd_(i+1)*phi_(i+1))
+   )
 
 degreeTruncation(ChainComplex,List) := (K,d) -> (
+    --subcomplex where all rows and cols of differentials have degrees <= d.
     a := min K;
     Ka := K[a];
-    tKa:=chainComplex(apply(length Ka,i->degreeTruncation(Ka.dd_(i+1),d)));
-    tKa[-a]
+    L := apply(length Ka,i->degreeTruncation(Ka.dd_(i+1),d));
+    tKa:=chainComplex(apply(length Ka,i->L_i_0));
+    phi := map(K,tKa[-a], i-> if i == a then L_(i-a)_1 else L_(i-a-1)_2);
+    assert(isChainComplexMap phi);
+    phi
     )
 
 degreeTruncationAbove=method()
+    --rows and cols with degrees not <= d.
 degreeTruncationAbove(Matrix,List) := (M,d) -> (
     rows:= positions(degrees target M,d'-> not greaterEqual(d,d'));
     columns:= positions(degrees source M,d'-> not greaterEqual(d,d'));
@@ -168,55 +195,82 @@ degreeTruncationAbove(Matrix,List) := (M,d) -> (
     )
 
 degreeTruncationAbove(ChainComplex,List) := (K,d) -> (
+    -- quotient complex where all rows and cols of differentials have degrees NOT <= d.    
     a := min K;
     Ka := K[a];
     tKa:=chainComplex(apply(length Ka,i->degreeTruncationAbove(Ka.dd_(i+1),d)));
     tKa[-a]
     )
--*
-degreeTruncationAbove=method()
-degreeTruncationAbove(Matrix,List) := (M,d) -> (
+
+strictDegreeTruncationAbove=method()
+
+strictDegreeTruncationAbove(Matrix,List) := (M,d) -> (
+    --rows and cols with degrees > d.
     rows:= positions(degrees target M,d'-> strictlyGreater(d',d));
     columns:= positions(degrees source M,d'-> strictlyGreater(d',d));
     (M^rows)_columns
     )
 
-degreeTruncationAbove(ChainComplex,List) := (K,d) -> (
+strictDegreeTruncationAbove(ChainComplex,List) := (K,d) -> (
+    -- quotient complex where all rows and cols of differentials have degrees >d.    
     a := min K;
     Ka := K[a];
     tKa:=chainComplex(apply(length Ka,i->degreeTruncationAbove(Ka.dd_(i+1),d)));
     tKa[-a]
     )
-*-
--* TEST ///
+
+TEST///
+restart
+load "KoszulFunctor.m2"
 kk=ZZ/101
 S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
+S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{1,0,1},{0,0,2}}]
 degrees S
 E=kk[e_0..e_5,SkewCommutative=>true,Degrees=>-degrees S ]
 K=koszul vars S
 sortedMons = sortedMonomials E
+
 (i,j) = (3,4)
 m=sortedMons#i_{j}_(0,0)
 d=-degree m
-lK=degreeTruncation(K,d)
+
+
+phi = degreeTruncation(K,d)
+lK=source phi
+       
 lK.dd^2
 HlK=HH lK
 prune HlK#1
 prune HlK#2
 prune HlK#3
 uK=degreeTruncationAbove(K,d)
+lK
 HuK=HH uK
 netList apply(toList(2..6),i->prune HuK#i)
-degreeTruncation(K,{0,0,0})
+source degreeTruncation(K,{0,0,0})
+
+for i from 0 to numgens S do(
+    for j from 0 to binomial(numgens S, i)-1 do(
+m = sortedMons#i_{j}_(0,0);
+d = -degree m;
+lK = source degreeTruncation(K,d);
+HlK = HH lK;
+H := apply(toList(0..length lK-1),ell->prune HlK#ell);
+<<(i,m)<<" "<<positions(H, h-> h!=0)<<" "<<endl<<flush;
+))
+--NOTE: there's always 0th homology;
+-- but the other homology degrees seem to form a 
+-- consecutive sequence.
+-- Why??
 ///
-*-
+
 
 --From Daniel, but altered in a wrong way
 degreeSetup=method()
 degreeSetup(Ring,List,ZZ) := (S,lows,c)->(
     -- Input: S a Cox ring
     --      lows =list of starting degrees 
-    --      c number of multiplication
+    --      c number of multiplications
     -- Output: HashTable i=> List of degrees one can obtain 
     --         by multiplication by monomials with i factors
     range := new MutableHashTable;
@@ -228,8 +282,10 @@ degreeSetup(Ring,List,ZZ) := (S,lows,c)->(
     )
 -*
 TEST ///
+
 lows={{0,0,0}}
 c=3
+degreeSetup(S,lows,c)
 M=coker presentation image vars S
 ///
 *-
@@ -238,6 +294,7 @@ concatMatrices(List) := L -> (
     m:= first L;
     scan(#L-1,i->m=m|L_(i+1));
     m)
+
 matrixContract=method()
 matrixContract(Matrix,Matrix) := (M,N) -> (
     assert(rank source M == rank target N); 
@@ -255,12 +312,14 @@ RRfunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
     numvarsE := numgens E;
     ev := map(E,S,vars E);
     range := degreeSetup(S,lows,c);
-    bases := concatMatrices apply(c+1,i->
+    bases := apply(c+1,i->
 	concatMatrices apply(range#i,d->basis(d,M)));
-    bases1 :=map(S^(degrees target bases),, lift(bases,S));
+    bases1 :=apply(bases, B-> map(S^(degrees target B),, lift(B,S)));
+
     SE := S**E;
     tr := sum(dim S, i-> SE_i*SE_(dim S+i));
-    baseTr := tr*sub(bases1,SE);
+    baseTr := apply(bases1, B-> tr*sub(B,SE));
+--    tr*sub(bases,SE) == tr*sub(bases1,SE) -- == false!
     relationsMinSE := sub(relationsM,SE);
     reducedBaseTr := baseTr % relationsMinSE;
     multTable := matrixContract(transpose sub(bases1,SE),reducedBaseTr);
@@ -269,14 +328,16 @@ RRfunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
     )
 
 -* TEST ///
+
 kk=ZZ/101
 S=kk[x_0..x_3,Degrees=>{{1,0},{1,2},2:{0,1}}]
 degrees S
 E=kk[e_0..e_3,SkewCommutative=>true,Degrees=>-degrees S ]
-M=S^1
+M=truncate({1,1},S^1)
 c=2
 lows={{1,0}}
 TM=RRfunctor(M,E,lows,c)
+TM.dd_1
 betti TM
 TM.dd_1
 (TM.dd_1)^2
