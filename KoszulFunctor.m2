@@ -297,12 +297,25 @@ concatMatrices(List) := L -> (
 
 matrixContract=method()
 matrixContract(Matrix,Matrix) := (M,N) -> (
+    S := ring M;
     assert(rank source M == rank target N); 
-    matrix apply(rank target M,i->apply(rank source N,j->
-	    sum(rank source M,k->contract(M_(i,k),N_(k,j) ))
-	    ))
+    --map(target M, , matrix apply(rank target M,i->apply(rank source N,j->
+    transpose map(S^(-degrees source N), , transpose matrix apply(rank target M,i->apply(rank source N,j->		
+           sum(rank source M,k->contract(M_(i,k),N_(k,j) ))
+	    )))
     )
-
+///
+restart
+load"KoszulFunctor.m2"
+kk=ZZ/101
+S=kk[x_0..x_1,Degrees=>{{1,1},{2,1}}]
+E=kk[e_0..e_1,SkewCommutative=>true,Degrees=>-degrees S ]
+SE := S**E;
+use SE
+M = matrix {{x_0, 0}, {0, x_0}}
+N= matrix {{x_0*e_0}, {x_0*e_1}}
+isHomogeneous( P =matrixContract(M,N))
+///
 RRfunctor = method();
 RRfunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
     -- wrong need to take the level into account
@@ -321,27 +334,51 @@ RRfunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
     baseTr := apply(bases1, B-> tr*sub(B,SE));
 --    tr*sub(bases,SE) == tr*sub(bases1,SE) -- == false!
     relationsMinSE := sub(relationsM,SE);
-    reducedBaseTr := baseTr % relationsMinSE;
-    multTable := matrixContract(transpose sub(bases1,SE),reducedBaseTr);
-    F:= E^(-degrees source bases1);
-    chainComplex map(F,F, sub(multTable,E))
+    reducedBaseTr := apply(baseTr, B-> (B % relationsMinSE));
+    multTable := apply (#bases1-1,i->(
+		       degs = degrees target bases1_(i+1);
+	               degsplus = apply(degs,d ->  d|toList(#d: 0));
+               	       map(E^(degrees source bases1_(i+1)),,
+	                  sub(
+		   matrixContract(transpose map(SE^degsplus,,sub(bases1_(i+1),SE)),
+		                       reducedBaseTr_i)
+		   ,E))));
+    chainComplex{directSum multTable}
+--    F:= E^(-degrees source bases1);
+--    chainComplex map(F,F, sub(multTable,E))
     )
 
 -* TEST ///
+restart
+load "KoszulFunctor.m2"
 
 kk=ZZ/101
-S=kk[x_0..x_3,Degrees=>{{1,0},{1,2},2:{0,1}}]
+S=kk[x_0..x_3,Degrees=>{{1,0,1},{1,2,1},2:{0,1,1}}]
 degrees S
 E=kk[e_0..e_3,SkewCommutative=>true,Degrees=>-degrees S ]
+M=truncate({1,1,1},S^1)
+c=2
+lows={{1,0,1}}
+
+restart
+load "KoszulFunctor.m2"
+
+kk=ZZ/101
+S=kk[x_0..x_1,Degrees=>{{1,1},{2,1}}]
+degrees S
+E=kk[e_0..e_1,SkewCommutative=>true,Degrees=>-degrees S ]
 M=truncate({1,1},S^1)
 c=2
-lows={{1,0}}
+lows={{1,1}}
+
 TM=RRfunctor(M,E,lows,c)
+
 TM.dd_1
 betti TM
 TM.dd_1
 (TM.dd_1)^2
 ///*-
+
 end
 
 restart
