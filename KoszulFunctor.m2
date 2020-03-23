@@ -316,6 +316,7 @@ M = matrix {{x_0, 0}, {0, x_0}}
 N= matrix {{x_0*e_0}, {x_0*e_1}}
 isHomogeneous( P =matrixContract(M,N))
 ///
+
 RRfunctor = method();
 RRfunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
     -- wrong need to take the level into account
@@ -328,21 +329,22 @@ RRfunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
     bases := apply(c+1,i->
 	concatMatrices apply(range#i,d->basis(d,M)));
     bases1 :=apply(bases, B-> map(S^(degrees target B),, lift(B,S)));
-
-    SE := S**E;
+--all(bases1,B-> isHomogeneous B)
+    kk:=coefficientRing S;
+    SE := kk[gens S|gens E,Degrees=>degrees S|degrees E];
     tr := sum(dim S, i-> SE_i*SE_(dim S+i));
-    baseTr := apply(bases1, B-> tr*sub(B,SE));
---    tr*sub(bases,SE) == tr*sub(bases1,SE) -- == false!
+--isHomogeneous tr
+    baseTr := apply(bases1, B->
+	 map(SE^(degrees target B),,tr*sub(B,SE)));
+--netList apply(baseTr,m->(isHomogeneous m,degrees target m,degrees source m,m))
     relationsMinSE := sub(relationsM,SE);
     reducedBaseTr := apply(baseTr, B-> (B % relationsMinSE));
-    multTable := apply (#bases1-1,i->(
-		       degs = degrees target bases1_(i+1);
-	               degsplus = apply(degs,d ->  d|toList(#d: 0));
-               	       map(E^(degrees source bases1_(i+1)),,
-	                  sub(
-		   matrixContract(transpose map(SE^degsplus,,sub(bases1_(i+1),SE)),
-		                       reducedBaseTr_i)
-		   ,E))));
+    multTable = apply (#bases1-1,i->(
+           map(E^(degrees source bases1_(i+1)),,
+	       sub(matrixContract(transpose map(SE^(degrees target bases1_(i+1)),,
+			   sub(bases1_(i+1),SE)),reducedBaseTr_i)
+		   ,E))
+	   ));
     chainComplex{directSum multTable}
 --    F:= E^(-degrees source bases1);
 --    chainComplex map(F,F, sub(multTable,E))
@@ -356,9 +358,9 @@ kk=ZZ/101
 S=kk[x_0..x_3,Degrees=>{{1,0,1},{1,2,1},2:{0,1,1}}]
 degrees S
 E=kk[e_0..e_3,SkewCommutative=>true,Degrees=>-degrees S ]
-M=truncate({1,1,1},S^1)
+M=truncate({1,1,0},S^1)
 c=2
-lows={{1,0,1}}
+lows={{1,1,0}}
 
 restart
 load "KoszulFunctor.m2"
@@ -372,9 +374,15 @@ c=2
 lows={{1,1}}
 
 TM=RRfunctor(M,E,lows,c)
+isHomogeneous TM
+multTable
+netList apply(multTable,m->(betti m,degrees target m, degrees source m))
+apply(multTable, m-> isHomogeneous m)
 
 TM.dd_1
+
 betti TM
+
 TM.dd_1
 (TM.dd_1)^2
 ///*-
