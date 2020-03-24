@@ -119,14 +119,18 @@ needsPackage "NormalToricVarieties"
 S = ZZ/101[x_0,x_1,x_2,Degrees =>{1,1,2}];
 E = dualRingToric(S);
 M = S^1;
-F = RRfunctor(M,{1,2,3,4,5})
+F = RRfunctor(M,{0,1,2})
+F.dd_1
+isHomogeneous F.dd_1
+F.dd_1^2 == 0
 
 --  RRfunctor of a module, without the extra grading
 --  "false" gives it without the extra grading.
 E = dualRingToric(S,false);
 M = S^1;
-F = RRfunctor(M,{1,2,3,4,5},false)
+F = RRfunctor(M,{0,1,2},false)
 isHomogeneous F
+
 
 --  Example on a Hirzebruch
 S = ring hirzebruchSurface(2);
