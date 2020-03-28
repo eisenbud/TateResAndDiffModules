@@ -265,7 +265,7 @@ H := apply(toList(0..length lK-1),ell->prune HlK#ell);
 ///
 
 
---From Daniel, but altered in a wrong way
+
 degreeSetup=method()
 degreeSetup(Ring,List,ZZ) := (S,lows,c)->(
     -- Input: S a Cox ring
@@ -298,6 +298,7 @@ concatMatrices(List) := L -> (
 matrixContract=method()
 matrixContract(Matrix,Matrix) := (M,N) -> (
     S := ring M;
+    if M==0 or N==0 then return map(S^(-degrees source N),S^(degrees source M),0);
     assert(rank source M == rank target N); 
     --map(target M, , matrix apply(rank target M,i->apply(rank source N,j->
     transpose map(S^(-degrees source N), , transpose matrix apply(rank target M,i->apply(rank source N,j->		
@@ -319,35 +320,30 @@ isHomogeneous( P =matrixContract(M,N))
 
 RRfunctor = method();
 RRfunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
-    -- wrong need to take the level into account
     S :=ring(M);
     M1 := prune coker presentation M;
     relationsM := gens image presentation M1;
     numvarsE := numgens E;
     ev := map(E,S,vars E);
     range := degreeSetup(S,lows,c);
-    bases := apply(c+1,i->
-	concatMatrices apply(range#i,d->basis(d,M)));
-    bases1 :=apply(bases, B-> map(S^(degrees target B),, lift(B,S)));
---all(bases1,B-> isHomogeneous B)
+    alldegs:= range#0; newdegs:={};
+    scan(toList(1..c),i->(newdegs = select(range#i,d->not member(d,alldegs));
+	    alldegs=alldegs|newdegs));
+    bases := concatMatrices apply(alldegs,d->basis(d,M));
+    bases1 =map(S^(degrees target bases),, lift(bases,S));
+
     kk:=coefficientRing S;
     SE := kk[gens S|gens E,Degrees=>degrees S|degrees E];
     tr := sum(dim S, i-> SE_i*SE_(dim S+i));
---isHomogeneous tr
-    baseTr := apply(bases1, B->
-	 map(SE^(degrees target B),,tr*sub(B,SE)));
+    baseTr := map(SE^(degrees target bases1),,tr*sub(bases1,SE));
 --netList apply(baseTr,m->(isHomogeneous m,degrees target m,degrees source m,m))
     relationsMinSE := sub(relationsM,SE);
-    reducedBaseTr := apply(baseTr, B-> (B % relationsMinSE));
-    multTable = apply (#bases1-1,i->(
-           map(E^(degrees source bases1_(i+1)),,
-	       sub(matrixContract(transpose map(SE^(degrees target bases1_(i+1)),,
-			   sub(bases1_(i+1),SE)),reducedBaseTr_i)
-		   ,E))
-	   ));
-    chainComplex{directSum multTable}
---    F:= E^(-degrees source bases1);
---    chainComplex map(F,F, sub(multTable,E))
+--isHomogeneous relationsMinSE
+    reducedBaseTr:= baseTr % relationsMinSE;
+    F = E^(-degrees source bases1);
+    multTable :=matrixContract(transpose sub(bases1,SE),reducedBaseTr);
+    F:= E^(-degrees source bases1);
+    chainComplex map(F,F, sub(multTable,E))
     )
 
 -* TEST ///
@@ -355,38 +351,54 @@ restart
 load "KoszulFunctor.m2"
 
 kk=ZZ/101
-S=kk[x_0..x_3,Degrees=>{{1,0,1},{1,2,1},2:{0,1,1}}]
+S=kk[x_0..x_2,Degrees=>{{1,0},{1,2},{0,1}}]
 degrees S
-E=kk[e_0..e_3,SkewCommutative=>true,Degrees=>-degrees S ]
-M=truncate({1,1,0},S^1)
-c=2
-lows={{1,1,0}}
+E=kk[e_0..e_2,SkewCommutative=>true,Degrees=>-degrees S ]
+M=S^1
+c=3
+lows={{3,3}}
+
+TM=RRfunctor(M,E,lows,c)
+TM.dd^2
+TM.dd_1
+
 
 restart
 load "KoszulFunctor.m2"
 
 kk=ZZ/101
-S=kk[x_0..x_1,Degrees=>{{1,1},{2,1}}]
+S=kk[x_0..x_2,Degrees=>{2:{1},{2}}]
 degrees S
-E=kk[e_0..e_1,SkewCommutative=>true,Degrees=>-degrees S ]
-M=truncate({1,1},S^1)
+E=kk[e_0..e_2,SkewCommutative=>true,Degrees=>-degrees S ]
+M=truncate({1},S^1)
 c=2
-lows={{1,1}}
+lows={{0}}
 
 TM=RRfunctor(M,E,lows,c)
-isHomogeneous TM
-multTable
-netList apply(multTable,m->(betti m,degrees target m, degrees source m))
-apply(multTable, m-> isHomogeneous m)
-
+assert(isHomogeneous TM)
+assert((TM.dd_1)^2==0)
 TM.dd_1
-
 betti TM
 
-TM.dd_1
-(TM.dd_1)^2
 ///*-
 
+tallyComplex =method()
+-- print degrees of the free modules in a ChainComplex
+tallyComplex(ChainComplex) := F -> apply(toList(min F..max F),
+    i->tally degrees F_i)
+
+annHH=method()
+annHH(ChainComplex) := F -> apply(toList(min F..max F),
+    i->ann HH_i F) 
+
+dimHH=method()
+dimHH(ChainComplex) := F -> apply(toList(min F..max F),
+    i->dim HH_i F) 
+
+relevantAnnHH=method()
+relevantAnnHH(ChainComplex,Ideal) := (F,irr) -> (
+    -- irr the ireelevant ideal
+    apply(toList(min F..max F),i->saturate(ann HH_i F,irr))) 
 end
 
 restart
@@ -395,48 +407,41 @@ debug needsPackage "TateOnProducts"
 --Hirzebruch S(2,0)xPP(1,2)
 kk=ZZ/101
 S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
+irr=ideal(x_0,x_1)*ideal(x_2,x_3)*ideal(x_4,x_5)
 degrees S
 E=kk[e_0..e_5,SkewCommutative=>true,Degrees=>-degrees S ]
 K=koszul vars S
 sortedMons = sortedMonomials E
-(i,j) = (3,4)
+(i,j) = (3,10)
 m=sortedMons#i_{j}_(0,0)
-M=K.dd_i
+M=K.dd_i_{j}
 d=-degree m
+
+F=source degreeTruncation(K,d)
+annHH F
+dimHH F
+n=numgens S
+es=(entries concatMatrices values sortedMons)_0
+apply(es,c->(
+  (i=random n,j= random binomial(n,i),m=sortedMons#i_{j}_(0,0),d=-degree m);
+  F=source degreeTruncation(K,d);
+  (m,tally relevantAnnHH(F,irr))))
+
+
+
+
 phi=completeToMapOfChainComplexes(K,m)
 isHomogeneous phi
+F=target phi
+source phi
+netList tallyComplex F
 
+F=degreeTruncation(target phi,d)
+netList tallyComplex (sF=source F),netList tallyComplex (tF=target F)
+sF
 
--------------------
-debug needsPackage "TateOnProducts"
-(S,E) = (productOfProjectiveSpaces{2,2})
---E = ZZ/101[e_0..e_3, SkewCommutative => true]
---S = 
-sortedBasis({2},E)
-sortedB = (sortedBases E)#1
-sortedB#1
-keys sortedB
-koszulmap(2,sortedB,S)
-koszul(2,vars S)
+sF.dd
+G = degreeTruncation(source phi,d)
+netList tallyComplex (sG=source G),netList tallyComplex (tG=target G)
+sG
 
-
----------------
---Want: the map koszul --> koszul corresponding to diff by e_0
-truncateShiftComplex = (i,K) -> S^{i}**chainComplex(apply(length K -i, j-> (-1)^(i*j)* K.dd_(j+i+1)))
-
-S = ZZ/101[w,x,y,z]
-K = koszul vars S
-K1 = chainComplex apply(2,i->(K[1]).dd_(i+1))
-(K[1])_0
-phi_0 = map(S^{1}**K_0,(K[1])_0,matrix{{1_S,0,0}})
-phi = extend(S^{1}**K,K1, phi_0)
-
---map wedge^k S^n --> S diff by a monomial.
-
-(koszul vars S).dd
-pos = (positions ((entries (sortedBases S)#0#2)_0, i->i==x*y))_0
-K = koszul vars S
-
-phi0=map(K_0,S^{2}**K_2,matrix{apply(rank K_2, i-> if i == pos then 1_S else 0_S)})
-
-extend(K,truncateShiftComplex(2,K),phi0, Verify =>true)
