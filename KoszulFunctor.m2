@@ -95,8 +95,8 @@ addZeroTerms(1,K2)
 /// 
 *-
 
-completeToMapOfChainComplexes=method()
-completeToMapOfChainComplexes(ChainComplex,RingElement) := (K,m) -> (
+completeToMapOfChainComplexes=method(Options =>{Complete => false})
+completeToMapOfChainComplexes(ChainComplex,RingElement) := o -> (K,m) -> (
 -- Input: m a monomial in \Lambda^i \subset E, 
 --        K the KoszulComplex
 -- Goal: map of complexes given by contraction with m
@@ -110,7 +110,8 @@ completeToMapOfChainComplexes(ChainComplex,RingElement) := (K,m) -> (
    stK := K[i]**S^{-degree m}; --shifted twisted K
    assert(degrees source stK.dd_0_{j}==degrees K_0);
    phi0 := matrix{apply(rank stK_0,k->if k==j then 1_S else 0)};
-   tstK := chainComplex apply(r-i,p->stK.dd_(p+1)); -- truncted shifted twisted
+   if o.Complete == false then return extend(K,stK,phi0,Verify=>true);
+      tstK := chainComplex apply(r-i,p->stK.dd_(p+1)); -- truncted shifted twisted
    phi1 := extend(K,tstK,phi0,Verify=>true);
    Ke := addZeroTerms(min K- min stK,K);
    stKe :=addZeroTerms(stK,max K-max stK);
@@ -118,6 +119,8 @@ completeToMapOfChainComplexes(ChainComplex,RingElement) := (K,m) -> (
    map(Ke,stKe,i->if i >= min K and i <= max stKe then phi1_i else map(Ke_i,stKe_i,0))
 )
 -* TEST ///
+restart
+load "KoszulFunctor.m2"
 kk=ZZ/101
 S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
 E=kk[e_0..e_5,SkewCommutative=>true,Degrees=>-degrees S ]
@@ -125,7 +128,14 @@ K=koszul vars S
 sortedMons = sortedMonomials E
 (i1,j1) = (3,4)
 m=sortedMons#i1_{j1}_(0,0)
-phi=completeToMapOfChainComplexes(K,m)
+phi=completeToMapOfChainComplexes(K,m,Complete =>false)
+keys phi
+phi#4
+(cone phi).dd^2
+betti source phi
+betti target phi
+source phi
+target phi
 isHomogeneous phi
 ///
 *-
@@ -180,12 +190,28 @@ degreeTruncation(ChainComplex,List) := (K,d) -> (
     a := min K;
     Ka := K[a];
     L := apply(length Ka,i->degreeTruncation(Ka.dd_(i+1),d));
+--    L := apply(toList(min(K[a]).. max(K[a])-1),i->degreeTruncation(Ka.dd_(i+1),d));    
     tKa:=chainComplex(apply(length Ka,i->L_i_0));
     phi := map(K,tKa[-a], i-> if i == a then L_(i-a)_1 else L_(i-a-1)_2);
     assert(isChainComplexMap phi);
     phi
     )
-
+-*
+///
+restart
+load"KoszulFunctor.m2"
+S = ZZ/101[x_0..x_3]
+K = koszul(vars S)
+(K[3])_(-3) == K_0
+dtK = degreeTruncation(K[3],{2})
+sdtK = source dtK
+target dtK
+sdtK_(-3) == K_0
+sdtK_(-3)== (K[3])_(-3)
+betti sdtK
+sdtK_(-3)
+///
+*-
 degreeTruncationAbove=method()
     --rows and cols with degrees not <= d.
 degreeTruncationAbove(Matrix,List) := (M,d) -> (
@@ -399,11 +425,11 @@ relevantAnnHH=method()
 relevantAnnHH(ChainComplex,Ideal) := (F,irr) -> (
     -- irr the ireelevant ideal
     apply(toList(min F..max F),i->saturate(ann HH_i F,irr))) 
-end
+end--
 
 restart
 load "KoszulFunctor.m2"
-debug needsPackage "TateOnProducts"
+--debug needsPackage "TateOnProducts"
 --Hirzebruch S(2,0)xPP(1,2)
 kk=ZZ/101
 S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
@@ -418,30 +444,86 @@ M=K.dd_i_{j}
 d=-degree m
 
 F=source degreeTruncation(K,d)
+F=source degreeTruncation(K,{1,1,1})
+netList tallyComplex F, netList (tallyComplex K)_{0..5}
 annHH F
+relevantAnnHH (F,irr)
+prune HH_2 F
+primaryDecomposition ann HH_2 F
+irr
 dimHH F
 n=numgens S
 es=(entries concatMatrices values sortedMons)_0
-apply(es,c->(
-  (i=random n,j= random binomial(n,i),m=sortedMons#i_{j}_(0,0),d=-degree m);
-  F=source degreeTruncation(K,d);
-  (m,tally relevantAnnHH(F,irr))))
 
+netList select(apply(es,m->(
+  F=source degreeTruncation(K,-degree m);
+  (m,-degree m,T = tally select(relevantAnnHH(F,irr), I -> I != ideal 1_S and I != ideal 0_S)))),
+p -> #(keys p_2 )>0)
 
+netList unique select(apply(es,m->(
+  F=source degreeTruncation(K,-degree m);
+  (-degree m,T = 
+      tally select(relevantAnnHH(F,irr), 
+	  I -> I != ideal 1_S and I != ideal 0_S),betti F))),
+p -> #(keys p_1 )>0)
+)
 
+phi=completeToMapOfChainComplexes(K,m,Complete => true)
 
-phi=completeToMapOfChainComplexes(K,m)
 isHomogeneous phi
-F=target phi
-source phi
-netList tallyComplex F
 
-F=degreeTruncation(target phi,d)
-netList tallyComplex (sF=source F),netList tallyComplex (tF=target F)
-sF
+d
+e = d-{0,0,1} --- e = d + {0,0,1} works too
+G=target phi
+F= source phi
+phiF = degreeTruncation(F,d)
+F' = source (phiF = degreeTruncation(F,e))
+G' = source (phiG = degreeTruncation(G,e))
+F ==F'
 
-sF.dd
-G = degreeTruncation(source phi,d)
-netList tallyComplex (sG=source G),netList tallyComplex (tG=target G)
-sG
+map(G', F', i->(phi_i * phiF_i)// phiG_i)
+
+--------------
+--weighted proj L
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,4}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+degrees S
+irr=ideal vars S
+E=kk[e_0..e_(numgens S - 1),SkewCommutative=>true,Degrees=>-degrees S ]
+K=koszul vars S
+sortedMons = sortedMonomials E
+d = {2}
+F=source degreeTruncation(K,d)
+netList tallyComplex F, netList (tallyComplex K)_{0..numgens S}
+annHH F
+relevantAnnHH (F,irr)
+n=numgens S
+es=(entries concatMatrices values sortedMons)_0
+
+netList select(apply(es,m->(
+  F=source degreeTruncation(K,-degree m);
+  (m,-degree m,T = tally select(relevantAnnHH(F,irr), I -> I != ideal 1_S and I != ideal 0_S)))),
+p -> #(keys p_2 )>0)
+
+netList 
+U = unique select(apply(es,m->(
+  F=source degreeTruncation(K,-degree m);
+  (m, -degree m,T = 
+      tally select(relevantAnnHH(F,irr), 
+	  I -> I != ideal 1_S and I != ideal 0_S),betti F))),
+p -> #(keys p_2 )>0)
+
+netList (Fs =  apply(es, m -> (F = source degreeTruncation(K,-degree m))))
+    
+netList apply(Fs, F -> (betti F, apply(4, i -> (i,prune  HH_i F))))
+
+ds = reverse sort unique( es/degree)
+Fs =  apply(ds, d -> (F = source degreeTruncation(K,-d)))
+trivial = F -> all(toList(min F..max F), i-> (gens irr) % radical ann HH_i F == 0)
+Fs/trivial
+netList Fs
+
 
