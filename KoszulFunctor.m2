@@ -603,3 +603,11 @@ betti TB, betti T
 TB.dd_1^2
 netList (cplxes=apply(degs,d->source degreeTruncation(K,d)[sum d]))
 netList apply(cplxes,F-> prune HH F)
+use E
+m=e_1*e_2
+phi=completeToMapOfChainComplexes(K,m,Complete => true)
+source phi
+target phi
+tphi=degreeTruncation(phi,{1})
+source tphi
+target tphi
