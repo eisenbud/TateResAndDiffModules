@@ -588,26 +588,139 @@ degs=apply(3,i->{i})
 
 netList (relHH=unique apply(degs,d->(
   F=source degreeTruncation(K,d);(d,prune HH F))))
- 
-M= S^{{3}}
+
+
+BM_0
+apply(toList(-1..2) 
+    prune HH cone BM
+cone BM
+chainComplex(BM,BM)
+
+0*id_(source phi_-1)
+
+netList apply(cplxes,F-> prune HH F)
+use E
+m=e_2
+
+tphi=degreeTruncation(phi,{0})
+source tphi
+target tphi
+tally degrees TB_0
+
+use E
+phi1 = S^{{-1}}**phi
+source phi1
+target phi1
+tphi1=degreeTruncation(phi1,{1})
+source tphi1
+target tphi1
+
+-----------------
+restart
+load"KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,2}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+E=kk[e_0..e_(numgens S - 1),SkewCommutative=>true,Degrees=>-degrees S ]
+K=koszul vars S
+sortedMons = sortedMonomials E
+es=(entries concatMatrices values sortedMons)_0
+
+use S 
+M= S^{{2}}/ideal(x_0,x_1)
 lows={{0}}
 c=2
-degs
+degs = apply(3, i->{i})
 
 elapsedTime betti(TM=RRfunctor(M,E,lows,c))
 T=TM**E^{{6}}
 tally degrees T_0
+tally degrees T_1
 
 TB=beilinsonWindow(T,degs)
+
 betti TB, betti T
 TB.dd_1^2
-netList (cplxes=apply(degs,d->source degreeTruncation(K,d)[sum d]))
-netList apply(cplxes,F-> prune HH F)
+TB.dd
+netList (apply(degs,d->source degreeTruncation(K,d)[sum d]))
+
+cplxes=new HashTable from (    
+    apply(es,m-> (i := #factor sub(m,vars S);
+	(m,source degreeTruncation(K,-degree m)[i]))))
+
 use E
-m=e_1*e_2
-phi=completeToMapOfChainComplexes(K,m,Complete => true)
-source phi
-target phi
-tphi=degreeTruncation(phi,{1})
-source tphi
-target tphi
+m = e_2
+phi=degreeTruncation(completeToMapOfChainComplexes(K,e_2,Complete => true), {0})
+
+tot = source phi++target phi
+
+BM = map(tot, tot, i-> matrix{{0*id_(source phi_i),map(source phi_i, target phi_i, 0)},
+	       {phi_i,0*id_(target phi_i)}})
+BM *BM       
+prune HH coker map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i))
+
+-----------------
+restart
+load"KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,2}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+E=kk[e_0..e_(numgens S - 1),SkewCommutative=>true,Degrees=>-degrees S ]
+K=koszul vars S
+sortedMons = sortedMonomials E
+es=(entries concatMatrices values sortedMons)_0
+
+use S 
+M= S^{{2}}/ideal(x_0,x_2)
+lows={{0}}
+c=2
+degs = apply(3, i->{i})
+
+elapsedTime betti(TM=RRfunctor(M,E,lows,c))
+T=TM**E^{{6}}
+tally degrees T_0
+tally degrees T_1
+
+TB=beilinsonWindow(T,degs)
+
+betti TB, betti T
+TB.dd_1^2
+TB.dd
+mNetlist (apply(degs,d->source degreeTruncation(K,d)[sum d]))
+
+cplxes=new HashTable from (    
+    apply(es,m-> (i := #factor sub(m,vars S);
+	(m,source degreeTruncation(K,-degree m)[i]))))
+
+use E
+m = e_1
+phi0=degreeTruncation(completeToMapOfChainComplexes(K,e_1,Complete => true), {0})
+phi1=degreeTruncation(completeToMapOfChainComplexes(K,e_1,Complete => true), {1})[1]**S^{{1}}
+phi0*phi1
+betti source phi0,betti target phi1
+TB.dd
+netList {source phi0, target phi0},netList {source phi1, target phi1}
+
+tot = source phi1 ++ target phi1 ++ target phi0
+target phi1 == source phi0
+
+BM = map(tot, tot, i-> matrix{
+{0*id_(source phi1_i), map(source phi1_i, target phi1_i, 0), map(source phi1_i, target phi0_i, 0)},
+{phi1_i,               map(target phi1_i, target phi1_i, 0), map(target phi1_i, target phi0_i, 0)},
+{map(target phi0_i,    source phi1_i,0),    phi0_i,             0*id_(target phi0_i)}
+	      })
+      
+A = apply(toList(-2..2),    i-> matrix{
+{0*id_(source phi1_i), map(source phi1_i, target phi1_i, 0), map(source phi1_i, target phi0_i, 0)},
+{phi1_i,               map(target phi1_i, target phi1_i, 0), map(target phi1_i, target phi0_i, 0)},
+{map(target phi0_i,    source phi1_i,0),    phi0_i,             0*id_(target phi0_i)}
+	      })
+
+(A/target)/betti
+tallyComplex tot
+apply(-2..2, i-> betti tot_i)
+
+BM *BM       
+prune HH coker map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i))
