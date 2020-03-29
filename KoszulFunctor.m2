@@ -196,6 +196,7 @@ degreeTruncation(ChainComplex,List) := (K,d) -> (
     assert(isChainComplexMap phi);
     phi
     )
+
 -*
 ///
 restart
@@ -210,6 +211,47 @@ sdtK_(-3) == K_0
 sdtK_(-3)== (K[3])_(-3)
 betti sdtK
 sdtK_(-3)
+///
+*-
+
+degreeTruncation(ChainComplexMap,List) := (phi,d) -> (
+    G := target phi;
+    F := source phi;
+    phiF := degreeTruncation(F,d);
+    F' := source (phiF = degreeTruncation(F,d));
+    G' := source (phiG = degreeTruncation(G,d));
+    map(G', F', i->(phi_i * phiF_i)// phiG_i)
+    )
+
+
+
+
+-*///
+restart
+load "KoszulFunctor.m2"
+--debug needsPackage "TateOnProducts"
+--Hirzebruch S(2,0)xPP(1,2)
+kk=ZZ/101
+S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
+irr=ideal(x_0,x_1)*ideal(x_2,x_3)*ideal(x_4,x_5)
+degrees S
+E=kk[e_0..e_5,SkewCommutative=>true,Degrees=>-degrees S ]
+K=koszul vars S
+sortedMons = sortedMonomials E
+(i,j) = (3,10)
+m=sortedMons#i_{j}_(0,0)
+phi=completeToMapOfChainComplexes(K,m,Complete => true)
+d=-degree m
+phiTrunc=degreeTruncation(phi,d)
+source phiTrunc
+target phiTrunc
+
+phiTruncShifted=degreeTruncation(phi**S^{-{1,2,1}},d)
+source phiTruncShifted
+target phiTruncShifted
+conePhi=cone phiTruncShifted
+conePhi.dd^2
+
 ///
 *-
 degreeTruncationAbove=method()
@@ -425,6 +467,23 @@ relevantAnnHH=method()
 relevantAnnHH(ChainComplex,Ideal) := (F,irr) -> (
     -- irr the ireelevant ideal
     apply(toList(min F..max F),i->saturate(ann HH_i F,irr))) 
+
+
+beilinsonWindow=method()
+beilinsonWindow(ChainComplex,List) := (T,degs) -> (
+    --Input: T a Tate DM module,
+    --     : degs the relevant degrees 
+    --Output: The restiction of T to these degrees
+    pos:=positions(degrees T_0,d->member(d,degs));
+    chainComplex(T.dd_1_pos^pos) 
+    )
+ 
+-*///
+beilinsonWindow(T,degs)
+///*-
+
+
+
 end--
 
 restart
@@ -460,19 +519,32 @@ netList select(apply(es,m->(
   (m,-degree m,T = tally select(relevantAnnHH(F,irr), I -> I != ideal 1_S and I != ideal 0_S)))),
 p -> #(keys p_2 )>0)
 
-netList unique select(apply(es,m->(
+netList (nonTrivList=unique select(apply(es,m->(
   F=source degreeTruncation(K,-degree m);
   (-degree m,T = 
       tally select(relevantAnnHH(F,irr), 
-	  I -> I != ideal 1_S and I != ideal 0_S),betti F))),
-p -> #(keys p_1 )>0)
-)
+	  I -> I != ideal 1_S),betti F))),
+p -> #(keys p_1 )>0))
+nonTrivDegs=sort apply(nonTrivList,c->c_0)
+#nonTrivDegs
+netList apply(nonTrivDegs,d->(F=source degreeTruncation(K,d);
+	(d,prune HH F)))
+degES=sort unique apply(es,m->-degree m)   
+trivDegs = select(degES,d->not member(d,nonTrivDegs))
+netList apply(trivDegs,d->(F=source degreeTruncation(K,d);
+	(d,prune HH F)))
+
+source degreeTruncation(K,{3,3,2})==source degreeTruncation(K,{2,3,2})
+F=source degreeTruncation(K,d);(d,prune HH F)
+relevantAnnHH(F,irr)
+
+
 
 phi=completeToMapOfChainComplexes(K,m,Complete => true)
 
 isHomogeneous phi
 
-d
+d=-degree m
 e = d-{0,0,1} --- e = d + {0,0,1} works too
 G=target phi
 F= source phi
@@ -483,12 +555,15 @@ F ==F'
 
 map(G', F', i->(phi_i * phiF_i)// phiG_i)
 
+
+
+
 --------------
 --weighted proj L
 restart
 load "KoszulFunctor.m2"
 kk=ZZ/101
-L = {1,1,4}
+L = {1,1,2}
 S=kk[x_0..x_(#L-1),Degrees=>L]
 degrees S
 irr=ideal vars S
@@ -500,30 +575,31 @@ F=source degreeTruncation(K,d)
 netList tallyComplex F, netList (tallyComplex K)_{0..numgens S}
 annHH F
 relevantAnnHH (F,irr)
+prune HH F
 n=numgens S
 es=(entries concatMatrices values sortedMons)_0
 
-netList select(apply(es,m->(
+netList (relEs=select(apply(es,m->(
   F=source degreeTruncation(K,-degree m);
-  (m,-degree m,T = tally select(relevantAnnHH(F,irr), I -> I != ideal 1_S and I != ideal 0_S)))),
-p -> #(keys p_2 )>0)
+  (m,-degree m,T = tally select(relevantAnnHH(F,irr), I -> I != ideal 1_S)))),
+p -> #(keys p_2 )>0))
+relDegs=apply(relEs,m->-degree m_0)
+degs=apply(3,i->{i})
 
-netList 
-U = unique select(apply(es,m->(
-  F=source degreeTruncation(K,-degree m);
-  (m, -degree m,T = 
-      tally select(relevantAnnHH(F,irr), 
-	  I -> I != ideal 1_S and I != ideal 0_S),betti F))),
-p -> #(keys p_2 )>0)
+netList (relHH=unique apply(degs,d->(
+  F=source degreeTruncation(K,d);(d,prune HH F))))
+ 
+M= S^{{3}}
+lows={{0}}
+c=2
+degs
 
-netList (Fs =  apply(es, m -> (F = source degreeTruncation(K,-degree m))))
-    
-netList apply(Fs, F -> (betti F, apply(4, i -> (i,prune  HH_i F))))
+elapsedTime betti(TM=RRfunctor(M,E,lows,c))
+T=TM**E^{{6}}
+tally degrees T_0
 
-ds = reverse sort unique( es/degree)
-Fs =  apply(ds, d -> (F = source degreeTruncation(K,-d)))
-trivial = F -> all(toList(min F..max F), i-> (gens irr) % radical ann HH_i F == 0)
-Fs/trivial
-netList Fs
-
-
+TB=beilinsonWindow(T,degs)
+betti TB, betti T
+TB.dd_1^2
+netList (cplxes=apply(degs,d->source degreeTruncation(K,d)[sum d]))
+netList apply(cplxes,F-> prune HH F)
