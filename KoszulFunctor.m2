@@ -615,7 +615,7 @@ tphi1=degreeTruncation(phi1,{1})
 source tphi1
 target tphi1
 
------------------
+----------------- Example: The stacky point on P(1,1,2)
 restart
 load"KoszulFunctor.m2"
 kk=ZZ/101
@@ -659,8 +659,12 @@ BM = map(tot, tot, i-> matrix{{0*id_(source phi_i),map(source phi_i, target phi_
 	       {phi_i,0*id_(target phi_i)}})
 BM *BM       
 prune HH coker map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i))
+-- up to twist and shift this is the desired answer
 
------------------
+
+
+
+----------------- Example: a smooth point on P(1,1,2) -- correct up to tist and shift
 restart
 load"KoszulFunctor.m2"
 kk=ZZ/101
@@ -676,10 +680,10 @@ use S
 M= S^{{2}}/ideal(x_0,x_2)
 lows={{0}}
 c=2
-degs = apply(3, i->{i})
+degs = apply(sum L, i->{i})
 
 elapsedTime betti(TM=RRfunctor(M,E,lows,c))
-T=TM**E^{{6}}
+T=TM**E^{{5}}
 tally degrees T_0
 tally degrees T_1
 
@@ -688,7 +692,7 @@ TB=beilinsonWindow(T,degs)
 betti TB, betti T
 TB.dd_1^2
 TB.dd
-mNetlist (apply(degs,d->source degreeTruncation(K,d)[sum d]))
+netList (apply(degs,d->source degreeTruncation(K,d)[sum d]))
 
 cplxes=new HashTable from (    
     apply(es,m-> (i := #factor sub(m,vars S);
@@ -698,29 +702,61 @@ use E
 m = e_1
 phi0=degreeTruncation(completeToMapOfChainComplexes(K,e_1,Complete => true), {0})
 phi1=degreeTruncation(completeToMapOfChainComplexes(K,e_1,Complete => true), {1})[1]**S^{{1}}
-phi0*phi1
-betti source phi0,betti target phi1
-TB.dd
-netList {source phi0, target phi0},netList {source phi1, target phi1}
+phi2=degreeTruncation(completeToMapOfChainComplexes(K,e_1,Complete => true), {2})[2]**S^{{2}}
 
-tot = source phi1 ++ target phi1 ++ target phi0
-target phi1 == source phi0
+phi0*phi1, phi1*phi2
+
+TB.dd
+netList {source phi0, target phi0},netList {source phi1, target phi1}, netList  {source phi2, target phi2},
+netList {target phi0, source phi1, source phi2}
+source phi0==target phi1, source phi1==target phi2 
+tot = source phi2 ++ source phi1 ++ source phi0++ target phi0
+
 
 BM = map(tot, tot, i-> matrix{
-{0*id_(source phi1_i), map(source phi1_i, target phi1_i, 0), map(source phi1_i, target phi0_i, 0)},
-{phi1_i,               map(target phi1_i, target phi1_i, 0), map(target phi1_i, target phi0_i, 0)},
-{map(target phi0_i,    source phi1_i,0),    phi0_i,             0*id_(target phi0_i)}
-	      })
-      
-A = apply(toList(-2..2),    i-> matrix{
-{0*id_(source phi1_i), map(source phi1_i, target phi1_i, 0), map(source phi1_i, target phi0_i, 0)},
-{phi1_i,               map(target phi1_i, target phi1_i, 0), map(target phi1_i, target phi0_i, 0)},
-{map(target phi0_i,    source phi1_i,0),    phi0_i,             0*id_(target phi0_i)}
-	      })
+{0*id_(source phi2_i), map(source phi2_i, source  phi1_i, 0), map(source phi2_i, source phi0_i, 0), map(source phi2_i, target phi0_i, 0)},
+   {phi2_i,            map(source phi1_i, source  phi1_i, 0), map(source phi1_i, source phi0_i, 0), map(source phi1_i, target phi0_i, 0)},
+{map(source phi0_i, source  phi2_i, 0), phi1_i,               map(source phi0_i, source phi0_i, 0), map(source phi0_i, target phi0_i, 0)},
+{map(target phi0_i, source  phi2_i, 0), map(target phi0_i, source phi1_i, 0),       phi0_i,         map(target phi0_i, target phi0_i, 0)}
+})      
 
-(A/target)/betti
-tallyComplex tot
-apply(-2..2, i-> betti tot_i)
+A=apply(toList(-3..0), i-> 
+matrix{{0*id_(source phi2_i), map(source phi2_i, source  phi1_i, 0), map(source phi2_i, source phi0_i, 0), map(source phi2_i, target phi0_i, 0)},
+   {phi2_i,            map(source phi1_i, source  phi1_i, 0), map(source phi1_i, source phi0_i, 0), map(source phi1_i, target phi0_i, 0)},
+{map(source phi0_i, source  phi2_i, 0), phi1_i,               map(source phi0_i, source phi0_i, 0), map(source phi0_i, target phi0_i, 0)},
+{map(target phi0_i, source  phi2_i, 0), map(target phi0_i, source phi1_i, 0),       phi0_i,         map(target phi0_i, target phi0_i, 0)}}
+)      
 
-BM *BM       
-prune HH coker map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i))
+
+
+BM * BM == 0       
+prune HH coker map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i)) 
+presentation M -- homological degree and twist have to be adapted
+
+-------- On a general weighted projective space
+restart
+load"KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,2}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+E=kk[e_0..e_(numgens S - 1),SkewCommutative=>true,Degrees=>-degrees S ]
+K=koszul vars S
+sortedMons = sortedMonomials E
+es=(entries concatMatrices values sortedMons)_0
+
+-- derived category should have O(d) with d in - reverse {0,1,.., sum(L)-1}
+-- as natural generators (basis?)
+
+degs=apply(sum L,i->{-i})
+
+--phi2=degreeTruncation(completeToMapOfChainComplexes(K,e_1,Complete => true), {2})[2]**S^{{2}}
+
+
+possiblePairs = select(flatten apply(degs,d->apply(es,m -> (d,m))), dm-> member(dm_0+degree dm_1,degs)) 
+
+netList (allPhi=apply(possiblePairs,dm->(
+	d=dm_0;m=dm_1;
+	phi=completeToMapOfChainComplexes(K,m,Complete => true);
+	degreeTruncation(phi,-d)[sum d]**S^{d})))
+netList apply(allPhi,phi-> (target phi,source phi))
