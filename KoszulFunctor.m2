@@ -788,7 +788,7 @@ all(minusNonTrivialOks,ab->(
 	pos=positions(apply(keys phis,k->k_1),m->m==-(ab_0_1*ab_1_1));
 	k=first select((keys phis)_pos,k->k_0==ab_0_0);
 	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
-	K = -phis#k[-factors(ab_0_1,sortedMons)];
+	K = -phis#k[factors(ab_1_1,sortedMons)];
         assert(target AB== target K and source AB==source K );
 	AB==K or AB==-K))
 all(plusNonTrivialOks,ab->(
@@ -796,7 +796,7 @@ all(plusNonTrivialOks,ab->(
 	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1));
 	k=first select((keys phis)_pos,k->k_0==ab_0_0);
 	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
-	K = phis#k[-factors(ab_0_1,sortedMons)];
+	K = phis#k[factors(ab_1_1,sortedMons)];
         assert(target AB== target K and source AB==source K );
 	AB==K or AB==-K))
 all(nonTrivialOks,ab->(
@@ -804,7 +804,7 @@ all(nonTrivialOks,ab->(
 	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1) or m==-(ab_0_1*ab_1_1));
 	k=first select((keys phis)_pos,k->k_0==ab_0_0);
 	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
-	K = phis#k[-factors(ab_0_1,sortedMons)];
+	K = phis#k[factors(ab_1_1,sortedMons)];
         assert(target AB== target K and source AB==source K );
 	AB==K or AB==-K))	
 	
