@@ -482,7 +482,9 @@ beilinsonWindow(ChainComplex,List) := (T,degs) -> (
 beilinsonWindow(T,degs)
 ///*-
 
-
+factors=method()
+factors(RingElement,HashTable) := (m,sortedMons) -> (
+    (select(keys sortedMons,k->member(m,(entries sortedMons#k)_0)))_0)
 
 end--
 
@@ -651,7 +653,7 @@ cplxes=new HashTable from (
 
 use E
 m = e_2
-phi=degreeTruncation(completeToMapOfChainComplexes(K,e_2,Complete => true), {0})
+phi=degreeTruncation(completeToMapOfChainComplexes(K,e_2,Complete => true), {0})[-factors(m,sortedMons)]
 
 tot = source phi++target phi
 
@@ -700,9 +702,9 @@ cplxes=new HashTable from (
 
 use E
 m = e_1
-phi0=degreeTruncation(completeToMapOfChainComplexes(K,e_1,Complete => true), {0})
-phi1=degreeTruncation(completeToMapOfChainComplexes(K,e_1,Complete => true), {1})[1]**S^{{1}}
-phi2=degreeTruncation(completeToMapOfChainComplexes(K,e_1,Complete => true), {2})[2]**S^{{2}}
+phi0=degreeTruncation(completeToMapOfChainComplexes(K,m,Complete => true), {0})--[-factors(m,sortedMons)]
+phi1=degreeTruncation(completeToMapOfChainComplexes(K,m,Complete => true), {1})[1]**S^{{1}}--[-factors(m,sortedMons)]
+phi2=degreeTruncation(completeToMapOfChainComplexes(K,m,Complete => true), {2})[2]**S^{{2}}--[-factors(m,sortedMons)]
 
 phi0*phi1, phi1*phi2
 
@@ -737,26 +739,105 @@ presentation M -- homological degree and twist have to be adapted
 restart
 load"KoszulFunctor.m2"
 kk=ZZ/101
-L = {1,1,2}
+L = {1,1,2,3,4}
 S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
 E=kk[e_0..e_(numgens S - 1),SkewCommutative=>true,Degrees=>-degrees S ]
 K=koszul vars S
 sortedMons = sortedMonomials E
-es=(entries concatMatrices values sortedMons)_0
-
+es=drop((entries concatMatrices values sortedMons)_0,1)
 -- derived category should have O(d) with d in - reverse {0,1,.., sum(L)-1}
 -- as natural generators (basis?)
-
 degs=apply(sum L,i->{-i})
 
---phi2=degreeTruncation(completeToMapOfChainComplexes(K,e_1,Complete => true), {2})[2]**S^{{2}}
-
-
 possiblePairs = select(flatten apply(degs,d->apply(es,m -> (d,m))), dm-> member(dm_0+degree dm_1,degs)) 
-
+#oo
 netList (allPhi=apply(possiblePairs,dm->(
 	d=dm_0;m=dm_1;
-	phi=completeToMapOfChainComplexes(K,m,Complete => true);
-	degreeTruncation(phi,-d)[sum d]**S^{d})))
-netList apply(allPhi,phi-> (target phi,source phi))
+	phi=completeToMapOfChainComplexes(K,m,Complete => false);
+	(dm,degreeTruncation(phi,-d)[-factors(m,sortedMons)]**S^{-d})))) 
+
+
+
+phis= new HashTable from allPhi;
+netList (composablePhis = select(
+    apply(keys phis,dm->(dm,select(keys phis, dm' -> dm'_0==dm_0+degree dm_1))),
+      dmL->#dmL_1 >0));
+netList (composablePhis1=flatten apply(composablePhis,ab->(a=ab_0;apply(ab_1,b->(a,b)))))
+netList apply(composablePhis1,ab->(ab,phis#(ab_0),phis#(ab_1)));
+netList apply(composablePhis1,ab->(ab,betti source phis#(ab_0), min source phis#(ab_0),betti target phis#(ab_1), min target phis#(ab_1)))
+oks= select(composablePhis1,ab->betti source phis#(ab_0)==betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
+notOks=  select(composablePhis1,ab->betti source phis#(ab_0)=!=betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
+(#oks,#notOks)
+
+ab=oks_40
+all(oks,ab->
+    (phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])==0 and ab_0_1*ab_1_1==0) or 
+	(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])=!=0 and ab_0_1*ab_1_1=!=0))
+use E
+nonTrivialOks=select (oks,ab->ab_0_1*ab_1_1 !=0)
+minusNonTrivialOks=select(nonTrivialOks,ab->(
+	pos=positions(apply(keys phis,k->k_1),m->m==-(ab_0_1*ab_1_1));
+	#pos>0));
+plusNonTrivialOks=select(nonTrivialOks,ab->(
+	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1));
+	#pos>0));
+
+all(minusNonTrivialOks,ab->(
+--	ab=minusNonTrivialOks_8
+	pos=positions(apply(keys phis,k->k_1),m->m==-(ab_0_1*ab_1_1));
+	k=first select((keys phis)_pos,k->k_0==ab_0_0);
+	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
+	K = -phis#k[-factors(ab_0_1,sortedMons)];
+        assert(target AB== target K and source AB==source K );
+	AB==K or AB==-K))
+all(plusNonTrivialOks,ab->(
+--	ab=minusNonTrivialOks_8
+	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1));
+	k=first select((keys phis)_pos,k->k_0==ab_0_0);
+	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
+	K = phis#k[-factors(ab_0_1,sortedMons)];
+        assert(target AB== target K and source AB==source K );
+	AB==K or AB==-K))
+all(nonTrivialOks,ab->(
+--	ab=minusNonTrivialOks_8
+	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1) or m==-(ab_0_1*ab_1_1));
+	k=first select((keys phis)_pos,k->k_0==ab_0_0);
+	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
+	K = phis#k[-factors(ab_0_1,sortedMons)];
+        assert(target AB== target K and source AB==source K );
+	AB==K or AB==-K))	
+	
+	
+
+
+-- above is a working case 
+
+-*
+-- different signs in the shift do not work:
+netList (allPhi=apply(possiblePairs,dm->(
+	d=dm_0;m=dm_1;
+	phi=completeToMapOfChainComplexes(K,m,Complete => false);
+	(dm,degreeTruncation(phi,-d)[(factors(m,sortedMons))]**S^{-d})))) ;
+
+
+
+phis= new HashTable from allPhi;
+netList (composablePhis = select(
+    apply(keys phis,dm->(dm,select(keys phis, dm' -> dm'_0==dm_0+degree dm_1))),
+      dmL->#dmL_1 >0));
+netList (composablePhis1=flatten apply(composablePhis,ab->(a=ab_0;apply(ab_1,b->(a,b)))));
+--netList apply(composablePhis1,ab->(ab,phis#(ab_0),phis#(ab_1)));
+netList apply(composablePhis1,ab->(ab,betti source phis#(ab_0), min source phis#(ab_0),betti target phis#(ab_1), min target phis#(ab_1)))
+oks= select(composablePhis1,ab->betti source phis#(ab_0)==betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
+notOks=  select(composablePhis1,ab->betti source phis#(ab_0)=!=betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
+(#oks,#notOks)
+
+
+all(oks,ab->
+    (phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])==0 and ab_0_1*ab_1_1==0) or 
+	(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])=!=0 and ab_0_1*ab_1_1=!=0))
+*-
+
+
+    
