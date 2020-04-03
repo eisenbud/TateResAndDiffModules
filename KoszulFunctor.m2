@@ -138,6 +138,7 @@ source phi
 target phi
 isHomogeneous phi
 ///
+
 *-
 
 greaterEqual=method()
@@ -254,6 +255,7 @@ conePhi.dd^2
 
 ///
 *-
+--the following function are not used so far
 degreeTruncationAbove=method()
     --rows and cols with degrees not <= d.
 degreeTruncationAbove(Matrix,List) := (M,d) -> (
@@ -292,7 +294,10 @@ restart
 load "KoszulFunctor.m2"
 kk=ZZ/101
 S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
-S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{1,0,1},{0,0,2}}]
+irr=ideal(x_0,x_1)*ideal(x_2,x_3)*ideal(x_4,x_5)
+--(S,irr) is the Toric variety correpondingto the product of S(3,1) x P(1,2)
+-- a Hirzebruch surface times a weighted projective line
+
 degrees S
 E=kk[e_0..e_5,SkewCommutative=>true,Degrees=>-degrees S ]
 K=koszul vars S
@@ -326,6 +331,31 @@ HlK = HH lK;
 H := apply(toList(0..length lK-1),ell->prune HlK#ell);
 <<(i,m)<<" "<<positions(H, h-> h!=0)<<" "<<endl<<flush;
 ))
+
+
+degsK=sort unique flatten apply(length K+1,i->degrees K_i)
+netList( L=apply(degsK,d->(g=degreeTruncation(K,d);
+    (d,betti target g,betti source g)) ))
+tally apply(L,c->c_1)
+netList(L1=apply(L,c->(c_0,c_2)))
+netList(L2=apply(degsK,d->(d,source degreeTruncation(K,d)) ))
+netList apply(L2,F->prune HH F_1) 
+netList apply(L2,dF->(F=dF_1;tally apply(length F+1,i-> 
+	    saturate(ann prune HH_i F, irr))))
+L3=select(L2,dF->(F=dF_1;#tally apply(length F+1,i-> 
+	    saturate(ann prune HH_i F, irr))>1));
+#L3
+netList (L3HH=apply(L3,dF -> (F=dF_1;d=dF_0;
+	homologicalDegs=select(length F+1,i->
+	    saturate(ann prune HH_i F, irr)!=ideal(1_S));
+	(d,betti F,apply(homologicalDegs,i->(h=prune HH_i F;
+		(i,h,betti h)))) )))
+
+tally apply(L3HH,c->#c_2)
+cplx = new HashTable from L3
+
+keys cplx
+
 --NOTE: there's always 0th homology;
 -- but the other homology degrees seem to form a 
 -- consecutive sequence.
@@ -539,6 +569,11 @@ netList (allPhi=apply(possiblePairs,dm->(
 	d=dm_0;m=dm_1;
 	phi=completeToMapOfChainComplexes(K,m,Complete => false);
 	(dm,degreeTruncation(phi,-d)[-factors(m,sortedMons)]**S^{-d})))) 
+netList (allPhi=apply(possiblePairs,dm->(
+	d=dm_0;m=dm_1;
+	phi=completeToMapOfChainComplexes(K,m,Complete => false);
+	(dm,degreeTruncation(phi,-d)**S^{-d})))) 
+
 phis= new HashTable from allPhi;
 cplx=new HashTable from apply(degs,d->(d,
 	source degreeTruncation(K,-d)[-sum d]**S^{d}))
@@ -547,11 +582,18 @@ lows={{0}}
 c=2
 
 use S
-M= S^1/ideal(x_0,x_1)
+M= S^1/ideal(x_0,x_2)
 use S
-M=S^1/ideal (x_2)
-
-
+M=S^1/ideal (x_1)
+d
+use E
+d
+source phis#(d,e_0)
+unique apply(values phis, c->betti target c)
+use E
+ phis#({-2},e_2), phis#({-1},e_0)
+keys phis
+betti source phis#(d,e_2), betti source phis#({-2},e_0)
 
 elapsedTime betti(TM=RRfunctor(M,E,lows,c))
 T=TM**E^{{4}}
@@ -567,8 +609,11 @@ BM=DMonad(TB,S,degs)
 d,d1
 ee
 ff
+betti target ff[min target ff-min cplx#d], ,betti cplx#d
+betti oo
+betti target shiftedff ,betti cplx#d
 betti target ff, betti cplx#d
-betti source ff, betti cplx#d1
+betti source shiftedff, betti cplx#d1
 
 prune HH coker map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i)) 
 presentation truncate({1},M)
