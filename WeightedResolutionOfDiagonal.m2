@@ -299,7 +299,7 @@ koszulComplex = (R, k) -> (
     for j from 1 to -lastComponent(k) do (
 	mapList = append(mapList, koszulMatrix(R, k, -j));
 	);
-    chainComplex(mapList)
+    if mapList != {} then chainComplex(mapList) else chainComplex({map(R^{{k,-k}}, R^0, 0)})
 )
 
 -*
@@ -430,6 +430,10 @@ RZero = (R) -> (
 --Output: a ChainComplex, R_k.
 rComplex = (R, k, D) -> (
     C := koszulComplex(R, k)[1];
+    if length C == 0 then (
+    	D_0 = C_(-1) ++ D_0;
+	return D;
+	);
     alpha := map(D, C, i -> alphaMatrix(R, k, -i));
     mappingCone(alpha) 
 )
@@ -489,6 +493,11 @@ oo.dd_1
 kernel oo
 --This recovers the first calculation in the ``Resolutions of the diagonal examples" pdf.
 
+S = ZZ/101[x_1, x_2, Degrees => {2,2}, MonomialOrder => Lex];
+R = bigradedTensor(S);
+resDiag(R, {2,2})
+oo.dd_1
+kernel oo
 
 S = ZZ/101[x_1, x_2, Degrees => {1,3}, MonomialOrder => Lex];
 R = bigradedTensor(S);
@@ -530,6 +539,16 @@ HH_1 resDiag(R, {1,1,2,2});
 oo == 0
 HH_2 resDiag(R, {1,1,2,2});
 oo == 0
+
+S = ZZ/101[x_1, x_2, x_3, x_4,  Degrees => {2, 3, 4, 6}, MonomialOrder => Lex]
+R = bigradedTensor(S);
+resDiag(R, {2,3,4,6})
+oo.dd;
+HH_1 resDiag(R, {2,3,4,6});
+oo == 0
+HH_2 resDiag(R, {2,3,4,6});
+oo == 0
+
 
 
 
