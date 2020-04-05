@@ -699,6 +699,8 @@ netList (apply(degs,d->source degreeTruncation(K,d)[sum d]))
 cplxes=new HashTable from (    
     apply(es,m-> (i := #factor sub(m,vars S);
 	(m,source degreeTruncation(K,-degree m)[i]))))
+cplxes#(e_0).dd
+cplxes#(e_1).dd
 
 use E
 m = e_1
@@ -750,22 +752,33 @@ es=drop((entries concatMatrices values sortedMons)_0,1)
 -- as natural generators (basis?)
 degs=apply(sum L,i->{-i})
 
-possiblePairs = select(flatten apply(degs,d->apply(es,m -> (d,m))), dm-> member(dm_0+degree dm_1,degs)) 
+possiblePairs = select(flatten apply(degs,d->apply(es,m -> (d,m))), 
+                                   dm-> member(dm_0+degree dm_1,degs)) 
 #oo
 netList (allPhi=apply(possiblePairs,dm->(
 	d=dm_0;m=dm_1;
 	phi=completeToMapOfChainComplexes(K,m,Complete => false);
-	(dm,degreeTruncation(phi,-d)[-factors(m,sortedMons)]**S^{-d})))) 
+	(dm,degreeTruncation(phi,-d)[-factors(m,sortedMons)]**S^{-d})))) ;
 
 
+-*
+each degree corresp to a complex. 
+We need only these: 0..-omega+1 --> complex (Beilinson window).
 
+each monomial m in E corresponds to maps of complex 
+from a deg to that degree + weighted deg m,
+shifted by the number of factors of m. 
+
+To compose two composable maps, corresp to phis#m *phis#n
+you have to shift the second complex by the number of factors of n.
+*-
 phis= new HashTable from allPhi;
 netList (composablePhis = select(
     apply(keys phis,dm->(dm,select(keys phis, dm' -> dm'_0==dm_0+degree dm_1))),
       dmL->#dmL_1 >0));
 netList (composablePhis1=flatten apply(composablePhis,ab->(a=ab_0;apply(ab_1,b->(a,b)))))
 netList apply(composablePhis1,ab->(ab,phis#(ab_0),phis#(ab_1)));
-netList apply(composablePhis1,ab->(ab,betti source phis#(ab_0), min source phis#(ab_0),betti target phis#(ab_1), min target phis#(ab_1)))
+netList apply(composablePhis1,ab->(ab,betti source phis#(ab_0), min source phis#(ab_0),betti target phis#(ab_1), min target phis#(ab_1)));
 oks= select(composablePhis1,ab->betti source phis#(ab_0)==betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
 notOks=  select(composablePhis1,ab->betti source phis#(ab_0)=!=betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
 (#oks,#notOks)
@@ -775,22 +788,26 @@ all(oks,ab->
     (phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])==0 and ab_0_1*ab_1_1==0) or 
 	(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])=!=0 and ab_0_1*ab_1_1=!=0))
 use E
-nonTrivialOks=select (oks,ab->ab_0_1*ab_1_1 !=0)
+
+nonTrivialOks=select (oks,ab->ab_0_1*ab_1_1 !=0); -- wedge product not 0
+
 minusNonTrivialOks=select(nonTrivialOks,ab->(
 	pos=positions(apply(keys phis,k->k_1),m->m==-(ab_0_1*ab_1_1));
 	#pos>0));
+
 plusNonTrivialOks=select(nonTrivialOks,ab->(
 	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1));
 	#pos>0));
 
 all(minusNonTrivialOks,ab->(
---	ab=minusNonTrivialOks_8
+--ab=minusNonTrivialOks_9
 	pos=positions(apply(keys phis,k->k_1),m->m==-(ab_0_1*ab_1_1));
 	k=first select((keys phis)_pos,k->k_0==ab_0_0);
 	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
 	K = -phis#k[-factors(ab_0_1,sortedMons)];
         assert(target AB== target K and source AB==source K );
 	AB==K or AB==-K))
+
 all(plusNonTrivialOks,ab->(
 --	ab=minusNonTrivialOks_8
 	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1));
@@ -799,6 +816,7 @@ all(plusNonTrivialOks,ab->(
 	K = phis#k[-factors(ab_0_1,sortedMons)];
         assert(target AB== target K and source AB==source K );
 	AB==K or AB==-K))
+
 all(nonTrivialOks,ab->(
 --	ab=minusNonTrivialOks_8
 	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1) or m==-(ab_0_1*ab_1_1));
