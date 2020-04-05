@@ -518,6 +518,11 @@ factors(RingElement,HashTable) := (m,sortedMons) -> (
 
 entry=method()
 entry(RingElement,List,HashTable) := (f,d,sortedMons) -> (
+    -- Input: f an homogeneous element of the exterior algebra
+    --        d the target degree, so d1= d+ +/-degree of m is source degree
+    --        sortedMons : data which should be cached
+    --        uses a globally defined hashTable phis, also to be cached
+    -- return 0 should be improved to rteurn a zero map between the right complexes
     E := ring f;
     if f==0_E then return 0;
     cf := coefficients f;
@@ -529,6 +534,7 @@ entry(RingElement,List,HashTable) := (f,d,sortedMons) -> (
 
 DMonad = method() 
 DMonad(ChainComplex,Ring,List) := (DTate, S, degs) -> (
+    -- Input: 
     TB := beilinsonWindow(DTate,degs);
     tot := directSum apply(degrees TB_0,d->cplx#d);
     Lphi:= apply(rank TB_0,i-> apply(rank TB_1,j-> (
@@ -807,30 +813,8 @@ netList (relHH=unique apply(degs,d->(
   F=source degreeTruncation(K,d);(d,prune HH F))))
 
 
-BM_0
-apply(toList(-1..2) 
-    prune HH cone BM
-cone BM
-chainComplex(BM,BM)
 
-0*id_(source phi_-1)
 
-netList apply(cplxes,F-> prune HH F)
-use E
-m=e_2
-
-tphi=degreeTruncation(phi,{0})
-source tphi
-target tphi
-tally degrees TB_0
-
-use E
-phi1 = S^{{-1}}**phi
-source phi1
-target phi1
-tphi1=degreeTruncation(phi1,{1})
-source tphi1
-target tphi1
 
 ----------------- Example: The stacky point on P(1,1,2)
 restart
@@ -845,13 +829,14 @@ sortedMons = sortedMonomials E
 es=(entries concatMatrices values sortedMons)_0
 
 use S 
-M= S^{{2}}/ideal(x_0,x_1)
+M= S^{{-7}}/ideal(x_0,x_1)
 lows={{0}}
-c=2
-degs = apply(3, i->{i})
+c=5
+degs = apply(4, i->{-i})
 
 elapsedTime betti(TM=RRfunctor(M,E,lows,c))
-T=TM**E^{{6}}
+T=TM**E^{{12}}
+T=TM
 tally degrees T_0
 tally degrees T_1
 
@@ -860,7 +845,7 @@ TB=beilinsonWindow(T,degs)
 betti TB, betti T
 TB.dd_1^2
 TB.dd
-netList (apply(degs,d->source degreeTruncation(K,d)[sum d]))
+netList (apply(degs,d->betti source degreeTruncation(K,-d)[0]))
 
 cplxes=new HashTable from (    
     apply(es,m-> (i := #factor sub(m,vars S);
@@ -869,16 +854,22 @@ cplxes=new HashTable from (
 use E
 m = e_2
 phi=degreeTruncation(completeToMapOfChainComplexes(K,e_2,Complete => true), {0})[-factors(m,sortedMons)]
-
+phi=phi**S^{{-5}}
 tot = source phi++target phi
-
+betti tot, betti source phi, betti target phi
 BM = map(tot, tot, i-> matrix{{0*id_(source phi_i),map(source phi_i, target phi_i, 0)},
 	       {phi_i,0*id_(target phi_i)}})
 BM *BM       
 prune HH coker map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i))
--- up to twist and shift this is the desired answer
+BM
 
-
+BM'=BM**S^{{-5}}
+prune HH coker map(ker BM', source BM', i->BM'_i//inducedMap(target BM'_i,ker BM'_i))
+M
+betti(target phi**S^{{-5}}), betti(source phi**S^{{-5}})
+-- upt to twist korrekt!
+betti (tot**S^{{-5}})
+betti source BM'
 
 
 ----------------- Example: a smooth point on P(1,1,2) -- correct up to tist and shift
@@ -896,11 +887,11 @@ es=(entries concatMatrices values sortedMons)_0
 use S 
 M= S^{{2}}/ideal(x_0,x_2)
 lows={{0}}
-c=2
+c=6
 degs = apply(sum L, i->{i})
 
 elapsedTime betti(TM=RRfunctor(M,E,lows,c))
-T=TM**E^{{5}}
+T=TM**E^{{10}}
 tally degrees T_0
 tally degrees T_1
 
@@ -909,19 +900,20 @@ TB=beilinsonWindow(T,degs)
 betti TB, betti T
 TB.dd_1^2
 TB.dd
-netList (apply(degs,d->source degreeTruncation(K,d)[sum d]))
+netList (apply(degs,d->betti source degreeTruncation(K,d)))
 
 cplxes=new HashTable from (    
     apply(es,m-> (i := #factor sub(m,vars S);
 	(m,source degreeTruncation(K,-degree m)[i]))))
+use E
 cplxes#(e_0).dd
 cplxes#(e_1).dd
 
 use E
 m = e_1
-phi0=degreeTruncation(completeToMapOfChainComplexes(K,m,Complete => true), {0})--[-factors(m,sortedMons)]
-phi1=degreeTruncation(completeToMapOfChainComplexes(K,m,Complete => true), {1})[1]**S^{{1}}--[-factors(m,sortedMons)]
-phi2=degreeTruncation(completeToMapOfChainComplexes(K,m,Complete => true), {2})[2]**S^{{2}}--[-factors(m,sortedMons)]
+phi0=degreeTruncation(completeToMapOfChainComplexes(K,m,Complete => true), {0})[-3]--[-factors(m,sortedMons)]
+phi1=degreeTruncation(completeToMapOfChainComplexes(K,m,Complete => true), {1})[-2]**S^{{1}}--[-factors(m,sortedMons)]
+phi2=degreeTruncation(completeToMapOfChainComplexes(K,m,Complete => true), {2})[-1]**S^{{2}}--[-factors(m,sortedMons)]
 
 phi0*phi1, phi1*phi2
 
@@ -952,6 +944,9 @@ BM * BM == 0
 prune HH coker map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i)) 
 presentation M -- homological degree and twist have to be adapted
 
+BM'=BM**S^{{-1}}[-3]
+prune HH coker map(ker BM', source BM', i->BM'_i//inducedMap(target BM'_i,ker BM'_i)) 
+M
 -------- On a general weighted projective space
 restart
 load"KoszulFunctor.m2"
@@ -1048,3 +1043,37 @@ all(nonTrivialOks,ab->(
 
 
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
