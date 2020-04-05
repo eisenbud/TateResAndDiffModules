@@ -534,18 +534,26 @@ entry(RingElement,List,HashTable) := (f,d,sortedMons) -> (
 
 DMonad = method() 
 DMonad(ChainComplex,Ring,List) := (DTate, S, degs) -> (
-    -- Input: 
+    -- Input: DTate = Tate res as diff module
+    -- S polynomial ring
+    --degs "relevant" degrees: in general 
+    --the degrees corresponding to a full exceptional sequence would be best.
+    --calls on: cplx, a hash table of complexes corresponding to the relevant degrees.
+    --sortedMons: a hash table of the monomials in the exterior algebra.
+    --these two should be cached.
     TB := beilinsonWindow(DTate,degs);
     tot := directSum apply(degrees TB_0,d->cplx#d);
     Lphi:= apply(rank TB_0,i-> apply(rank TB_1,j-> (
-	     d := (degrees TB_0)_i;
-	     d1 := (degrees TB_0)_j;
-	     ee := TB.dd_1_(i,j);
-	     ff := entry(ee,d,sortedMons);     
-	     (map(cplx#d,cplx#d1,q->
+	     d := (degrees TB_0)_i; -- degree of i-th row
+	     d1 := (degrees TB_0)_j; -- degree of j-th col
+	     ee := TB.dd_1_(i,j); --(i,j) entry, as an element of E
+	     ff := entry(ee,d,sortedMons); --map of complexes corresponding to ee.
+	     --probably correct except when ee == 0.
+	     
+	     (map(cplx#d,cplx#d1,q-> -- q-> ff_q would be ideal. Here we return shiftedff_q.
 	     	map((cplx#d)_q,(cplx#d1)_q,if class ff === ZZ then 0 else 
-		(shiftedff= ff[min target ff-min cplx#d];
-		 shiftedff_q))))
+		(shiftedff= ff[min target ff-min cplx#d]; -- maybe "true min"??
+		 shiftedff_q)))) -- possibly wrong twist.
            )));
     map(tot,tot,p->matrix apply(rank TB_0,i-> apply(rank TB_1,j-> (Lphi_i_j)_p)))
 )
@@ -582,7 +590,14 @@ netList (allPhi=apply(possiblePairs,dm->(
 
 phis= new HashTable from allPhi;
 cplx=new HashTable from apply(degs,d->(d,
-	source degreeTruncation(K,-d)[-sum d]**S^{d}))
+	source degreeTruncation(K,-d)[-sum d]**S^{d})
+)
+
+netList (allPhi=apply(possiblePairs,dm->(
+	d=dm_0;m=dm_1;d1 = d-degree m;
+	phi=completeToMapOfChainComplexes(K,m,Complete => false);
+	map(cplx#d,cplx#d1,phi)
+	--(dm,degreeTruncation(phi,-d)**S^{-d})))) 
 
 lows={{0}}
 c=2
