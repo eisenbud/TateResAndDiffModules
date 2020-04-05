@@ -138,6 +138,7 @@ source phi
 target phi
 isHomogeneous phi
 ///
+
 *-
 
 greaterEqual=method()
@@ -254,6 +255,7 @@ conePhi.dd^2
 
 ///
 *-
+--the following function are not used so far
 degreeTruncationAbove=method()
     --rows and cols with degrees not <= d.
 degreeTruncationAbove(Matrix,List) := (M,d) -> (
@@ -292,7 +294,10 @@ restart
 load "KoszulFunctor.m2"
 kk=ZZ/101
 S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
-S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{1,0,1},{0,0,2}}]
+irr=ideal(x_0,x_1)*ideal(x_2,x_3)*ideal(x_4,x_5)
+--(S,irr) is the Toric variety correpondingto the product of S(3,1) x P(1,2)
+-- a Hirzebruch surface times a weighted projective line
+
 degrees S
 E=kk[e_0..e_5,SkewCommutative=>true,Degrees=>-degrees S ]
 K=koszul vars S
@@ -326,6 +331,31 @@ HlK = HH lK;
 H := apply(toList(0..length lK-1),ell->prune HlK#ell);
 <<(i,m)<<" "<<positions(H, h-> h!=0)<<" "<<endl<<flush;
 ))
+
+
+degsK=sort unique flatten apply(length K+1,i->degrees K_i)
+netList( L=apply(degsK,d->(g=degreeTruncation(K,d);
+    (d,betti target g,betti source g)) ))
+tally apply(L,c->c_1)
+netList(L1=apply(L,c->(c_0,c_2)))
+netList(L2=apply(degsK,d->(d,source degreeTruncation(K,d)) ))
+netList apply(L2,F->prune HH F_1) 
+netList apply(L2,dF->(F=dF_1;tally apply(length F+1,i-> 
+	    saturate(ann prune HH_i F, irr))))
+L3=select(L2,dF->(F=dF_1;#tally apply(length F+1,i-> 
+	    saturate(ann prune HH_i F, irr))>1));
+#L3
+netList (L3HH=apply(L3,dF -> (F=dF_1;d=dF_0;
+	homologicalDegs=select(length F+1,i->
+	    saturate(ann prune HH_i F, irr)!=ideal(1_S));
+	(d,betti F,apply(homologicalDegs,i->(h=prune HH_i F;
+		(i,h,betti h)))) )))
+
+tally apply(L3HH,c->#c_2)
+cplx = new HashTable from L3
+
+keys cplx
+
 --NOTE: there's always 0th homology;
 -- but the other homology degrees seem to form a 
 -- consecutive sequence.
@@ -486,7 +516,192 @@ factors=method()
 factors(RingElement,HashTable) := (m,sortedMons) -> (
     (select(keys sortedMons,k->member(m,(entries sortedMons#k)_0)))_0)
 
+entry=method()
+entry(RingElement,List,HashTable) := (f,d,sortedMons) -> (
+    E := ring f;
+    if f==0_E then return 0;
+    cf := coefficients f;
+    cs := (entries cf_0)_0;
+    shift := factors(first cs,sortedMons); -- adjust later
+    fs := flatten (entries sub(cf_1,kk));  
+    sum(#fs,n->(m=cs_n;fs_n*phis#(d,m)))
+    )
+
+DMonad = method() 
+DMonad(ChainComplex,Ring,List) := (DTate, S, degs) -> (
+    TB := beilinsonWindow(DTate,degs);
+    tot := directSum apply(degrees TB_0,d->cplx#d);
+    Lphi:= apply(rank TB_0,i-> apply(rank TB_1,j-> (
+	     d := (degrees TB_0)_i;
+	     d1 := (degrees TB_0)_j;
+	     ee := TB.dd_1_(i,j);
+	     ff := entry(ee,d,sortedMons);     
+	     (map(cplx#d,cplx#d1,q->
+	     	map((cplx#d)_q,(cplx#d1)_q,if class ff === ZZ then 0 else 
+		(shiftedff= ff[min target ff-min cplx#d];
+		 shiftedff_q))))
+           )));
+    map(tot,tot,p->matrix apply(rank TB_0,i-> apply(rank TB_1,j-> (Lphi_i_j)_p)))
+)
+
+
+
+-*
+TEST ///
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,2}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+E=kk[e_0..e_(numgens S - 1),SkewCommutative=>true,Degrees=>-degrees S ]
+K=koszul vars S
+sortedMons = sortedMonomials E
+es=(entries concatMatrices values sortedMons)_0
+-- derived category should have O(d) with d in - reverse {0,1,.., sum(L)-1}
+-- as natural generators (basis?)
+degs=apply(sum L,i->{-i})
+possiblePairs = select(
+    flatten apply(degs,d->apply(es,m -> (d,m))), 
+    dm-> member(dm_0+degree dm_1,degs)) 
+
+netList (allPhi=apply(possiblePairs,dm->(
+	d=dm_0;m=dm_1;
+	phi=completeToMapOfChainComplexes(K,m,Complete => false);
+	(dm,degreeTruncation(phi,-d)[-factors(m,sortedMons)]**S^{-d})))) 
+netList (allPhi=apply(possiblePairs,dm->(
+	d=dm_0;m=dm_1;
+	phi=completeToMapOfChainComplexes(K,m,Complete => false);
+	(dm,degreeTruncation(phi,-d)**S^{-d})))) 
+
+phis= new HashTable from allPhi;
+cplx=new HashTable from apply(degs,d->(d,
+	source degreeTruncation(K,-d)[-sum d]**S^{d}))
+
+lows={{0}}
+c=2
+
+use S
+M= S^1/ideal(x_0,x_2)
+use S
+M=S^1/ideal (x_1)
+d
+use E
+d
+source phis#(d,e_0)
+unique apply(values phis, c->betti target c)
+use E
+ phis#({-2},e_2), phis#({-1},e_0)
+keys phis
+betti source phis#(d,e_2), betti source phis#({-2},e_0)
+
+elapsedTime betti(TM=RRfunctor(M,E,lows,c))
+T=TM**E^{{4}}
+tally degrees T_0
+tally degrees T_1
+
+TB=beilinsonWindow(T,degs)
+betti TB
+TB.dd
+isHomogeneous TB.dd
+BM=DMonad(TB,S,degs)
+
+d,d1
+ee
+ff
+betti target ff[min target ff-min cplx#d], ,betti cplx#d
+betti oo
+betti target shiftedff ,betti cplx#d
+betti target ff, betti cplx#d
+betti source shiftedff, betti cplx#d1
+
+prune HH coker map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i)) 
+presentation truncate({1},M)
+///
+*-
+
+
+
+
 end--
+
+
+restart
+load"KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,2,3,4}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+E=kk[e_0..e_(numgens S - 1),SkewCommutative=>true,Degrees=>-degrees S ]
+K=koszul vars S
+sortedMons = sortedMonomials E
+es=drop((entries concatMatrices values sortedMons)_0,1)
+-- derived category should have O(d) with d in - reverse {0,1,.., sum(L)-1}
+-- as natural generators (basis?)
+degs=apply(sum L,i->{-i})
+
+possiblePairs = select(flatten apply(degs,d->apply(es,m -> (d,m))), dm-> member(dm_0+degree dm_1,degs)) 
+#oo
+netList (allPhi=apply(possiblePairs,dm->(
+	d=dm_0;m=dm_1;
+	phi=completeToMapOfChainComplexes(K,m,Complete => false);
+	(dm,degreeTruncation(phi,-d)[-factors(m,sortedMons)]**S^{-d})))) 
+
+
+
+phis= new HashTable from allPhi;
+netList (composablePhis = select(
+    apply(keys phis,dm->(dm,select(keys phis, dm' -> dm'_0==dm_0+degree dm_1))),
+      dmL->#dmL_1 >0));
+netList (composablePhis1=flatten apply(composablePhis,ab->(a=ab_0;apply(ab_1,b->(a,b)))))
+netList apply(composablePhis1,ab->(ab,phis#(ab_0),phis#(ab_1)));
+netList apply(composablePhis1,ab->(ab,betti source phis#(ab_0), min source phis#(ab_0),betti target phis#(ab_1), min target phis#(ab_1)))
+oks= select(composablePhis1,ab->betti source phis#(ab_0)==betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
+notOks=  select(composablePhis1,ab->betti source phis#(ab_0)=!=betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
+(#oks,#notOks)
+
+
+all(oks,ab->
+    (phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])==0 and ab_0_1*ab_1_1==0) or 
+	(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])=!=0 and ab_0_1*ab_1_1=!=0))
+use E
+nonTrivialOks=select (oks,ab->ab_0_1*ab_1_1 !=0)
+minusNonTrivialOks=select(nonTrivialOks,ab->(
+	pos=positions(apply(keys phis,k->k_1),m->m==-(ab_0_1*ab_1_1));
+	#pos>0));
+plusNonTrivialOks=select(nonTrivialOks,ab->(
+	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1));
+	#pos>0));
+
+all(minusNonTrivialOks,ab->(
+--	ab=minusNonTrivialOks_8
+	pos=positions(apply(keys phis,k->k_1),m->m==-(ab_0_1*ab_1_1));
+	k=first select((keys phis)_pos,k->k_0==ab_0_0);
+	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
+	K = -phis#k[factors(ab_1_1,sortedMons)];
+        assert(target AB== target K and source AB==source K );
+	AB==K or AB==-K))
+all(plusNonTrivialOks,ab->(
+--	ab=minusNonTrivialOks_8
+	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1));
+	k=first select((keys phis)_pos,k->k_0==ab_0_0);
+	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
+	K = phis#k[factors(ab_1_1,sortedMons)];
+        assert(target AB== target K and source AB==source K );
+	AB==K or AB==-K))
+all(nonTrivialOks,ab->(
+--	ab=minusNonTrivialOks_8
+	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1) or m==-(ab_0_1*ab_1_1));
+	k=first select((keys phis)_pos,k->k_0==ab_0_0);
+	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
+	K = phis#k[factors(ab_1_1,sortedMons)];
+        assert(target AB== target K and source AB==source K );
+	AB==K or AB==-K))	
+-- above is a working case 
+
+
+
+
 
 restart
 load "KoszulFunctor.m2"
@@ -783,7 +998,7 @@ oks= select(composablePhis1,ab->betti source phis#(ab_0)==betti target phis#(ab_
 notOks=  select(composablePhis1,ab->betti source phis#(ab_0)=!=betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
 (#oks,#notOks)
 
-ab=oks_40
+
 all(oks,ab->
     (phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])==0 and ab_0_1*ab_1_1==0) or 
 	(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])=!=0 and ab_0_1*ab_1_1=!=0))
@@ -804,7 +1019,7 @@ all(minusNonTrivialOks,ab->(
 	pos=positions(apply(keys phis,k->k_1),m->m==-(ab_0_1*ab_1_1));
 	k=first select((keys phis)_pos,k->k_0==ab_0_0);
 	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
-	K = -phis#k[-factors(ab_0_1,sortedMons)];
+	K = -phis#k[factors(ab_1_1,sortedMons)];
         assert(target AB== target K and source AB==source K );
 	AB==K or AB==-K))
 
@@ -813,7 +1028,7 @@ all(plusNonTrivialOks,ab->(
 	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1));
 	k=first select((keys phis)_pos,k->k_0==ab_0_0);
 	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
-	K = phis#k[-factors(ab_0_1,sortedMons)];
+	K = phis#k[factors(ab_1_1,sortedMons)];
         assert(target AB== target K and source AB==source K );
 	AB==K or AB==-K))
 
@@ -822,7 +1037,7 @@ all(nonTrivialOks,ab->(
 	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1) or m==-(ab_0_1*ab_1_1));
 	k=first select((keys phis)_pos,k->k_0==ab_0_0);
 	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
-	K = phis#k[-factors(ab_0_1,sortedMons)];
+	K = phis#k[factors(ab_1_1,sortedMons)];
         assert(target AB== target K and source AB==source K );
 	AB==K or AB==-K))	
 	
@@ -830,32 +1045,6 @@ all(nonTrivialOks,ab->(
 
 
 -- above is a working case 
-
--*
--- different signs in the shift do not work:
-netList (allPhi=apply(possiblePairs,dm->(
-	d=dm_0;m=dm_1;
-	phi=completeToMapOfChainComplexes(K,m,Complete => false);
-	(dm,degreeTruncation(phi,-d)[(factors(m,sortedMons))]**S^{-d})))) ;
-
-
-
-phis= new HashTable from allPhi;
-netList (composablePhis = select(
-    apply(keys phis,dm->(dm,select(keys phis, dm' -> dm'_0==dm_0+degree dm_1))),
-      dmL->#dmL_1 >0));
-netList (composablePhis1=flatten apply(composablePhis,ab->(a=ab_0;apply(ab_1,b->(a,b)))));
---netList apply(composablePhis1,ab->(ab,phis#(ab_0),phis#(ab_1)));
-netList apply(composablePhis1,ab->(ab,betti source phis#(ab_0), min source phis#(ab_0),betti target phis#(ab_1), min target phis#(ab_1)))
-oks= select(composablePhis1,ab->betti source phis#(ab_0)==betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
-notOks=  select(composablePhis1,ab->betti source phis#(ab_0)=!=betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
-(#oks,#notOks)
-
-
-all(oks,ab->
-    (phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])==0 and ab_0_1*ab_1_1==0) or 
-	(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])=!=0 and ab_0_1*ab_1_1=!=0))
-*-
 
 
     
