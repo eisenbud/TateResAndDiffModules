@@ -557,8 +557,9 @@ DMonad(ChainComplex,Ring,List) := (DTate, S, degs) -> (
            )));
     map(tot,tot,p->matrix apply(rank TB_0,i-> apply(rank TB_1,j-> (Lphi_i_j)_p)))
 )
-
-
+DMHH=method()
+DMHH(ChainComplexMap) := BM -> prune HH coker( 
+    map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i)))
 
 -*
 TEST ///
@@ -589,6 +590,7 @@ netList (allPhi=apply(possiblePairs,dm->(
 	(dm,degreeTruncation(phi,-d)**S^{-d})))) 
 
 phis= new HashTable from allPhi;
+
 cplx=new HashTable from apply(degs,d->(d,
 	source degreeTruncation(K,-d)[-sum d]**S^{d})
 )
@@ -596,28 +598,21 @@ cplx=new HashTable from apply(degs,d->(d,
 netList (allPhi=apply(possiblePairs,dm->(
 	d=dm_0;m=dm_1;d1 = d-degree m;
 	phi=completeToMapOfChainComplexes(K,m,Complete => false);
-	map(cplx#d,cplx#d1,phi)
-	--(dm,degreeTruncation(phi,-d)**S^{-d})))) 
+	map(cplx#d,cplx#d1,phi);
+	(dm,degreeTruncation(phi,-d)**S^{-d})))) 
 
 lows={{0}}
-c=2
+c=4
 
 use S
 M= S^1/ideal(x_0,x_2)
-use S
-M=S^1/ideal (x_1)
+--use S
+--M=S^1/ideal (x_1)
 d
-use E
-d
-source phis#(d,e_0)
-unique apply(values phis, c->betti target c)
-use E
- phis#({-2},e_2), phis#({-1},e_0)
-keys phis
-betti source phis#(d,e_2), betti source phis#({-2},e_0)
+
 
 elapsedTime betti(TM=RRfunctor(M,E,lows,c))
-T=TM**E^{{4}}
+T=TM**E^{{5}} -- should not need a twist
 tally degrees T_0
 tally degrees T_1
 
@@ -626,18 +621,9 @@ betti TB
 TB.dd
 isHomogeneous TB.dd
 BM=DMonad(TB,S,degs)
+DMHH BM
 
-d,d1
-ee
-ff
-betti target ff[min target ff-min cplx#d], ,betti cplx#d
-betti oo
-betti target shiftedff ,betti cplx#d
-betti target ff, betti cplx#d
-betti source shiftedff, betti cplx#d1
 
-prune HH coker map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i)) 
-presentation truncate({1},M)
 ///
 *-
 
@@ -903,7 +889,7 @@ use S
 M= S^{{2}}/ideal(x_0,x_2)
 lows={{0}}
 c=6
-degs = apply(sum L, i->{i})
+degs = apply(sum L, i->{-i})
 
 elapsedTime betti(TM=RRfunctor(M,E,lows,c))
 T=TM**E^{{10}}
@@ -915,7 +901,7 @@ TB=beilinsonWindow(T,degs)
 betti TB, betti T
 TB.dd_1^2
 TB.dd
-netList (apply(degs,d->betti source degreeTruncation(K,d)))
+netList (apply(degs,d->betti source degreeTruncation(K,-d)))
 
 cplxes=new HashTable from (    
     apply(es,m-> (i := #factor sub(m,vars S);
@@ -937,8 +923,8 @@ netList {source phi0, target phi0},netList {source phi1, target phi1}, netList  
 netList {target phi0, source phi1, source phi2}
 source phi0==target phi1, source phi1==target phi2 
 tot = source phi2 ++ source phi1 ++ source phi0++ target phi0
-
-
+netList (reverse {source phi2,source phi1,source phi0,target phi0}/betti)
+betti tot
 BM = map(tot, tot, i-> matrix{
 {0*id_(source phi2_i), map(source phi2_i, source  phi1_i, 0), map(source phi2_i, source phi0_i, 0), map(source phi2_i, target phi0_i, 0)},
    {phi2_i,            map(source phi1_i, source  phi1_i, 0), map(source phi1_i, source phi0_i, 0), map(source phi1_i, target phi0_i, 0)},
@@ -957,11 +943,37 @@ matrix{{0*id_(source phi2_i), map(source phi2_i, source  phi1_i, 0), map(source 
 
 BM * BM == 0       
 prune HH coker map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i)) 
+DMHH BM
 presentation M -- homological degree and twist have to be adapted
 
-BM'=BM**S^{{-1}}[-3]
+betti tot
+BM'=BM**S^{{-1}}
+
+netList (reverse {source phi2**S^{{-1}},source phi1**S^{{-1}},source phi0**S^{{-1}},target phi0**S^{{-1}}}/betti)
+betti source BM'
+
+netList (apply(degs,d->(d,betti (source degreeTruncation(K,-d)[ -sum L- sum d+1]**S^{-d-{1}}))))              
+,           	netList (reverse {source phi2**S^{{-1}},source phi1**S^{{-1}},source phi0**S^{{-1}},target phi0**S^{{-1}}}/betti)
+betti source BM'
+
+cplx=new HashTable from apply(degs,d->
+    (d,source degreeTruncation(K,-d)[ -sum L- sum d+1]**S^{-d-{1}}))              
+netList (values cplx/betti)
+apply(degrees source TB.dd_1,d1->d1-degree e_1)
+apply(drop(degrees source TB.dd_1,-1),d1->d1-degree e_1)==drop(degrees target TB.dd_1,1)
+degree (e_1*e_2)
+es/degree
+
+degrees source TB.dd_1 
+isHomogeneous TB.dd
+DMHH BM'
+M
 prune HH coker map(ker BM', source BM', i->BM'_i//inducedMap(target BM'_i,ker BM'_i)) 
 M
+netList (reverse {source phi2,source phi1,source phi0,target phi0}/betti)
+betti tot
+
+
 -------- On a general weighted projective space
 restart
 load"KoszulFunctor.m2"
