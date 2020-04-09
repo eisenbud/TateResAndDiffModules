@@ -1,3 +1,97 @@
+-*
+exports {
+    "dualRingToric",
+    "RRFunctor",
+    "sortedMonomials",
+    "positionInKoszulComplex",
+    "dualElement",
+    "addZeroTerms", -- should be superflous?
+    "completeToMapOfChainComplexes", -- might use addTerms in an option
+    "greaterEqual",
+    "strictlyGreater",
+    "degreeTruncation",
+    "isChainComplexMap", -- should be in the core of M2
+    "degreeTruncationAbove", -- working from the other side, not tested
+    "degreeSetup", -- get the degree range from a starting set of degrees
+                   -- using c multiplications with variabels in S
+    "strictDegreeTruncationAbove",
+    "concatMatrices",
+    "matrixContract",
+    "tallyComplex",
+    "annHH",
+    "dimHH",
+    "relevantAnnHH",
+    "beilinsonWindow",
+    "factors", -- now superflous, because the last degree component in E
+               -- give this information
+    "entry", -- need to be rewritten?
+    "DMonad",
+    "DMHH",	               
+    }
+
+*-
+
+
+
+dualRingToric = method();
+dualRingToric(PolynomialRing) := (S) ->(
+--  Input: a polynomial ring
+--  Output:  the Koszul dual exterior algebra, but with an additional 
+--           ZZ-degree, the ``standard grading'' where elements of \bigwedge^k
+--           have degree k.
+    kk := coefficientRing S;
+    degs := apply(degrees S,d-> (-d)|{1});
+    ee := apply(#gens S, i-> e_i);
+    kk[ee,Degrees=>degs,SkewCommutative=>true]    
+    );
+
+RRfunctor = method();
+--Input: (M,L) M a (multi)-graded S-module.
+--             L a list of degrees.
+--Question:  should E be part of the input??
+--Output:  The differenial module RR(M) in degrees from L.
+RRfunctor(Module,List) := (M,L) ->(
+    S := ring(M);
+    --E := dualRingToric S;
+    relationsM := gens image presentation M;
+    numvarsE := rank source vars E;
+    ev := map(E,S,vars E);
+    --L := degreeSetup(low,c,r);
+    f0 := gens image basis(L_0,M);
+    scan(#L-1,i-> f0 = f0 | gens image basis(L_(i+1),M));
+    --f0 is the basis for M in degrees given by L
+    df0 := apply(degrees source f0,i-> (-1)*i|{0});
+    df1 := apply(degrees source f0,i-> (-1)*i|{-1});
+    SE := S**E;
+    tr := sum(dim S, i-> SE_i*SE_(dim S+i));
+    newf0 := sub(f0,SE)*tr;
+    relationsMinSE := sub(relationsM,SE);
+    newf0 = newf0 % relationsMinSE;
+    newg := contract(transpose sub(f0,SE),newf0);
+    g' := transpose sub(newg,E);
+    chainComplex map(E^df0,E^df1, g')
+    )
+
+
+-*
+TEST ///
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+A={1,1,2} --   like A = degree matrix
+S=kk[x_0..x_2,Degrees=> A]
+E=dualRingToric S
+degrees source vars E
+M=S^1/ideal x_0
+c={0}
+
+
+///
+*-
+
+
+
+
 sortedMonomials=method()
 sortedMonomials(Ring) := E -> (
     -- input: E = \Lambda V, an exterior algebra
@@ -415,7 +509,7 @@ M = matrix {{x_0, 0}, {0, x_0}}
 N= matrix {{x_0*e_0}, {x_0*e_1}}
 isHomogeneous( P =matrixContract(M,N))
 ///
-
+ -*
 RRfunctor = method();
 RRfunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
     S :=ring(M);
@@ -443,7 +537,7 @@ RRfunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
     F:= E^(-degrees source bases1);
     chainComplex map(F,F, sub(multTable,E))
     )
-
+*-
 -* TEST ///
 restart
 load "KoszulFunctor.m2"
@@ -939,7 +1033,7 @@ matrix{{0*id_(source phi2_i), map(source phi2_i, source  phi1_i, 0), map(source 
 {map(target phi0_i, source  phi2_i, 0), map(target phi0_i, source phi1_i, 0),       phi0_i,         map(target phi0_i, target phi0_i, 0)}}
 )      
 
-
+BM
 
 BM * BM == 0       
 prune HH coker map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i)) 
@@ -948,6 +1042,8 @@ presentation M -- homological degree and twist have to be adapted
 
 betti tot
 BM'=BM**S^{{-1}}
+TB.dd
+
 
 netList (reverse {source phi2**S^{{-1}},source phi1**S^{{-1}},source phi0**S^{{-1}},target phi0**S^{{-1}}}/betti)
 betti source BM'
@@ -957,7 +1053,8 @@ netList (apply(degs,d->(d,betti (source degreeTruncation(K,-d)[ -sum L- sum d+1]
 betti source BM'
 
 cplx=new HashTable from apply(degs,d->
-    (d,source degreeTruncation(K,-d)[ -sum L- sum d+1]**S^{-d-{1}}))              
+    (d,source degreeTruncation(K,-d)[ -sum L- sum d+1]**S^{-d-{1}})) 
+             
 netList (values cplx/betti)
 apply(degrees source TB.dd_1,d1->d1-degree e_1)
 apply(drop(degrees source TB.dd_1,-1),d1->d1-degree e_1)==drop(degrees target TB.dd_1,1)
@@ -965,8 +1062,9 @@ degree (e_1*e_2)
 es/degree
 
 degrees source TB.dd_1 
-isHomogeneous TB.dd
+TB.dd
 DMHH BM'
+betti target BM'
 M
 prune HH coker map(ker BM', source BM', i->BM'_i//inducedMap(target BM'_i,ker BM'_i)) 
 M
