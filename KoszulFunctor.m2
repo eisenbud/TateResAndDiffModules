@@ -633,24 +633,24 @@ TB=beilinsonWindow(T,-keys cplx)
 netList degrees target TB.dd_1,netList degrees source TB.dd_1
 isHomogeneous TB.dd_1
 es=(entries concatMatrices values sortedMons)_0
-
+phis=cachePhi(S,irr)
 
 *-
-end--
+
 
 cachePhi=method()
 cachePhi(Ring,Ideal) := (S,I) -> (
-    degs := keys cplx
-    es := (entries concatMatrices values sortedMons)_0
+    degs := keys cplx;
+    es := (entries concatMatrices values sortedMons)_0;
     possiblePairs = select(flatten apply(degs,d->apply(es,m -> (d,m))), dm-> 
-	member(dm_0+drop(degree dm_1,-1),degs))
+	member(dm_0+drop(degree dm_1,-1),degs));
     netList (allPhi=apply(possiblePairs,dm->(
-		dm=possiblePairs_3
+	--	dm=possiblePairs_3
 	d=dm_0;m=dm_1;
 	phi=completeToMapOfChainComplexes(K,m,Complete => false);
-	(dm,degreeTruncation(phi,-d)[-factors(m,sortedMons)]**S^{-d})))) 
- 
-
+	(dm,degreeTruncation(phi,-d)[-factors(m,sortedMons)]**S^{-d})))); 
+    new HashTable from allPhi)
+end--
 
 
 restart
