@@ -26,7 +26,9 @@ exports {
                -- give this information
     "entry", -- need to be rewritten?
     "DMonad",
-    "DMHH",	               
+    "DMHH",
+    "cacheComplexes",
+    "cachePhis"	               
     }
 
 *-
@@ -60,8 +62,10 @@ RRfunctor(Module,List) := (M,L) ->(
     f0 := gens image basis(L_0,M);
     scan(#L-1,i-> f0 = f0 | gens image basis(L_(i+1),M));
     --f0 is the basis for M in degrees given by L
-    df0 := apply(degrees source f0,i-> (-1)*i|{0});
-    df1 := apply(degrees source f0,i-> (-1)*i|{-1});
+    --df0 := apply(degrees source f0,i-> (-1)*i|{0});
+    --df1 := apply(degrees source f0,i-> (-1)*i|{-1});
+    df0 := apply(degrees source f0,i-> i|{0});
+    df1 := apply(degrees source f0,i-> i|{-1});
     SE := S**E;
     tr := sum(dim S, i-> SE_i*SE_(dim S+i));
     newf0 := sub(f0,SE)*tr;
@@ -74,7 +78,7 @@ RRfunctor(Module,List) := (M,L) ->(
 
 
 -*
-TEST ///
+TEST 
 restart
 load "KoszulFunctor.m2"
 kk=ZZ/101
@@ -83,10 +87,21 @@ S=kk[x_0..x_2,Degrees=> A]
 E=dualRingToric S
 degrees source vars E
 M=S^1/ideal x_0
-c={0}
+L=apply(5,i->{i})
+T=RRfunctor(M,L)
+T.dd_1 
+source (T.dd_1)==target (T.dd_1)**E^{{0,-1}}
+(T.dd_1)*((T.dd_1)**E^{{0,-1}})
+netList degrees target T.dd_1, netList degrees source T.dd_1
+isHomogeneous T.dd_1
+--isHomogeneous (pM=presentation truncate({2},M))
+--(degrees target pM)_0+degree pM_(0,0)==(degrees source pM)_0
+degree T.dd_1_(0,1)
+(degrees target T.dd_1)_0+degree T.dd_1_(0,1),(degrees source T.dd_1)_1
+(degrees target T.dd_1)_0+degree T.dd_1_(0,3),(degrees source T.dd_1)_3
+(degrees target T.dd_1)_1+degree T.dd_1_(1,2),(degrees source T.dd_1)_2
 
 
-///
 *-
 
 
@@ -124,6 +139,7 @@ m=sortedMons#i1_{j1}_(0,0)
 assert((i,j) ==(i1,j1))
 assert(ideal K.dd_i_{j}==ideal apply(toList factor sub(m,vars S),f->first f))
 ///
+
 *-
  
 positionInKoszulComplex=method()
@@ -131,17 +147,18 @@ positionInKoszulComplex(ChainComplex,HashTable,RingElement) := (K,sortedMons,m) 
     -- Input: The KosulComplex and an exterior monomial
     -- Output: (i,j) with j the column number of K_dd_i corresponding to m
     S := ring K;
-    i := #factor sub(m,vars S);
+    i := factors(m, sortedMons);
     j := position((entries sortedMons#i)_0,n->n==m); 
     (i,j))
 
 
 -*TEST ///
-m=sortedMons#3_{4}_(0,0)
+m=sortedMons#2_{2}_(0,0)
+factors(m,sortedMons)
 #factor sub(m,vars S)
 ///
 *-
-
+ 
 dualElement=method()
 dualElement(Ring,RingElement) := (E,m) -> (
     socle:=product gens E;
@@ -201,7 +218,7 @@ completeToMapOfChainComplexes(ChainComplex,RingElement) := o -> (K,m) -> (
    r:= length K;
    (i,j) := positionInKoszulComplex(K,sortedMons,m);
    --(degrees K_i)_j==-degree m
-   stK := K[i]**S^{-degree m}; --shifted twisted K
+   stK := K[i]**S^{-drop(degree m,-1)}; --shifted twisted K
    assert(degrees source stK.dd_0_{j}==degrees K_0);
    phi0 := matrix{apply(rank stK_0,k->if k==j then 1_S else 0)};
    if o.Complete == false then return extend(K,stK,phi0,Verify=>true);
@@ -224,7 +241,7 @@ sortedMons = sortedMonomials E
 m=sortedMons#i1_{j1}_(0,0)
 phi=completeToMapOfChainComplexes(K,m,Complete =>false)
 keys phi
-phi#4
+phi#2
 (cone phi).dd^2
 betti source phi
 betti target phi
@@ -383,80 +400,6 @@ strictDegreeTruncationAbove(ChainComplex,List) := (K,d) -> (
     tKa[-a]
     )
 
-TEST///
-restart
-load "KoszulFunctor.m2"
-kk=ZZ/101
-S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
-irr=ideal(x_0,x_1)*ideal(x_2,x_3)*ideal(x_4,x_5)
---(S,irr) is the Toric variety correpondingto the product of S(3,1) x P(1,2)
--- a Hirzebruch surface times a weighted projective line
-
-degrees S
-E=kk[e_0..e_5,SkewCommutative=>true,Degrees=>-degrees S ]
-K=koszul vars S
-sortedMons = sortedMonomials E
-
-(i,j) = (3,4)
-m=sortedMons#i_{j}_(0,0)
-d=-degree m
-
-
-phi = degreeTruncation(K,d)
-lK=source phi
-       
-lK.dd^2
-HlK=HH lK
-prune HlK#1
-prune HlK#2
-prune HlK#3
-uK=degreeTruncationAbove(K,d)
-lK
-HuK=HH uK
-netList apply(toList(2..6),i->prune HuK#i)
-source degreeTruncation(K,{0,0,0})
-
-for i from 0 to numgens S do(
-    for j from 0 to binomial(numgens S, i)-1 do(
-m = sortedMons#i_{j}_(0,0);
-d = -degree m;
-lK = source degreeTruncation(K,d);
-HlK = HH lK;
-H := apply(toList(0..length lK-1),ell->prune HlK#ell);
-<<(i,m)<<" "<<positions(H, h-> h!=0)<<" "<<endl<<flush;
-))
-
-
-degsK=sort unique flatten apply(length K+1,i->degrees K_i)
-netList( L=apply(degsK,d->(g=degreeTruncation(K,d);
-    (d,betti target g,betti source g)) ))
-tally apply(L,c->c_1)
-netList(L1=apply(L,c->(c_0,c_2)))
-netList(L2=apply(degsK,d->(d,source degreeTruncation(K,d)) ))
-netList apply(L2,F->prune HH F_1) 
-netList apply(L2,dF->(F=dF_1;tally apply(length F+1,i-> 
-	    saturate(ann prune HH_i F, irr))))
-L3=select(L2,dF->(F=dF_1;#tally apply(length F+1,i-> 
-	    saturate(ann prune HH_i F, irr))>1));
-#L3
-netList (L3HH=apply(L3,dF -> (F=dF_1;d=dF_0;
-	homologicalDegs=select(length F+1,i->
-	    saturate(ann prune HH_i F, irr)!=ideal(1_S));
-	(d,betti F,apply(homologicalDegs,i->(h=prune HH_i F;
-		(i,h,betti h)))) )))
-
-tally apply(L3HH,c->#c_2)
-cplx = new HashTable from L3
-
-keys cplx
-
---NOTE: there's always 0th homology;
--- but the other homology degrees seem to form a 
--- consecutive sequence.
--- Why??
-///
-
-
 
 degreeSetup=method()
 degreeSetup(Ring,List,ZZ) := (S,lows,c)->(
@@ -509,70 +452,6 @@ M = matrix {{x_0, 0}, {0, x_0}}
 N= matrix {{x_0*e_0}, {x_0*e_1}}
 isHomogeneous( P =matrixContract(M,N))
 ///
- -*
-RRfunctor = method();
-RRfunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
-    S :=ring(M);
-    M1 := prune coker presentation M;
-    relationsM := gens image presentation M1;
-    numvarsE := numgens E;
-    ev := map(E,S,vars E);
-    range := degreeSetup(S,lows,c);
-    alldegs:= range#0; newdegs:={};
-    scan(toList(1..c),i->(newdegs = select(range#i,d->not member(d,alldegs));
-	    alldegs=alldegs|newdegs));
-    bases := concatMatrices apply(alldegs,d->basis(d,M));
-    bases1 =map(S^(degrees target bases),, lift(bases,S));
-
-    kk:=coefficientRing S;
-    SE := kk[gens S|gens E,Degrees=>degrees S|degrees E];
-    tr := sum(dim S, i-> SE_i*SE_(dim S+i));
-    baseTr := map(SE^(degrees target bases1),,tr*sub(bases1,SE));
---netList apply(baseTr,m->(isHomogeneous m,degrees target m,degrees source m,m))
-    relationsMinSE := sub(relationsM,SE);
---isHomogeneous relationsMinSE
-    reducedBaseTr:= baseTr % relationsMinSE;
-    F = E^(-degrees source bases1);
-    multTable :=matrixContract(transpose sub(bases1,SE),reducedBaseTr);
-    F:= E^(-degrees source bases1);
-    chainComplex map(F,F, sub(multTable,E))
-    )
-*-
--* TEST ///
-restart
-load "KoszulFunctor.m2"
-
-kk=ZZ/101
-S=kk[x_0..x_2,Degrees=>{{1,0},{1,2},{0,1}}]
-degrees S
-E=kk[e_0..e_2,SkewCommutative=>true,Degrees=>-degrees S ]
-M=S^1
-c=3
-lows={{3,3}}
-
-TM=RRfunctor(M,E,lows,c)
-TM.dd^2
-TM.dd_1
-
-
-restart
-load "KoszulFunctor.m2"
-
-kk=ZZ/101
-S=kk[x_0..x_2,Degrees=>{2:{1},{2}}]
-degrees S
-E=kk[e_0..e_2,SkewCommutative=>true,Degrees=>-degrees S ]
-M=truncate({1},S^1)
-c=2
-lows={{0}}
-
-TM=RRfunctor(M,E,lows,c)
-assert(isHomogeneous TM)
-assert((TM.dd_1)^2==0)
-TM.dd_1
-betti TM
-
-///*-
 
 tallyComplex =method()
 -- print degrees of the free modules in a ChainComplex
@@ -598,7 +477,7 @@ beilinsonWindow(ChainComplex,List) := (T,degs) -> (
     --Input: T a Tate DM module,
     --     : degs the relevant degrees 
     --Output: The restiction of T to these degrees
-    pos:=positions(degrees T_0,d->member(d,degs));
+    pos:=positions(degrees T_0,d->member(drop(d,-1),degs));
     chainComplex(T.dd_1_pos^pos) 
     )
  
@@ -721,10 +600,57 @@ DMHH BM
 ///
 *-
 
+cacheComplexes=method()
+cacheComplexes(Ring) := S-> (
+    K:=koszul vars S; 
+    koszulRange :=unique flatten apply(length K+1,i->degrees K_i);
+    truncatedComplexes := new HashTable from apply(koszulRange, d-> 
+	(d,source degreeTruncation(K,d)));
+    relDegs:=select(koszulRange,d->
+	#select(relevantAnnHH(truncatedComplexes#d,irr),j->j!=ideal 1_S)>0);
+    new HashTable from apply(relDegs,d->(d,truncatedComplexes#d))
+    ) 
+-*
+restart
+load"KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,2}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+K=koszul vars S
+irr=ideal vars S
+E=dualRingToric S
+sortedMons=sortedMonomials E
+cplx = cacheComplexes(S)
+values cplx/betti
+M=S^1/ideal(x_0)
+LL=apply(10,i->{i})
+T=RRfunctor(M,LL)
+isHomogeneous T
+T.dd
+keys cplx
+TB=beilinsonWindow(T,-keys cplx)
+
+netList degrees target TB.dd_1,netList degrees source TB.dd_1
+isHomogeneous TB.dd_1
+es=(entries concatMatrices values sortedMons)_0
 
 
-
+*-
 end--
+
+cachePhi=method()
+cachePhi(Ring,Ideal) := (S,I) -> (
+    degs := keys cplx
+    es := (entries concatMatrices values sortedMons)_0
+    possiblePairs = select(flatten apply(degs,d->apply(es,m -> (d,m))), dm-> 
+	member(dm_0+drop(degree dm_1,-1),degs))
+    netList (allPhi=apply(possiblePairs,dm->(
+		dm=possiblePairs_3
+	d=dm_0;m=dm_1;
+	phi=completeToMapOfChainComplexes(K,m,Complete => false);
+	(dm,degreeTruncation(phi,-d)[-factors(m,sortedMons)]**S^{-d})))) 
+ 
+
 
 
 restart
@@ -1170,6 +1096,79 @@ all(nonTrivialOks,ab->(
     
 
 
+--jetsum
+TEST///
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
+irr=ideal(x_0,x_1)*ideal(x_2,x_3)*ideal(x_4,x_5)
+--(S,irr) is the Toric variety correpondingto the product of S(3,1) x P(1,2)
+-- a Hirzebruch surface times a weighted projective line
+
+degrees S
+E=kk[e_0..e_5,SkewCommutative=>true,Degrees=>-degrees S ]
+K=koszul vars S
+sortedMons = sortedMonomials E
+
+(i,j) = (3,4)
+m=sortedMons#i_{j}_(0,0)
+d=-degree m
+
+
+phi = degreeTruncation(K,d)
+lK=source phi
+       
+lK.dd^2
+HlK=HH lK
+prune HlK#1
+prune HlK#2
+prune HlK#3
+uK=degreeTruncationAbove(K,d)
+lK
+HuK=HH uK
+netList apply(toList(2..6),i->prune HuK#i)
+source degreeTruncation(K,{0,0,0})
+
+for i from 0 to numgens S do(
+    for j from 0 to binomial(numgens S, i)-1 do(
+m = sortedMons#i_{j}_(0,0);
+d = -degree m;
+lK = source degreeTruncation(K,d);
+HlK = HH lK;
+H := apply(toList(0..length lK-1),ell->prune HlK#ell);
+<<(i,m)<<" "<<positions(H, h-> h!=0)<<" "<<endl<<flush;
+))
+
+
+degsK=sort unique flatten apply(length K+1,i->degrees K_i)
+netList( L=apply(degsK,d->(g=degreeTruncation(K,d);
+    (d,betti target g,betti source g)) ))
+tally apply(L,c->c_1)
+netList(L1=apply(L,c->(c_0,c_2)))
+netList(L2=apply(degsK,d->(d,source degreeTruncation(K,d)) ))
+netList apply(L2,F->prune HH F_1) 
+netList apply(L2,dF->(F=dF_1;tally apply(length F+1,i-> 
+	    saturate(ann prune HH_i F, irr))))
+L3=select(L2,dF->(F=dF_1;#tally apply(length F+1,i-> 
+	    saturate(ann prune HH_i F, irr))>1));
+#L3
+netList (L3HH=apply(L3,dF -> (F=dF_1;d=dF_0;
+	homologicalDegs=select(length F+1,i->
+	    saturate(ann prune HH_i F, irr)!=ideal(1_S));
+	(d,betti F,apply(homologicalDegs,i->(h=prune HH_i F;
+		(i,h,betti h)))) )))
+
+tally apply(L3HH,c->#c_2)
+cplx = new HashTable from L3
+
+keys cplx
+
+--NOTE: there's always 0th homology;
+-- but the other homology degrees seem to form a 
+-- consecutive sequence.
+-- Why??
+///
 
 
 
@@ -1198,6 +1197,73 @@ all(nonTrivialOks,ab->(
 
 
 
+
+
+
+ -*
+RRfunctor = method();
+RRfunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
+    S :=ring(M);
+    M1 := prune coker presentation M;
+    relationsM := gens image presentation M1;
+    numvarsE := numgens E;
+    ev := map(E,S,vars E);
+    range := degreeSetup(S,lows,c);
+    alldegs:= range#0; newdegs:={};
+    scan(toList(1..c),i->(newdegs = select(range#i,d->not member(d,alldegs));
+	    alldegs=alldegs|newdegs));
+    bases := concatMatrices apply(alldegs,d->basis(d,M));
+    bases1 =map(S^(degrees target bases),, lift(bases,S));
+
+    kk:=coefficientRing S;
+    SE := kk[gens S|gens E,Degrees=>degrees S|degrees E];
+    tr := sum(dim S, i-> SE_i*SE_(dim S+i));
+    baseTr := map(SE^(degrees target bases1),,tr*sub(bases1,SE));
+--netList apply(baseTr,m->(isHomogeneous m,degrees target m,degrees source m,m))
+    relationsMinSE := sub(relationsM,SE);
+--isHomogeneous relationsMinSE
+    reducedBaseTr:= baseTr % relationsMinSE;
+    F = E^(-degrees source bases1);
+    multTable :=matrixContract(transpose sub(bases1,SE),reducedBaseTr);
+    F:= E^(-degrees source bases1);
+    chainComplex map(F,F, sub(multTable,E))
+    )
+*-
+-* TEST ///
+restart
+load "KoszulFunctor.m2"
+
+kk=ZZ/101
+S=kk[x_0..x_2,Degrees=>{{1,0},{1,2},{0,1}}]
+degrees S
+E=kk[e_0..e_2,SkewCommutative=>true,Degrees=>-degrees S ]
+M=S^1
+c=3
+lows={{3,3}}
+
+TM=RRfunctor(M,E,lows,c)
+TM.dd^2
+TM.dd_1
+
+
+restart
+load "KoszulFunctor.m2"
+
+kk=ZZ/101
+S=kk[x_0..x_2,Degrees=>{2:{1},{2}}]
+degrees S
+E=kk[e_0..e_2,SkewCommutative=>true,Degrees=>-degrees S ]
+M=truncate({1},S^1)
+c=2
+lows={{0}}
+
+TM=RRfunctor(M,E,lows,c)
+assert(isHomogeneous TM)
+assert((TM.dd_1)^2==0)
+TM.dd_1
+betti TM
+
+///*-
 
 
 
