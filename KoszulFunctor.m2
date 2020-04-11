@@ -1,5 +1,6 @@
 -*
 exports {
+    "addTateData",
     "dualRingToric",
     "RRFunctor",
     "sortedMonomials",
@@ -28,12 +29,41 @@ exports {
     "DMonad",
     "DMHH",
     "cacheComplexes",
-    "cachePhis"	               
+    "cachePhi"	               
     }
 
 *-
 
+addTateData = method()
+addTateData (Ring,Ideal) := (S,irr) ->(
+    S.irr = irr;
+    S.exterior = dualRingToric S;
+    S.koszul = koszul vars S;
+    S.sortedMons = sortedMonomials S.exterior;
+    S.complexes = cacheComplexes S;
+    S.phis = cachePhi S;
+    S.degs = -keys S.complexes;
+)
 
+
+///
+restart
+load"KoszulFunctor.m2"
+needsPackage "NormalToricVarieties"
+--viewHelp NormalToricVarieties
+P112 = weightedProjectiveSpace{1,1,2}
+kk=ZZ/101
+L = {1,1,2}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr = ideal vars S
+
+addTateData(S,irr)
+S.irr
+S.exterior
+S.sortedMons
+S.complexes
+S.phis
+///
 
 dualRingToric = method();
 dualRingToric(PolynomialRing) := (S) ->(
@@ -47,62 +77,6 @@ dualRingToric(PolynomialRing) := (S) ->(
     kk[ee,Degrees=>degs,SkewCommutative=>true]    
     );
 
-RRfunctor = method();
---Input: (M,L) M a (multi)-graded S-module.
---             L a list of degrees.
---Question:  should E be part of the input??
---Output:  The differenial module RR(M) in degrees from L.
-RRfunctor(Module,List) := (M,L) ->(
-    S := ring(M);
-    --E := dualRingToric S;
-    relationsM := gens image presentation M;
-    numvarsE := rank source vars E;
-    ev := map(E,S,vars E);
-    --L := degreeSetup(low,c,r);
-    f0 := gens image basis(L_0,M);
-    scan(#L-1,i-> f0 = f0 | gens image basis(L_(i+1),M));
-    --f0 is the basis for M in degrees given by L
-    --df0 := apply(degrees source f0,i-> (-1)*i|{0});
-    --df1 := apply(degrees source f0,i-> (-1)*i|{-1});
-    df0 := apply(degrees source f0,i-> i|{0});
-    df1 := apply(degrees source f0,i-> i|{-1});
-    SE := S**E;
-    tr := sum(dim S, i-> SE_i*SE_(dim S+i));
-    newf0 := sub(f0,SE)*tr;
-    relationsMinSE := sub(relationsM,SE);
-    newf0 = newf0 % relationsMinSE;
-    newg := contract(transpose sub(f0,SE),newf0);
-    g' := transpose sub(newg,E);
-    chainComplex map(E^df0,E^df1, g')
-    )
-
-
--*
-TEST 
-restart
-load "KoszulFunctor.m2"
-kk=ZZ/101
-A={1,1,2} --   like A = degree matrix
-S=kk[x_0..x_2,Degrees=> A]
-E=dualRingToric S
-degrees source vars E
-M=S^1/ideal x_0
-L=apply(5,i->{i})
-T=RRfunctor(M,L)
-T.dd_1 
-source (T.dd_1)==target (T.dd_1)**E^{{0,-1}}
-(T.dd_1)*((T.dd_1)**E^{{0,-1}})
-netList degrees target T.dd_1, netList degrees source T.dd_1
-isHomogeneous T.dd_1
---isHomogeneous (pM=presentation truncate({2},M))
---(degrees target pM)_0+degree pM_(0,0)==(degrees source pM)_0
-degree T.dd_1_(0,1)
-(degrees target T.dd_1)_0+degree T.dd_1_(0,1),(degrees source T.dd_1)_1
-(degrees target T.dd_1)_0+degree T.dd_1_(0,3),(degrees source T.dd_1)_3
-(degrees target T.dd_1)_1+degree T.dd_1_(1,2),(degrees source T.dd_1)_2
-
-
-*-
 
 
 
@@ -216,7 +190,7 @@ completeToMapOfChainComplexes(ChainComplex,RingElement) := o -> (K,m) -> (
 -- K <- K[i]**S^{deg m} of complexes
    S:= ring K;
    r:= length K;
-   (i,j) := positionInKoszulComplex(K,sortedMons,m);
+   (i,j) := positionInKoszulComplex(K,S.sortedMons,m);
    --(degrees K_i)_j==-degree m
    stK := K[i]**S^{-drop(degree m,-1)}; --shifted twisted K
    assert(degrees source stK.dd_0_{j}==degrees K_0);
@@ -471,6 +445,63 @@ relevantAnnHH(ChainComplex,Ideal) := (F,irr) -> (
     -- irr the ireelevant ideal
     apply(toList(min F..max F),i->saturate(ann HH_i F,irr))) 
 
+factors=method()
+factors(RingElement,HashTable) := (m,sortedMons) -> (
+    (select(keys sortedMons,k->member(m,(entries sortedMons#k)_0)))_0)
+
+---finished creating cached data
+
+RRfunctor = method();
+--Input: (M,L) M a (multi)-graded S-module.
+--             L a list of degrees.
+--Question:  should E be part of the input??
+--Output:  The differenial module RR(M) in degrees from L.
+RRfunctor(Module,List) := (M,L) ->(
+    S := ring(M);
+    E := S.exterior;
+    relationsM := gens image presentation M;
+--    numvarsE := numgens E;
+    ev := map(E,S,vars E);
+    --L := degreeSetup(low,c,r);
+    f0 := gens image basis(L_0,M);
+    scan(#L-1,i-> f0 = f0 | gens image basis(L_(i+1),M));
+    --f0 is the basis for M in degrees given by L
+    --df0 := apply(degrees source f0,i-> (-1)*i|{0});
+    --df1 := apply(degrees source f0,i-> (-1)*i|{-1});
+    df0 := apply(degrees source f0,i-> i|{0});
+    df1 := apply(degrees source f0,i-> i|{-1});
+    SE := S**E;
+    tr := sum(dim S, i-> SE_i*SE_(dim S+i));
+    newf0 := sub(f0,SE)*tr;
+    relationsMinSE := sub(relationsM,SE);
+    newf0 = newf0 % relationsMinSE;
+    newg := contract(transpose sub(f0,SE),newf0);
+    g' := transpose sub(newg,E);
+    chainComplex map(E^df0,E^df1, g')
+    )
+
+
+-*
+TEST 
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+A={1,1,2} --   like A = degree matrix
+S=kk[x_0..x_2,Degrees=> A]
+addTateData(S,ideal vars S)
+
+E=S.exterior
+degrees source vars E
+M=S^1/ideal x_0
+L=apply(5,i->{i})
+T=RRfunctor(M,L)
+T.dd_1 
+source (T.dd_1)==target (T.dd_1)**E^{{0,-1}}
+(T.dd_1)*((T.dd_1)**E^{{0,-1}})
+netList degrees target T.dd_1, netList degrees source T.dd_1
+isHomogeneous T.dd_1
+degs = -keys S.complexes
+*-
 
 beilinsonWindow=method()
 beilinsonWindow(ChainComplex,List) := (T,degs) -> (
@@ -482,12 +513,10 @@ beilinsonWindow(ChainComplex,List) := (T,degs) -> (
     )
  
 -*///
-beilinsonWindow(T,degs)
-///*-
+TB = beilinsonWindow(T,degs)
+TB.dd_1
 
-factors=method()
-factors(RingElement,HashTable) := (m,sortedMons) -> (
-    (select(keys sortedMons,k->member(m,(entries sortedMons#k)_0)))_0)
+///*-
 
 entry=method()
 entry(RingElement,List,HashTable) := (f,d,sortedMons) -> (
@@ -505,8 +534,9 @@ entry(RingElement,List,HashTable) := (f,d,sortedMons) -> (
     sum(#fs,n->(m=cs_n;fs_n*phis#(d,m)))
     )
 
+
 DMonad = method() 
-DMonad(ChainComplex,Ring,List) := (DTate, S, degs) -> (
+DMonad(ChainComplex,Ring) := (DTate, S) -> (
     -- Input: DTate = Tate res as diff module
     -- S polynomial ring
     --degs "relevant" degrees: in general 
@@ -514,20 +544,25 @@ DMonad(ChainComplex,Ring,List) := (DTate, S, degs) -> (
     --calls on: cplx, a hash table of complexes corresponding to the relevant degrees.
     --sortedMons: a hash table of the monomials in the exterior algebra.
     --these two should be cached.
-    TB := beilinsonWindow(DTate,degs);
-    tot := directSum apply(degrees TB_0,d->cplx#drop(d,-1));
+    if not S.?complexes then error"ring needs ToricTateData; use addTateData(S,irr)";
+    cplx := S.complexes;
+    TB := beilinsonWindow(DTate,S.degs);
+    tot := directSum apply(degrees TB_0,d->cplx#(-drop(d,-1)));
     Lphi:= apply(rank TB_0,i-> apply(rank TB_1,j-> (
 	     d := (degrees TB_0)_i; -- degree of i-th row
+	     shortd := drop(d,-1);
 	     d1 := (degrees TB_1)_j; -- degree of j-th col
+	     shortd1 := drop(d1,-1);
 	     ee := TB.dd_1_(i,j); --(i,j) entry, as an element of E
-	     ff := entry(ee,d,sortedMons); --map of complexes corresponding to ee.
+	     ff := entry(ee,shortd,S.sortedMons); --map of complexes corresponding to ee.
 	     --probably correct except when ee == 0.
 	     
-	     (map(cplx#d,cplx#d1,q-> -- q-> ff_q would be ideal. Here we return shiftedff_q.
-	     	map((cplx#d)_q,(cplx#d1)_q,if class ff === ZZ then 0 else 
-		(shiftedff= ff[min target ff-min cplx#d]; -- maybe "true min"??
-		 shiftedff_q)))) -- possibly wrong twist.
-           )));
+	     (map(cplx#(-shortd),cplx#(-shortd1),q-> -- q-> ff_q would be ideal. Here we return shiftedff_q.
+	     	map((cplx#(-shortd))_q,(cplx#(-shortd1))_q,if class ff === ZZ then 0 else 
+		(shiftedff= ff[last d - last d1]; -- maybe? "true min"??
+		 shiftedff_q)) -- possibly wrong twist.
+           ))
+   ))));
     map(tot,tot,p->matrix apply(rank TB_0,i-> apply(rank TB_1,j-> (Lphi_i_j)_p)))
 )
 DMHH=method()
@@ -541,59 +576,24 @@ load "KoszulFunctor.m2"
 kk=ZZ/101
 L = {1,1,2}
 S=kk[x_0..x_(#L-1),Degrees=>L]
+
 irr=ideal vars S
-E=kk[e_0..e_(numgens S - 1),SkewCommutative=>true,Degrees=>-degrees S ]
-K=koszul vars S
-sortedMons = sortedMonomials E
-es=(entries concatMatrices values sortedMons)_0
--- derived category should have O(d) with d in - reverse {0,1,.., sum(L)-1}
--- as natural generators (basis?)
-degs=apply(sum L,i->{-i})
-possiblePairs = select(
-    flatten apply(degs,d->apply(es,m -> (d,m))), 
-    dm-> member(dm_0+degree dm_1,degs)) 
+addTateData(S,irr)
 
-netList (allPhi=apply(possiblePairs,dm->(
-	d=dm_0;m=dm_1;
-	phi=completeToMapOfChainComplexes(K,m,Complete => false);
-	(dm,degreeTruncation(phi,-d)[-factors(m,sortedMons)]**S^{-d})))) 
-netList (allPhi=apply(possiblePairs,dm->(
-	d=dm_0;m=dm_1;
-	phi=completeToMapOfChainComplexes(K,m,Complete => false);
-	(dm,degreeTruncation(phi,-d)**S^{-d})))) 
-
-phis= new HashTable from allPhi;
-
-cplx=new HashTable from apply(degs,d->(d,
-	source degreeTruncation(K,-d)[-sum d]**S^{d})
-)
-
-netList (allPhi=apply(possiblePairs,dm->(
-	d=dm_0;m=dm_1;d1 = d-degree m;
-	phi=completeToMapOfChainComplexes(K,m,Complete => false);
-	map(cplx#d,cplx#d1,phi);
-	(dm,degreeTruncation(phi,-d)**S^{-d})))) 
-
-lows={{0}}
-c=4
-
-use S
 M= S^1/ideal(x_0,x_2)
---use S
---M=S^1/ideal (x_1)
-d
 
-
-elapsedTime betti(TM=RRfunctor(M,E,lows,c))
-T=TM**E^{{5}} -- should not need a twist
-tally degrees T_0
-tally degrees T_1
-
-TB=beilinsonWindow(T,degs)
+elapsedTime betti(TM=RRfunctor(M,-S.degs))
+TM.dd
+TB=beilinsonWindow(TM,S.degs)
 betti TB
 TB.dd
 isHomogeneous TB.dd
-BM=DMonad(TB,S,degs)
+BM=DMonad(TB,S)
+fdtot
+TB_0
+degrees oo
+d
+cplx#(-1)
 DMHH BM
 
 
@@ -602,20 +602,41 @@ DMHH BM
 
 cacheComplexes=method()
 cacheComplexes(Ring) := S-> (
-    K:=koszul vars S; 
+    --produces a hashTable of those subcomplexes of the Koszul complex obtained by degree
+    --truncation that have relevant homology. the ideal irr = irrelevant ideal should
+    --be cached in S or otherwise a global var.
+    --K:=koszul vars S; 
+    K := S.koszul;
     koszulRange :=unique flatten apply(length K+1,i->degrees K_i);
     truncatedComplexes := new HashTable from apply(koszulRange, d-> 
 	(d,source degreeTruncation(K,d)));
     relDegs:=select(koszulRange,d->
-	#select(relevantAnnHH(truncatedComplexes#d,irr),j->j!=ideal 1_S)>0);
+	#select(relevantAnnHH(truncatedComplexes#d,S.irr),j->j!=ideal 1_S)>0);
     new HashTable from apply(relDegs,d->(d,truncatedComplexes#d))
     ) 
 -*
 restart
 load"KoszulFunctor.m2"
+needsPackage "NormalToricVarieties"
+--viewHelp NormalToricVarieties
+P112 = weightedProjectiveSpace{1,1,2}
+
+--ToricRingWithTateData = new type of MutableHashTable
+
+
 kk=ZZ/101
 L = {1,1,2}
 S=kk[x_0..x_(#L-1),Degrees=>L]
+irr = ideal vars S
+addTateData(S,irr)
+S.irr
+S.exterior
+S.sortedMons
+S.complexes
+
+values cplx/betti
+    
+
 K=koszul vars S
 irr=ideal vars S
 E=dualRingToric S
@@ -639,16 +660,18 @@ phis=cachePhi(S,irr)
 
 
 cachePhi=method()
-cachePhi(Ring,Ideal) := (S,I) -> (
+cachePhi Ring := S -> (
+    cplx := S.complexes;
     degs := keys cplx;
-    es := (entries concatMatrices values sortedMons)_0;
-    possiblePairs = select(flatten apply(degs,d->apply(es,m -> (d,m))), dm-> 
+    es := (entries concatMatrices values S.sortedMons)_0;
+    possiblePairs := select(flatten apply(degs,d->apply(es,m -> (d,m))), dm-> 
 	member(dm_0+drop(degree dm_1,-1),degs));
     netList (allPhi=apply(possiblePairs,dm->(
 	--	dm=possiblePairs_3
-	d=dm_0;m=dm_1;
-	phi=completeToMapOfChainComplexes(K,m,Complete => false);
-	(dm,degreeTruncation(phi,-d)[-factors(m,sortedMons)]**S^{-d})))); 
+	d:=dm_0;m:=dm_1;
+	phi := completeToMapOfChainComplexes(S.koszul,m,Complete => false);
+	--should it be +factors?
+	(dm,degreeTruncation(phi,d)[-factors(m, S.sortedMons)]**S^{d})))); 
     new HashTable from allPhi)
 end--
 
