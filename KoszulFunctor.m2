@@ -515,10 +515,10 @@ DMonad(ChainComplex,Ring,List) := (DTate, S, degs) -> (
     --sortedMons: a hash table of the monomials in the exterior algebra.
     --these two should be cached.
     TB := beilinsonWindow(DTate,degs);
-    tot := directSum apply(degrees TB_0,d->cplx#d);
+    tot := directSum apply(degrees TB_0,d->cplx#drop(d,-1));
     Lphi:= apply(rank TB_0,i-> apply(rank TB_1,j-> (
 	     d := (degrees TB_0)_i; -- degree of i-th row
-	     d1 := (degrees TB_0)_j; -- degree of j-th col
+	     d1 := (degrees TB_1)_j; -- degree of j-th col
 	     ee := TB.dd_1_(i,j); --(i,j) entry, as an element of E
 	     ff := entry(ee,d,sortedMons); --map of complexes corresponding to ee.
 	     --probably correct except when ee == 0.
