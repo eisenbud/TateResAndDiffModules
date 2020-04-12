@@ -466,7 +466,7 @@ cachePhi Ring := S -> (
     degs := keys cplx;
     es := (entries concatMatrices values S.sortedMons)_0;
     possiblePairs := select(flatten apply(degs,d->apply(es,m -> (d,m))), dm-> 
-	member(dm_0+drop(degree dm_1,-1),degs));
+	member(dm_0-drop(degree dm_1,-1),degs));
     netList (allPhi=apply(possiblePairs,dm->(
 	--	dm=possiblePairs_3
 	d:=dm_0;m:=dm_1;
@@ -474,6 +474,26 @@ cachePhi Ring := S -> (
 	--should it be +factors?
 	(dm,degreeTruncation(phi,d)[-factors(m, S.sortedMons)]**S^{d})))); 
     new HashTable from allPhi)
+
+///
+restart
+load"KoszulFunctor.m2"
+
+kk=ZZ/101
+L = {1,1,2}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr = ideal vars S
+
+addTateData(S,irr)
+S.irr
+S.exterior
+S.sortedMons
+S.complexes
+S.phis
+S.degs
+S.degOmega
+///
+
 
 ---------------------------------------
 ---finished creating cached data
@@ -555,7 +575,10 @@ entry(RingElement,List,Ring) := (f,di,S) -> (
     cf := coefficients f;
     cs := (entries cf_0)_0;
     fs := flatten (entries sub(cf_1,kk));  
-    sum(#fs,n->(m=cs_n;fs_n*(S.phis#(drop(di,-1),m))))
+    phi := sum(#fs,n->(m=cs_n;fs_n*(S.phis#(drop(-di,-1),m))));
+   -- map(DMonad(-di,S),DMonad(-di-degree f,S),
+--	q->map((DMonad(-di,S))_q,(DMonad(-di-degree f,S))_q,phi_q))
+    phi
     )
 
 
@@ -607,8 +630,8 @@ phi1=map(cplx,cplx1,q->map(cplx_q,cplx1_q,phi_q))
 phi2=map(cplx,cplx1,q->phi_q)
 phi1==phi2
 f=dm_1+2*e_0
-entry(f,di,S)
-di
+entry(f,-di,S)
+
 ///
 *-
 
@@ -639,11 +662,12 @@ DMonad(ChainComplex,Ring) := (DTate, S) -> (
 	     di1 := (degrees TB_1)_j; -- degree of j-th col
 --	     di, di1
 	     ee := TB.dd_1_(i,j); --(i,j) entry, as an element of E
---ee, di, degree ee, di1
+--ee, di, degree ee, di1, degree TB_1_j
 	     ff := entry(ee,-di,S); --map of complexes corresponding to ee.
 	     --probably correct except when ee == 0.
 --TB.dd,	    ee, ff	     
---DMonad(-di,S)
+--DMonad(-di,S), 
+--DMonad(-di1,S)
 	     (map(DMonad(-di,S),DMonad(-di1,S),q->
 		     if class ff === ZZ then 0 else ff_q)) -- possibly wrong twist.
            
@@ -676,6 +700,8 @@ TB.dd
 isHomogeneous TB.dd
 netList degrees TB_0,netList degrees TB_1
 BM=DMonad(TB,S)
+betti tot, betti tot1
+tot1==tot[1]
 (di,m)
 keys S.phis
 TB_0
