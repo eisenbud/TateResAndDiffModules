@@ -464,7 +464,7 @@ cacheComplexes(Ring) := S-> (
 	(d,source degreeTruncation(K,d)));
     relDegs:=select(koszulRange,d->
 	#select(relevantAnnHH(truncatedComplexes#d,S.irr),j->j!=ideal 1_S)>0);
-    new HashTable from apply(relDegs,d->(d,truncatedComplexes#d))
+    new HashTable from apply(relDegs,d->(d,(truncatedComplexes#d)**S^{d}))
     ) 
 
 cachePhi=method()
@@ -472,14 +472,16 @@ cachePhi Ring := S -> (
     cplx := S.complexes;
     degs := keys cplx;
     es := (entries concatMatrices values S.sortedMons)_0;
+    --es := drop((entries concatMatrices values S.sortedMons)_0,-1);
     possiblePairs := select(flatten apply(degs,d->apply(es,m -> (d,m))), dm-> 
-	member(dm_0+drop(degree dm_1,-1),degs));
+	member( dm_0-drop(degree dm_1,-1),degs)
+	);
     netList (allPhi=apply(possiblePairs,dm->(
 	--	dm=possiblePairs_3
 	d:=dm_0;m:=dm_1;
 	phi := completeToMapOfChainComplexes(S.koszul,m,Complete => false);
-	--should it be +factors?
-	(dm,degreeTruncation(phi,d)[-factors(m, S.sortedMons)]**S^{0})))); 
+
+	(dm,degreeTruncation(phi,d)[-factors(m, S.sortedMons)]**S^{d})))); 
     new HashTable from allPhi)
 
 ///
@@ -500,6 +502,17 @@ S.phis
 S.degs
 S.degOmega
 keys S.phis
+values S.complexes/betti
+values S.phis/source/betti
+values S.phis/target/betti
+dm=first keys S.phis
+	d:=dm_0;m:=dm_1;
+	phi := completeToMapOfChainComplexes(S.koszul,m,Complete => false);
+betti target phi, betti source phi
+phitrunc=degreeTruncation(phi,d)[-factors(m, S.sortedMons)]**S^{d}
+betti target phitrunc, betti source phitrunc
+
+
 ///
 
 
@@ -602,7 +615,7 @@ DMonad(List,Ring) := (di,S) -> (
     --         perhaps twist and shift are not right 
     d:= drop(di,-1);
     i:=last di;
-    cplx:=(S.complexes#d)[-i])
+    cplx:=(S.complexes#d)[i]) -- maybe [i]
 
 DMonad(Sequence,Ring) := (dm,S) -> (
     -- Input: dm a pair of a degree d and a exterior monomial m;
@@ -612,7 +625,7 @@ DMonad(Sequence,Ring) := (dm,S) -> (
     d:= dm_0;
     m:= dm_1;
     i:=last degree m;
-    phi:=(S.phis#dm)[-i])
+    phi:=(S.phis#dm)[i]) -- maybe [i]
 
 -*
 TEST  ///
@@ -624,7 +637,7 @@ S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
 addTateData(S,irr)
 d=(keys S.complexes)_1    
-i=2
+i=0
 di=append(d,i)
 cplx=DMonad(di,S)
 use S.exterior
@@ -635,7 +648,7 @@ betti S.complexes#d, betti S.complexes#d1
 di=append(d,i)
 phi=DMonad(dm,S)
 betti target phi,betti source phi
-d1i=append(d1,i-1)
+d1i=append(d1,i+1)
 cplx1=DMonad(d1i,S)
 betti cplx, betti cplx1
 phi1=map(cplx,cplx1,q->map(cplx_q,cplx1_q,phi_q))
@@ -714,15 +727,16 @@ S=kk[x_0..x_(#L-1),Degrees=>L]
 
 irr=ideal vars S
 addTateData(S,irr)
-
+E=S.exterior
 M= S^1/ideal(x_0)**S^{{4}}
 LL=apply(10,i->S.degOmega+{i})
 elapsedTime betti(TM=RRfunctor(M,LL))
 DTate=TM
 TM.dd
-TB=beilinsonWindow(TM,S.degs)
+TB=beilinsonWindow(TM,S.degs)**E^{append(-S.degOmega,0)}
 betti TB
 degrees TB_0
+TB.dd_1
 degrees TB_1
 ijs=flatten apply(rank TB_0,i->apply(rank TB_1,j->(i,j)))
 nonzeroijs=select(ijs,ij->TB.dd_1_ij!=0)
@@ -797,6 +811,22 @@ phis=cachePhi(S,irr)
 
 
 end--
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 restart
