@@ -64,6 +64,13 @@ S.complexes
 S.phis
 S.degs
 S.degOmega
+values S.complexes/betti
+values S.phis/source/betti
+values S.phis/target/betti
+de=first keys S.phis
+S.phis#de
+wrongCase=S.phis#((keys S.phis)_6)
+betti target wrongCase, betti source wrongCase
 ///
 
 dualRingToric = method();
@@ -466,13 +473,13 @@ cachePhi Ring := S -> (
     degs := keys cplx;
     es := (entries concatMatrices values S.sortedMons)_0;
     possiblePairs := select(flatten apply(degs,d->apply(es,m -> (d,m))), dm-> 
-	member(dm_0-drop(degree dm_1,-1),degs));
+	member(dm_0+drop(degree dm_1,-1),degs));
     netList (allPhi=apply(possiblePairs,dm->(
 	--	dm=possiblePairs_3
 	d:=dm_0;m:=dm_1;
 	phi := completeToMapOfChainComplexes(S.koszul,m,Complete => false);
 	--should it be +factors?
-	(dm,degreeTruncation(phi,d)[-factors(m, S.sortedMons)]**S^{d})))); 
+	(dm,degreeTruncation(phi,d)[-factors(m, S.sortedMons)]**S^{0})))); 
     new HashTable from allPhi)
 
 ///
@@ -492,6 +499,7 @@ S.complexes
 S.phis
 S.degs
 S.degOmega
+keys S.phis
 ///
 
 
@@ -541,7 +549,7 @@ addTateData(S,ideal vars S)
 E=S.exterior
 degrees source vars E
 M=S^1/ideal x_0
-L=apply(5,i->{i})
+L=apply(10,i->{i}+S.degOmega)
 T=RRfunctor(M,L)
 T.dd_1 
 source (T.dd_1)==target (T.dd_1)**E^{{0,-1}}
@@ -551,6 +559,8 @@ isHomogeneous T.dd_1
 degs =keys S.complexes
 TB = beilinsonWindow(T,-degs)
 TB.dd_1
+betti TB
+E.FlatMonoid
 *-
 
 beilinsonWindow=method()
@@ -574,8 +584,9 @@ entry(RingElement,List,Ring) := (f,di,S) -> (
     if f==0_E then return 0;
     cf := coefficients f;
     cs := (entries cf_0)_0;
-    fs := flatten (entries sub(cf_1,kk));  
-    phi := sum(#fs,n->(m=cs_n;fs_n*(S.phis#(drop(-di,-1),m))));
+    fs := flatten (entries sub(cf_1,kk));
+    phi := sum(#fs,n->(m=cs_n;fs_n*(S.phis#(drop(di,-1),m))));  
+--    phi := sum(#fs,n->(m=cs_n;fs_n*(S.phis#(-S.degOmega-drop(di,-1),m))));
    -- map(DMonad(-di,S),DMonad(-di-degree f,S),
 --	q->map((DMonad(-di,S))_q,(DMonad(-di-degree f,S))_q,phi_q))
     phi
@@ -617,21 +628,23 @@ i=2
 di=append(d,i)
 cplx=DMonad(di,S)
 use S.exterior
-dm=({1},e_1)
+dm=(d,e_1)
 d=first dm
 d1=d-drop(degree dm_1,-1)
 betti S.complexes#d, betti S.complexes#d1
 di=append(d,i)
 phi=DMonad(dm,S)
 betti target phi,betti source phi
-d1i={2,i-1}
+d1i=append(d1,i-1)
 cplx1=DMonad(d1i,S)
+betti cplx, betti cplx1
 phi1=map(cplx,cplx1,q->map(cplx_q,cplx1_q,phi_q))
 phi2=map(cplx,cplx1,q->phi_q)
 phi1==phi2
 f=dm_1+2*e_0
-entry(f,-di,S)
-
+entry(f,di,S)
+apply(values S.phis,phi->(betti target phi,betti source phi))
+keys S.phis
 ///
 *-
 
@@ -639,7 +652,7 @@ entry(f,-di,S)
 
 
  
-DMonad(ChainComplex,Ring) := (DTate, S) -> (
+DMonad(ChainComplex,Ring) := (TM, S) -> (
     -- Input: DTate = Tate res as diff module
     -- S polynomial ring
     --degs "relevant" degrees: in general 
@@ -651,26 +664,38 @@ DMonad(ChainComplex,Ring) := (DTate, S) -> (
     --cplx := S.complexes;
 --   
 -- DTate=TM
-    TB := beilinsonWindow(DTate,-S.degs);
-    tot := directSum apply(degrees TB_0,d->DMonad(-d,S));
+    TB := beilinsonWindow(TM,S.degs);
+    tot := directSum apply(degrees TB_0,d->DMonad(d,S));
 --betti tot
-    tot1 := directSum apply(degrees TB_1,d->DMonad(-d,S));
+    tot1 := directSum apply(degrees TB_1,d->DMonad(d,S));
 --    betti tot,betti tot1
     Lphi:= apply(rank TB_0,i-> apply(rank TB_1,j-> (
---	(i,j)=(0,1)	
+--(i,j)=(0,1)	
 	     di := (degrees TB_0)_i; -- degree of i-th row
 	     di1 := (degrees TB_1)_j; -- degree of j-th col
---	     di, di1
+--di, di1
 	     ee := TB.dd_1_(i,j); --(i,j) entry, as an element of E
 --ee, di, degree ee, di1, degree TB_1_j
-	     ff := entry(ee,-di,S); --map of complexes corresponding to ee.
+--S^(drop(di,-1)), 
+	     ff := entry(ee,di,S); --map of complexes corresponding to ee.
+
+--ff)))
 	     --probably correct except when ee == 0.
 --TB.dd,	    ee, ff	     
 --DMonad(-di,S), 
 --DMonad(-di1,S)
-	     (map(DMonad(-di,S),DMonad(-di1,S),q->
+	     (map(DMonad(di,S),DMonad(di1,S),q->
 		     if class ff === ZZ then 0 else ff_q)) -- possibly wrong twist.
-           
+-*
+di,di1
+q=2
+ff
+betti target ff, betti source ff
+betti DMonad(di,S), betti DMonad(di1,S)
+map(
+    betti (DMonad(di,S))_q, betti (DMonad(di1,S))_q,betti ff_q 
+    )
+*-          
    )));
     map(tot,tot1,p->matrix apply(rank TB_0,i-> apply(rank TB_1,j-> (Lphi_i_j)_p)))
 )
@@ -680,6 +705,7 @@ DMHH(ChainComplexMap) := BM -> prune HH coker(
 
 -*
 TEST ///
+
 restart
 load "KoszulFunctor.m2"
 kk=ZZ/101
@@ -689,17 +715,26 @@ S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
 addTateData(S,irr)
 
-M= S^1/ideal(x_0)
-LL=apply(10,i->{i})
+M= S^1/ideal(x_0)**S^{{4}}
+LL=apply(10,i->S.degOmega+{i})
 elapsedTime betti(TM=RRfunctor(M,LL))
 DTate=TM
 TM.dd
-TB=beilinsonWindow(TM,-S.degs)
+TB=beilinsonWindow(TM,S.degs)
 betti TB
+degrees TB_0
+degrees TB_1
+ijs=flatten apply(rank TB_0,i->apply(rank TB_1,j->(i,j)))
+nonzeroijs=select(ijs,ij->TB.dd_1_ij!=0)
+apply(nonzeroijs,ij->(i=ij_0;(degrees TB_0)_i))
+neededKeys=apply(nonzeroijs,ij->(i=ij_0;(drop((degrees TB_0)_i,-1),TB.dd_1_ij)))
+apply(neededKeys,dm->S.phis#dm)
+
 TB.dd
 isHomogeneous TB.dd
 netList degrees TB_0,netList degrees TB_1
 BM=DMonad(TB,S)
+(drop(di,-1),m)
 betti tot, betti tot1
 tot1==tot[1]
 (di,m)
