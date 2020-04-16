@@ -43,6 +43,14 @@ bigChainMap = (TB)->(
 --  just a different name for same function
 altDMonad = TB -> bigChainMap(TB)
 --
+
+--  NOTE:  this one might not work, it was just an attempt to do something different.
+--input: a chain complex map BM representing a differential complex and an integer, d
+--output: a presentation matrix for the homology of BM in position in d.
+DMHH(ChainComplexMap, ZZ) := (DM ,d)->(
+    minimalPresentation(ker DM_d / image DM_(d+1))
+    )
+
 end
 
 restart
@@ -65,38 +73,88 @@ F = E^{{0,0},{1,0},{2,0}};
 phi = matrix{{0,e_0,0},{0,0,e_0},{0,0,0}};
 betti F
 TB = chainComplex map(F,F**E^{{0,-1}},phi)
+isHomogeneous TB
 TB.dd_1
 altDMonad(TB)
---This is what I'd worked out by hand in a file!
+--This is what I'd worked out by hand in a file.
 --But this was an artificial example, it didn't come from a sheaf.
 
 --NEXT SIMPLEST EXAMPLE:  S(1)
 M= S^{{1}}
 LL=apply(10,i->S.degOmega+{i})
 elapsedTime betti(TM=RRfunctor(M,LL))
---RRfunctor screwed up
 DTate=TM
 betti TM
 TM.dd
 TB=beilinsonWindow(TM,-S.degs)
 betti TB
+--Beilinson window is correct.
 degrees TB_0
 TB.dd_1
 degrees TB_1
 DM = altDMonad(TB)
 -- this also matches a computation I did by hand!
-break
 
 
 
---NEW STUFF
+--NONTRIVIAL EXAMPLE
 altDMonad(TB)
 M = S^1/ideal(x_0)**S^{{4}}
 LL=apply(10,i->S.degOmega+{i})
 elapsedTime betti(TM=RRfunctor(M,LL))
-DTate=TM
 TM.dd
+isHomogeneous TM
 TB = beilinsonWindow(TM,-S.degs)
 betti TB
-altDMonad(TB)
--- we get something....  no clue if it is correct.
+isHomogeneous TB
+DM = altDMonad(TB)
+-- we get something....  can't figure out code to check that it is correct.
+
+
+--MORE SIMPLE EXAMPLES:  S(2)
+M= S^{{2}}
+LL=apply(10,i->S.degOmega+{i})
+elapsedTime betti(TM=RRfunctor(M,LL))
+betti TM
+TB=beilinsonWindow(TM,-S.degs)
+betti TB
+DM = altDMonad(TB)
+betti source DM
+-- looks an awful lot like S(2)--even without incorporating the data of the differential
+-- this matches offline computations.
+
+
+--
+--ANOTHER LINE BUNDLE:  S(5)
+M= S^{{5}}
+LL=apply(10,i->S.degOmega+{i})
+elapsedTime betti(TM=RRfunctor(M,LL))
+betti TM
+TB=beilinsonWindow(TM,-S.degs)
+betti TB
+DM = altDMonad(TB);
+betti source DM
+--cancelling yields
+betti res truncate(-3,M)
+-- which is of course the same sheaf...
+
+
+--Jetsam
+
+
+--input: a chain complex map BM representing a differential complex and an integer, d
+--output: the homology of BM in position in d.
+DMHH(ChainComplexMap, ZZ) := (BM ,d)-> prune HH coker( 
+    map(ker BM, source BM, i->BM_(i+1)//inducedMap(target BM_(i+1),ker BM_(i))))
+
+hhComplex = BM->(
+
+    )
+DMHH(ChainComplexMap) := BM -> prune HH coker( 
+    map(ker BM, source BM, i->BM_(i+1)//inducedMap(target BM_(i+1),ker BM_(i))))
+DMHH BM
+source BM
+L = apply({0,1,2,3},i->(
+	print i;
+	source inducedMap(target BM_(i),ker BM_(i-1))
+	))
