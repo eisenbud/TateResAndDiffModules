@@ -2,6 +2,10 @@
 --Output:  a hash table H where H#(i,j) is the chain complex
 --         map corresponding to that entry
 --Caveat:  might require monomial entries??
+--In essence, this codes just takes the (i,j) entry of a matrix,
+--spits out the corresponding map of chain complex (under the proposed U-functor)
+--and then encodes that in a hash table (i,j) => (corresponding chain complex map)
+--
 diffModToChainComplexMaps = TB->(
     ijs := flatten apply(rank TB_0,i->apply(rank TB_1,j->(i,j)));
     zeroijs := select(ijs,ij->TB.dd_1_ij==0);
@@ -19,8 +23,11 @@ diffModToChainComplexMaps = TB->(
     )
 
 
---  Input:  the Beilinson window chain complex.  Might differential entries to be monomials.
+--  Input:  the Beilinson window chain complex.  Might require
+--           differential entries to be monomials(?)
 --  Output:  the Beilinson monad (??)
+--  In essence, this code just concatenates the chain complex maps from the HashTable
+--  diffModToChainComplexMaps(TB).
 bigChainMap = (TB)->(
     HT = diffModToChainComplexMaps(TB);
     rows = apply(rank TB_0,i->(
