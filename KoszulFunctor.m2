@@ -712,9 +712,12 @@ map(
    )));
     map(tot,tot1,p->matrix apply(rank TB_0,i-> apply(rank TB_1,j-> (Lphi_i_j)_p)))
 )
+
 DMHH=method()
-DMHH(ChainComplexMap) := BM -> prune HH coker( 
-    map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i)))
+DMHH(ChainComplexMap) := BM ->( 
+    BBM:= BM[1]; 
+    prune HH coker( 
+    map(ker BM, source BBM, i->BBM_i//inducedMap(target BBM_i,ker BM_i))))
 
 -*
 TEST ///
