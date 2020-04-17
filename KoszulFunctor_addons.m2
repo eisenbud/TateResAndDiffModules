@@ -122,12 +122,12 @@ DM = altDMonad(TB)
 betti source DM
 -- looks an awful lot like S(2)--even without incorporating the data of the differential
 -- this matches offline computations.
-
+(DMHH(DM))#0==M
 
 --
 --ANOTHER LINE BUNDLE:  S(5)
-M= S^{{5}}
-LL=apply(10,i->S.degOmega+{i})
+M= S^{{-5}}
+LL=apply(12,i->S.degOmega+{i})
 elapsedTime betti(TM=RRfunctor(M,LL))
 betti TM
 TB=beilinsonWindow(TM,-S.degs)
@@ -135,6 +135,8 @@ betti TB
 DM = altDMonad(TB);
 betti source DM
 --cancelling yields
+(DMHH(DM))#0
+prune truncate(-5,M)
 betti res truncate(-3,M)
 -- which is of course the same sheaf...
 
