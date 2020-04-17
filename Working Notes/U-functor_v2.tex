@@ -1,0 +1,663 @@
+\documentclass[12pt]{amsart}
+\usepackage{amstext,amsfonts,amssymb,amscd,amsbsy,amsmath,verbatim, mathrsfs, fullpage}
+\usepackage[alphabetic,abbrev,lite]{amsrefs} % for bibliography 
+\usepackage{ifthen,tikz}
+\usepackage{color}
+\usepackage{amsthm}
+\usepackage{latexsym}
+\usepackage[all]{xy}
+\usepackage{enumerate}
+
+
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{theorem}[lemma]{Theorem}
+\newtheorem{propo}[lemma]{Proposition}
+\newtheorem{prop}[lemma]{Proposition}
+\newtheorem{cor}[lemma]{Corollary}
+\newtheorem{conj}[lemma]{Conjecture}
+\newtheorem{claim}[lemma]{Claim}
+\newtheorem{claim*}{Claim}
+\newtheorem{thm}[lemma]{Theorem}
+\newtheorem{notation}[lemma]{Notation}
+\newtheorem{question}[lemma]{Question}
+
+
+\theoremstyle{definition}
+\newtheorem{defn}[lemma]{Definition}
+\newtheorem{example}[lemma]{Example}
+\newtheorem{warning}[lemma]{Warning}
+
+\theoremstyle{remark}
+\newtheorem{remark}[lemma]{Remark}
+\newtheorem{rem}[lemma]{Remark}
+
+
+% Commands
+\newcommand{\cS}{\mathcal{S}}
+\newcommand{\rC}{\mathrm{C}}
+\newcommand{\Cech}{\check{\mathrm{C}}}
+\newcommand{\Tate}{{\mathbf{T}}}
+\newcommand{\Tail}{{\mathbf{Tail}}}
+\newcommand{\cC}{\mathcal{C}}
+\newcommand{\cK}{\mathcal{K}}
+\newcommand{\tot}{\operatorname{tot}}
+
+\newcommand{\isom}{\cong}
+\newcommand{\m}{\mathfrak m}
+\newcommand{\PP}{\mathbb P}
+\newcommand{\rH}{\mathrm H}
+\newcommand{\bD}{\mathbf D}
+\newcommand{\df}{\operatorname{diff}}
+\renewcommand{\P}{\PP}
+\newcommand{\bA}{\mathbb A}
+\newcommand{\A}{\bA}
+\newcommand{\HH}{\mathrm H}
+\newcommand{\GG}{\mathbb G}
+\newcommand{\ZZ}{\mathbb Z}
+\newcommand{\QQ}{\mathbb Q}
+\newcommand{\bH}{\mathbf H}
+\newcommand{\lideal}{\langle}
+\newcommand{\rideal}{\rangle}
+\newcommand{\initial}{\operatorname{in}}
+\newcommand{\Hilb}{\operatorname{Hilb}}
+\newcommand{\Spec}{\operatorname{Spec}}
+\newcommand{\im}{\operatorname{im}}
+\newcommand{\NS}{\operatorname{NS}}
+\newcommand{\Frac}{\operatorname{Frac}}
+\newcommand{\ch}{\operatorname{char}}
+\newcommand{\Proj}{\operatorname{Proj}}
+\newcommand{\id}{\operatorname{id}}
+\newcommand{\Div}{\operatorname{Div}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\Supp}{\operatorname{Supp}}
+\newcommand{\Gal}{\operatorname{Gal}}
+\newcommand{\Pic}{\operatorname{Pic}}
+\newcommand{\QQbar}{{\overline{\mathbb Q}}}
+\newcommand{\Br}{\operatorname{Br}}
+\newcommand{\Bl}{\operatorname{Bl}}
+\newcommand{\Cox}{\operatorname{Cox}}
+\newcommand{\Tor}{\operatorname{Tor}}
+\newcommand{\diam}{\operatorname{diam}}
+\newcommand{\Hom}{\operatorname{Hom}} %done
+\newcommand{\sheafHom}{\mathcal{H}om}
+\newcommand{\Gr}{\operatorname{Gr}}
+\newcommand{\Gotimes}{\underline{\otimes}}
+\newcommand{\HF}{\operatorname{HF}}
+\newcommand{\HP}{\operatorname{HP}}
+\newcommand{\Osh}{{\mathcal O}}
+\newcommand{\cO}{{\mathcal O}}
+\newcommand{\kk}{{\bf k}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\length}{\operatorname{length}}
+\newcommand{\codim}{\operatorname{codim}}
+\newcommand{\depth}{\operatorname{depth}}
+\newcommand{\FF}{\mathbb{F}}
+\newcommand{\F}{\FF}
+\newcommand{\Sym}{\operatorname{Sym}} %done
+\newcommand{\GL}{{GL}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\Syz}{\operatorname{Syz}}
+\newcommand{\Prob}{\operatorname{Prob}}
+\newcommand{\defi}[1]{\textsf{#1}} % for defined terms
+\newcommand{\Htot}{H_{\tot}}
+\newcommand{\Ltot}{L_{\tot}}
+\newcommand{\beq}{\begin{displaymath}}
+\newcommand{\eeq}{\end{displaymath}}
+\newcommand{\bs}{\backslash}
+\newcommand{\ff}{\mathbf{f}}
+\newcommand{\Gam}{\Gamma}
+
+
+
+\newcommand{\Bmod}{\ensuremath{B_\text{mod}}}
+\newcommand{\Bint}{\ensuremath{B_\text{int}}}
+\newcommand\commentr[1]{{\color{red} \sf [#1]}}
+\newcommand\commentb[1]{{\color{blue} \sf [#1]}}
+\newcommand\commentm[1]{{\color{magenta} \sf [#1]}}
+\newcommand{\daniel}[1]{{\color{blue} \sf $\clubsuit\clubsuit\clubsuit$ Daniel: [#1]}}
+\newcommand{\michael}[1]{{\color{red} \sf $\clubsuit\clubsuit\clubsuit$ Michael: [#1]}}
+
+\def\edim{\operatorname{edim}}
+\def\reg{\operatorname{reg}}
+
+\newcommand{\ve}[1]{\ensuremath{\mathbf{#1}}}
+\newcommand{\chr}{\ensuremath{\operatorname{char}}}
+
+%Added by MB:
+\def\nc{\newcommand}
+\def\on{\operatorname}
+\nc{\RR}{\mathbf{R}}
+\nc{\LL}{\mathbf{L}}
+\nc{\xra}{\xrightarrow}
+\nc{\xla}{\xleftarrow}
+\def\a{\alpha}
+\def\om{\omega}
+\def\Om{\Omega}
+\def\DD{\operatorname{D}}
+\def\DM{\operatorname{DM}}
+\def\DC{\operatorname{DC}}
+\def\Coh{\operatorname{Coh}}
+\def\Mod{\operatorname{Mod}}
+\def\free{\operatorname{free}}
+\def\QCoh{\operatorname{QCoh}}
+\def\Cpx{\operatorname{Cpx}}
+\def\th{\on{th}}
+\def\F{\mathcal{F}}
+\def\coker{\on{coker}}
+\def\p{\partial}
+\def\wt{\widetilde}
+\nc{\into}{\hookrightarrow}
+\nc{\onto}{\twoheadrightarrow}
+\nc{\OO}{\mathcal{O}}
+\nc{\Z}{\mathbb{Z}}
+\nc{\cA}{\mathcal{A}}
+\nc{\w}{\widehat}
+\nc{\End}{\on{End}}
+\nc{\res}{\frac{1}{x_0x_1}}
+\nc{\tF}{\widetilde{F}}
+\nc{\tG}{\widetilde{G}}
+\nc{\tf}{\widetilde{f}}
+
+\nc{\cE}{\mathcal E}
+\nc{\cF}{\mathcal F}
+\nc{\bM}{\mathbf M}
+\nc{\bN}{\mathbf N}
+\nc{\bU}{\mathbf U}
+\nc{\del}{\partial}
+
+\title{U-functor}
+\date{\today}
+
+
+
+\begin{document}
+\maketitle
+
+
+
+\section{The $\LL$-functor(s)}
+Let $S=k[x_0,x_1,x_2]$ be the Cox ring of $\PP(1,1,2)$ and $E$ be the dual exterior algebra with variables $e_0,e_1,e_2$ with degrees $(-1;1), (-1;1),$ and $(-2;1)$.  
+
+Given an $E$-module $M$, we define a free complex of $S$-modules $\LL(M)$
+\[
+\cdots \to\LL(M)_{j+1}\to  \LL(M)_j\to  \LL(M)_{j-1}\to \cdots
+\]
+where in homological degree $j$ we have $\LL(M)_j=\bigoplus_{d} S(d)\otimes_k M_{-d;-j}$ (so the ``extra grading'' reproduces the homological degree).  The differential is $\sum_i x_i\otimes e_i$.   This yields a functor:
+\[
+\LL\colon \Mod(E) \to \Cpx(S)
+\]
+\begin{remark}\label{rmk:shift and twist}
+Note what happens under twist:  $M(a;b)_{-d;-j} = M_{-d+a;-j+b}$ and thus $\LL(M(a;b))_j = \bigoplus_{d} S(d) \otimes M_{-d+a; -j-b}$ and thus $\LL(M(a;b)) =\LL(M)(a)[-b]$. 
+
+%\LL(M)(a)[-b]_j = \oplus S(d+a) * M_{-d;b-j}$
+\end{remark}
+
+This is the effect of $\LL$ on a module.  But now imagine that $M$ has a nontrivial differential $\partial\colon M\to M(0;1)$.  Throughout, we will try to represent differential modules as unfolded complexes:
+\[
+\cdots\overset{\partial}{\to}  M(0;-1) \overset{\partial}{\to} M \overset{\partial}{\to} M(0;1)\overset{\partial}{\to} \cdots
+ \]
+ so as to account for the appropriate twists in grading.  We claim that the differential $\partial$ induces a map of complexes $\LL(\partial)\colon \LL(M)[1]\to \LL(M)$ which squares to zero.  To check this, we choose an element $m\in M_{-d;-j}$ which yields a generator $1\otimes m\in \LL(M)_j$.  By the degree of $\partial$, we have $\partial(m)\in M_{-d;-j+1}$.  We can thus define a map $\LL(M)[1]\to \LL(M)$ by $1\otimes m \mapsto 1\otimes \partial(m)\in \LL(M)_{j-1}$.  Checking that this is a map of complexes amount to checking that
+\[
+\sum x_i\otimes e_i\partial(m) = \sum x_i \otimes \partial(e_im)
+\]
+which is simply the fact that $\partial$ was an $E$-module map.  The fact that $\LL(\partial)$ squares to zero is also immediate.
+
+In summary:
+\begin{prop}
+There is a functor which $\LL_{\DM}$ which sends a differential $E$-module
+\[
+\cdots\overset{\partial}{\to}  M(0;-1) \overset{\partial}{\to} M \overset{\partial}{\to} M(0;1)\overset{\partial}{\to} \cdots
+ \]
+to a ``differential complex'':
+\[
+\cdots\overset{\LL \partial}{\to}  \LL(M)[1] \overset{\LL \partial}{\to} \LL(M) \overset{\LL \partial}{\to}  \LL(M)[-1]\overset{\LL \partial}{\to} \cdots
+\]
+At the functorial level:  we write $\DM_{(0;1)}(E)$ for the category of differential $E$-modules where the differential shifts the degree by $(0;1)$.   And write $\DC_{[1]}(S)$ for the category of differential complexes, where the differential shifts the {\em homological} degree by $1$.  Then $\LL_{\DM}$ is a functor:
+\[
+\LL_{\DM}\colon \DM_{(0;1)}(E)\to \DC_{[1]}(S).
+\]
+\end{prop}
+Taking the homology of an element in $\DC_{[1]}(S)$ will yield a complex over $S$, and thus an element of the derived category $D(S)$; in particular, if $M$ is a differential module, then the homology of $\LL_{\DM}(M)$ has a homological grading.  
+
+In a previous file, we constructed the functor $\RR$ which (using this new notation) went from the derived category $D(S)\to \DM_{(0;1)}(E)$.  The key claim is something like:
+\begin{prop}
+The (zeroth) homology of $(\LL_{\DM} \circ \RR)(M)$--which is itself a complex of $S$-modules--is quasi-isomorphic to $M$.
+\end{prop}
+\begin{proof}[Sketch of proof]
+To simplify notation, we write $M\Gotimes_k \omega_E$ for the graded tensor product.  Then we separately track the ``extra'' grading.  Thus $\RR(M)$ is the differential module:
+\[
+\cdots \to M\Gotimes_k \omega_E(0;-1) \to M\Gotimes_k  \omega_E \to M\Gotimes_k  \omega_E(0;1) \to \cdots
+\]
+Each term is simply a free $E$-module.  For an $E$-module $N$, we write $N_{*;i}$ for the degree $(*;i)$ piece, where $*$ can be anything.   And we write $N_{*,i}\Gotimes_k S$ for the graded tensor products $\oplus_{a\in \ZZ} N_{-a,i}\otimes_k S(a)$.  Applying  the $\LL$ functor to $M\Gotimes_k \omega_E$ yields a complex
+\[
+\LL(M\Gotimes_k \omega_E) =[ (M\Gotimes_k \omega_E)_{*;0} \Gotimes S \to (M\Gotimes_k \omega_E)_{*;1} \Gotimes S \to \cdots \to (M\Gotimes_k \omega_E)_{*;w} \Gotimes S]
+\]
+Thus, applying $\LL_{\DM}$ to the differential above yields a double complex
+\[
+\xymatrix{
+0\ar[d]\ar[r]&0\ar[d]\ar[r]&(M\Gotimes_k \omega_E)_{*;0} \Gotimes S \ar[r]\ar[d]& (M\Gotimes_k \omega_E)_{*;1} \Gotimes S \ar[r]\ar[d]& \cdots\\
+0\ar[d]\ar[r]&(M\Gotimes_k \omega_E)_{*;0} \Gotimes S \ar[r]\ar[d]& (M\Gotimes_k \omega_E)_{*;1} \Gotimes S \ar[r]\ar[d]&\ar[d]& \cdots\\
+(M\Gotimes_k \omega_E)_{*;0} \Gotimes S \ar[r]& (M\Gotimes_k \omega_E)_{*;1} \Gotimes S \ar[r]& (M\Gotimes_k \omega_E)_{*;2} \Gotimes S &&\cdots\\
+}
+\]
+By associativity of tensor products, each column becomes
+\[
+M\Gotimes_k (\omega_{*;0} \Gotimes S)\to M\Gotimes_k (\omega_{*;1} \Gotimes S)\to \cdots = M \Gotimes_k \bigg( (\LL_{\DM}\circ \RR)(k)\bigg)
+%M\Gotimes_k \bigg( \omega_{*;0} \Gotimes S \to \omega_{*;1} \Gotimes S\to \cdots \bigg).
+\]
+So it suffices to check $(\LL_{\DM}\circ \RR)(k)$ is quasi-isomorphic to $k$.  But $\RR(k)=\omega_E$ and
+\[
+\LL(\omega_E) = \bigg[ (\omega_E)_{4,0}\otimes S(-4) \to (\omega_E)_{3,1}\otimes S(-3) \oplus (\omega_E)_{2,1}\otimes S(-2) \to \cdots  \bigg]
+\]
+is the Koszul complex, which is quasi-isomorphic to $k$ as desired. \daniel{Need to check now that we've changed indexing\dots}
+\end{proof}
+
+%
+%For any degree $d\in \ZZ$ we define $K_d$ as the subcomplex consisting of line bundles of degrees between $w$ and $w-d$.  We do not impose any homological shifts.  Thus
+%\[
+%K_0 = [\cO(4)] \qquad K_1 = [\cO(4)\gets \cO(3)^2] \qquad K_2 = [\cO(4)\gets \cO(3)^2\oplus\cO(2) \gets \cO(2)] 
+%\] 
+%and
+%\[
+%K_3 =  [\cO(4)\gets \cO(3)^2 \oplus \cO(2) \gets \cO(2)^2\oplus \cO(1)] 
+%\]
+%Of course $K_d=0$ if $d<0$ and $K_d$ is quasisomoprhic to zero if $d\geq 4$.  The main claim is:
+%
+%
+%
+
+
+\section{Truncated Koszul complexes}
+Let $K$ be the Koszul complex on $x_0,x_1,x_2$
+\[
+0\to \cO(-4) \to \cO(-2) \oplus \cO^2(-3) \to \cO(-1)^2\oplus \cO(-2) \to \underline{\cO} \to  0.
+\]
+Throughout, we will indicate homological degree zero by underlining it (as above).  
+We parametrize bases from right to left as:  $\{x_0x_1x_2\}, \{x_1x_2,x_0x_2,x_0x_1\},\{x_2,x_1,x_0\},  \{1\}$.  In this way, the differential on $K$ is $\sum_i x_i\otimes e_i$ acting via contraction.  So our basis of the Koszul complex is in natural bijection with the basis of $\omega_E$.
+%Equivalently, we can think of the bases as dual bases for $\omega_E = \Hom_k(E,k)$ and then $\sum_i x_i\otimes e_i$ acts by the natural $E$-module structure.
+%\daniel{If we act via contraction then it doesn't have an $E$-module structure\dots and it causes problems below.}
+
+For any degree $d\in \ZZ$ we define $K_d$ as the subcomplex consisting of line bundles of degrees between $0$ and $-d$.
+We do not yet impose any homological shifts.  Thus
+\[
+K_0 = [\underline{\cO}] \qquad K_1 = [\cO(-1)^2 \to \underline{\cO} ] \qquad K_2 = [\cO(-2) \to \cO(-1)^2\oplus\cO(-2) \to \underline{\cO} ] 
+\] 
+and
+\[
+K_3 =  [ \cO(-2)\oplus \cO(-3)^2 \to \cO(-1)^2 \oplus \cO(-2) \to \underline{\cO}] 
+\]
+Of course $K_d=0$ if $d<0$ and $K_d$ is quasi-isomorphic to zero if $d\geq 4$. 
+
+
+We want to realize each $K_d$ as $\LL(-)$ for some module.  We write $\omega_{\leq d}$ for the submodule of $\omega_E$ consisting of degrees $\leq d$.  For an $E$-module $M$, define $\LL(M)$ as before (a complex of $S$-moduules), and we write $\widetilde{\LL}(M)$ for the corresponding complex of sheaves on $\PP(1,1,2)$
+Thus for instance $\omega_{\leq 0 } = k$ (the socle) while $\omega_{\leq 4}$ is all of $\omega_E$.  We note that 
+\[
+K_d = \widetilde{\LL}(\omega_{\leq d})
+\]
+%$\LL(E_{\geq -d})$ is a free complex of graded $S$-modules for each $d$. If we write $\widetilde{\LL}(M)$ for the corresponding complex of sheaves on $\PP(1,1,2)$, then we observe that
+%
+%.  $e_0: \omega_{\leq 1} \to \omega_0$?Let's write $E_{\geq -d}$ the quotient module of $E$ given by $\oplus_{i} \oplus_{e\geq -d} E_{e,i}$., then we observe that
+%\[
+%K_d = \widetilde{\LL}(E_{{\geq -d }}).
+%\]
+
+\begin{lemma}
+If $f\in E_{-a;j}$ and $d$ is any integer (though we are most interested in $d=0,1,\dots,w-1$) then multiplication by $f$ induces each of the following maps:
+\begin{enumerate}
+	\item  $\omega_E(a;-j)\to \omega_E$ 
+	\item  $\omega_{\leq d}(a;-j) \to \omega_{\leq d-a}$
+	\item $\LL(\omega_{\leq -d}(a;-j))=\LL(\omega_{\leq -d})(a)[j] \to \LL(\omega_{\geq -d-a})$
+	\item $K_d(a)[j] \to K_{d+a}$
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+Mostly obvious, though the twist/shift stuff follows from Remark~\ref{rmk:shift and twist}.
+\end{proof}
+
+\begin{example}
+Let's consider the element $e_0$ which has degree $(-1;1)$.  This induces a map $\omega_E(1;-1)\to \omega_E$. And thus a map of complexes:
+\begin{equation}\label{eqn:e0}
+\xymatrix{
+\widetilde{\LL}(\omega_{\leq 1})(1)[1]:\ar[d]&&\underline{\cO^2} \ar[r]\ar[d]^{[1,0]}&\cO(1)\\
+\widetilde{\LL}(E_{\leq 0}):&&\underline{\cO}&
+}
+\end{equation}
+If we had chosen the element $e_1$, we would have obtained a similar map, except the vertical arrow would be $[0,-1]$.
+
+
+Each $e_0$ and $e_1$ also induce maps on other complexes.  For instance, $e_1: \omega_{\leq 2}(1;-1) \to \omega_{\leq 1}$ and thus induces a map
+\begin{equation}\label{eqn:e1}
+\xymatrix{
+K_2(2)[1]=\widetilde{\LL}(\omega_{\leq 3})(1)[1]\ar[d]:&\cO\ar[r]\ar[d]^{[1,0]}&\underline{\cO(1)^2\oplus \cO} \ar[r]\ar[d]^{[0,-1,0]}&\cO(2) \\
+K_1(1) = \widetilde{\LL}(\omega_{\leq 2}):&\cO^2 \ar[r]&\underline{\cO(1)}&
+}
+\end{equation}
+\end{example}
+
+\section{The $\bU$-functor(s)}
+As with the $\LL$-functor, we will define the $\bU$ functor on (free) modules first, and then on modules with a differential.  For modules, we claim:
+
+\begin{cor}
+There is a functor
+\[
+\bU\colon  \Mod_{\text{free}}(E)\to \Cpx(\PP^n)
+\]
+determined by $\omega_E(d;-i)\mapsto K_d(d)[i] = \widetilde{\LL}(\omega_{\leq d})(d)[i]$.
+%We denote this functor:
+%\[
+%\bU_{\text{pre}}\colon \Mod_{\text{free}}(E)\to \Cpx(\PP^n).
+%\]
+%If $(F,\partial)$ is a graded free $E$-module with a differential $\partial$ of degree $(0;1)$, i.e.:
+%then we obtain an element of $\DC_{[1]}(\PP^n)$, which is to say that we obtain a complex:
+%\[
+%\cdots \overset{\bU_{\text{pre}} \partial}{\to} \bU_{\text{pre}}F[1] \overset{\bU_{\text{pre}} \partial}{\to} \bU_{\text{pre}}F \overset{\\bU_{\text{pre}} \partial}{\to} \bU_{\text{pre}}F[-1] \overset{\partial}{\to} \cdots
+%\]
+%We denote the output as $\bU_{\text{pre}}(F,\partial)$.
+Note in particular that for any free module $F$, $\bU( F(0;-1)) = \bU(F)[1]$.
+\end{cor}
+\begin{proof}
+The key point is the above lemma\dots
+\end{proof}
+\begin{example}
+To streamline notation, let's write $\bU(d;i):=\bU(\omega_E(d;i))$.  Thus we have four basic complexes (up to shifts):
+\[
+\bU(0;0) = \bigg( \underline{\cO}\bigg) \qquad \bU(1;0) = \bigg( \cO^2\to \underline{\cO(1)}\bigg)  \qquad \bU(2;0) = \bigg( \cO\to \cO(1)^2\oplus \cO \to \underline{\cO(2)} \bigg)
+\]
+and
+\[
+ \bU(3;0) = \bigg( \cO(1)\oplus \cO^2 \to \cO(2)^2 \oplus \cO(1) \to \underline{\cO(3)} \bigg)
+\]
+The element $e_0$ induces maps $\bU(d;i)\to \bU(d-1;i+1)$ for all $d$.  So there are three interesting induced maps:
+\[
+\xymatrix{
+\bU(1;-1) & =& \underline{\cO^2}\ar[r]\ar[d]& \cO(1)\\
+\bU(0;0) & = &\underline{\cO}&
+}
+\]
+and
+\[
+\xymatrix{
+\bU(2;-1) & =&\cO\ar[r]\ar[d]& \underline{\cO(1)^2\oplus \cO} \ar[r]\ar[d]& {\cO(2)}\ar[d]\\
+\bU(1;0) & = &{\cO^2}\ar[r]& \underline{\cO(1)}\ar[r]&0
+}
+\]
+
+and
+\[
+\xymatrix{
+\bU(3;-1) & =&0\ar[r]\ar[d]&\cO(1)\oplus \cO^2\ar[r]\ar[d]& \underline{\cO(2)^2\oplus \cO(1)} \ar[r]\ar[d]& {\cO(3)}\ar[d]\\
+\bU(2;0) & =& \cO\ar[r]&\cO(1)^2\oplus \cO\ar[r]& \underline{\cO(2)}\ar[r]&0
+}
+\]
+
+So imagine that our Tate window is  $\omega_E(2;0)\oplus \omega_E(1;0) \oplus \omega_E$ where the differential is
+\[
+\begin{pmatrix}
+0&e_0&0\\
+0&0&e_0\\
+0&0&0
+\end{pmatrix}
+\]
+Then the induced complex should be $\bU(2;-1)\oplus \bU(1;-1)\oplus \bU(0;-1) \to \bU(2;0)\oplus \bU(1;0)\oplus \bU(0;0)$, and thus be a map of complexes of the form:
+\[
+\xymatrix{
+0 \ar[r]\ar[d]& \cO\ar[r]\ar[d] &\underline{\cO^3\oplus \cO(1)^2} \ar[r]\ar[d] & {\cO\oplus \cO(1)\oplus \cO(2)}\ar[d]\\
+\cO\ar[r]&\cO^3\oplus \cO(1)^2 \ar[r] & \underline{\cO\oplus \cO(1)\oplus \cO(2)} \ar[r]& 0
+}
+\]
+\end{example}
+
+\begin{example}
+Consider the (homogeneous) map of free $E$-modules $e_0: \omega_E(1;-1)\to \omega_E$ as in \eqref{eqn:e0}.  Applying $\bU$ yields a map of complexes, as in \eqref{eqn:e0} but with a global twist by $-w=-4$:
+\begin{equation}\label{eqn:e0'}
+\xymatrix{
+\widetilde{\LL}(E_{\leq -3})(-3)[1]:\ar[d]&&\underline{\cO^2} \ar[r]\ar[d]^{[1,0]}&\cO\\
+\widetilde{\LL}(E_{\leq -4})(-4):&&\underline{\cO}&
+}
+\end{equation}
+\end{example}
+
+
+As with the $\LL$-functor, we can apply this $\bU$-functor to a module which also has a differential.  Take a free $E$-module $F$ (it is helpful to imagine that $F$ is a Tate resolution, or the Beilinson window within a Tate resolution) together with a differential of degree $(0;1)$.  We  view this as a periodic complex:
+\begin{equation}\label{eqn:periodic1}
+\cdots \overset{\partial}{\to} F(0;-1) \overset{\partial}{\to} F \overset{\partial}{\to} F(0;1) \overset{\partial}{\to} \cdots
+\end{equation}
+From functoriality, applying $\bU$ yields a periodic complex of complexes
+\begin{equation}\label{eqn:periodic2}
+\cdots \overset{\bU\partial}{\to} \bU(F)[1] \overset{\bU\partial}{\to} \bU(F) \overset{\bU\partial}{\to} \bU(F)[-1] \overset{\partial}{\to} \cdots
+\end{equation}
+If we take the zeroth homology, we thus get a complex, or an element of $\DD(\PP^n)$.  This is the functor we want:
+\begin{prop}
+There exists a functor
+\[
+\bU_{\DM} \colon \DM_{(0;1)}(E)\to \DD(\PP^n)
+\]
+which takes as input a periodic complex of the form \eqref{eqn:periodic1} and as output, the zeroth homology of the complex \eqref{eqn:periodic2}.  Moreover, we claim $\bU_{\DM} (\Tate \cE)$ is quasi-isomorphic to $\cE$.
+\end{prop}
+
+%\begin{example}
+%Let's consider the element $e_0$ which has degree $(-1;1)$ which can be considered as a map  of degree $(0;1)$ between $\omega_E(1;0)$ and $\omega_E$.  Since $\bU(\omega_E(1;0)) = K_1(-3)$ and $\bU(\omega_E) = K_0(-4)$, this should therefore induce a map like the following
+%\begin{equation}\label{eqn:e0}
+%\xymatrix{
+%K_1(-3)[1]:&&\underline{\cO^2} \ar[r]\ar[d]^{[1,0]}&\cO(1)\\
+%K_0(-4):&&\underline{\cO}&
+%}
+%\end{equation}
+%If we had chosen the element $e_1$, we would have obtained a similar map, except the vertical arrow would be $[0,-1]$.
+%
+%
+%Each $e_0$ and $e_1$ also induce maps on other complexes.  For instance, the element $e_1$ also induces a map
+%\begin{equation}\label{eqn:e1}
+%\xymatrix{
+%K_2(-2)[1]:&\cO\ar[r]\ar[d]^{[1,0]}&\underline{\cO(1)^2\oplus \cO} \ar[r]\ar[d]^{[0,-1,0]}&\cO(2) \\
+%K_1(-3):&\cO^2 \ar[r]&\cO(1)&
+%}
+%\end{equation}
+%\daniel{Check signs.}
+%We will see how these combine below to give the map corresponding to $e_0e_1$.
+%\end{example}
+%\begin{example}
+%Let's consider the element $e_2$ which has degree $(-2;1)$.  This induces
+%\[
+%\xymatrix{
+%K_2(-2)[1]:&\cO\ar[r]&\underline{\cO(1)^2\oplus \cO} \ar[r]\ar[d]^{[0,0,1]}&\cO(2)\\
+%K_0(-4):&&\underline{\cO}&
+%}
+%\]
+%Now consider the element $e_0e_1$ which has degree $(-2;2)$.  This induces a degree $(0;2)$ map $\omega_E(2;0)\to \omega_E$.  And so applying $\bU$ should yield a map:
+%\[
+%\xymatrix{
+%K_2(-2)[2]:&\underline{\cO}\ar[r]\ar[d]^{[1]}&\cO(1)^2\oplus \cO \ar[r]&\cO(2)\\
+%K_0(-4):&\underline{\cO}&&
+%}
+%\]
+%This is the composition of the maps of complexes from \eqref{eqn:e1} and \eqref{eqn:e0} on the previous page.
+%\end{example}
+
+%s\section{The $U$-functor}
+From the other file ``TateDM.pdf'', we can define the Tate module $\Tate(\cE)$, which is an exact differential module where the underlying module is $\oplus_{i,d} H^i(\cE(-d))\otimes_k \omega_E(d;-i)$.
+
+\begin{example}
+For $\cO$ on $\PP(1,1,2)$, the Tate module has underlying module:
+\[
+H^2_* \oplus H^0_* =  \bigoplus_{d\leq -4} H^2(\cO(d)) \otimes_k \omega_E(-d;2) \oplus \bigoplus_{d \geq 0}  H^0(\cO(d)) \otimes_k \omega_E(-d;0)
+\]
+Concretely this is:
+\[
+\cdots \omega_E(6;-2)^4\oplus  \omega_E(5;-2)^2\oplus \omega_E(4;-2) \oplus  \framebox{$\omega_E(0;0)$} \oplus  \omega_E(-1;0)^2\oplus \omega_E(-2;0)\cdots
+\]
+We put a box around the terms in the Beilinson window.  Since the restriction of the differential of $\Tate \cE$ to this Beilinson is just zero, we will move onto the next example.
+%Applying our proposed $\bU$-functor to $\Tate \cO$ is just $\bU(\omega_E)$ which is $\cO$.  The restriction of the differential on $\Tate\cO$ to $\omega_E$ is zero.  Thus as differential module, $\omega_E$ is just
+%\[
+%\cdots \overset{0}{\to}\omega_E(0;-1)\overset{0}{\to} \omega_E \overset{0}{\to} \omega_E(0;1)\overset{0}{\to} \cdots
+%\]
+%and applying $\bU$ yields 
+%\[
+%\cdots \overset{0}{\to}\cO[1]\overset{0}{\to} \cO \overset{0}{\to}\cO[-1]\overset{0}{\to} \cdots
+%\]
+%So the zeroth homology is again $\cO$ and thus $\bU_{\DM}\left( \Tate  \cO \right)\cong \cO$  which is what we claimed in the proposition.
+
+The Tate module for $\cO(1)$ is the above twisted by $E(1;0)$, namely it is:
+\[
+\cdots \omega_E(7;-2)^4\oplus  \omega_E(6;-2)^2\oplus \omega_E(5;-2) \oplus  \framebox{$\omega_E(1;0) \oplus  \omega_E(0;0)^2$}\oplus \omega_E(-1;0)\cdots
+\]
+Set $F=\omega_E(1;0) \oplus  \omega_E(0;0)^2$.  We can apply the functor $\bU$ and we get the complex
+\[
+\bU(\omega_E(1;0) \oplus  \omega_E(0;0)^2) = \quad \cO^2 \to \underline{\cO(1) \oplus \cO^2}.
+\]
+But $F$ inherits a differential $F(0;-1)\to F$ from $\Tate(\cO(1))$.  We get:
+\begin{equation}\label{eqn:unfolded}
+\cdots \to \omega_E(1;-1) \oplus  \omega_E(0;-1)^2 \overset{\partial}{\to}\omega_E(1;0) \oplus  \omega_E(0;0)^2\overset{\partial}{\to}\omega_E(1;1) \oplus  \omega_E(0;1)^2 \overset{\partial}{\to}\cdots
+\end{equation}
+where each differential looks like:
+\[
+\bordermatrix{
+&\omega_E(1;-1)&\omega_E(0;-1)^2\cr
+\omega_E(1;0)&0&0\cr
+\omega_E(0;0)&[e_0,e_1]^t&0\cr
+}
+\]
+Applying the $\bU$-functor yields a double complex, whose rows correspond to the terms of \eqref{eqn:unfolded}:
+\[
+\xymatrix{
+\bU(\omega_E(1;-1) \oplus  \omega_E(0;-1)^2) \ar[d]&= &&&\underline{\cO^2}\ar[r]\ar[d]& {\cO(1) \oplus \cO^2}\ar[d]\\
+\bU(\omega_E(1;0) \oplus  \omega_E(0;0)^2)  \ar[d]&= & &\cO^2\ar[r]\ar[d]&\underline{\cO(1) \oplus \cO^2}\ar[r] \ar[d]&0&\\
+\bU(\omega_E(1;1) \oplus  \omega_E(0;1)^2) &= &\cO^2\ar[r]&{\cO(1) \oplus \cO^2}\ar[r] &\underline{0}&\\
+}
+\]
+Taking homology of the vertical arrows will yield an element of $\DD(\PP^n)$ which is what we defined as $\bU_{\DM}(\Tate \cO(1))$.  Since the vertical arrows identify the copies of $\cO^2$, the homology of the vertical arrows (in the middle row) is the complex with a copy of $\cO(1)$ in homological degree $0$.
+\end{example}
+%
+%\begin{equation}
+%\xymatrix{
+%K_1(-3)[1]:\ar[d]_{[\bU(e_0),\bU(e_1)]}&&\underline{\cO^2} \ar[r]\ar[d]^{\tiny\begin{bmatrix}1&0\\0&-1\end{bmatrix}}&\cO(1)\\
+%K_0(-4)^{\oplus 2}:&&\underline{\cO^2}&
+%}
+%\end{equation}
+%\begin{equation}
+%\xymatrix{
+%K_1(-3)\oplus K_0(-4)^{\oplus 2}[1]:\ar[d]_{[\bU(e_0),\bU(e_1)]}&&\underline{\cO^2}\ar[r]\ar[d]&\cO(1)\oplus \cO^2\\
+%K_1(-3)\oplus K_0(-4)^{\oplus 2}:&\cO^2 \ar[r]&\underline{\cO(1)\oplus \cO^2}&
+%}
+%\end{equation}
+%Said another way:
+%\[
+%\cO(1)\oplus \cO^4 \to \cO(1)\oplus \cO^4
+%\]
+%which is given by 
+%Passing to the mapping cone of this map of complexes, we simply get $\cO(1)$ landing in homological degree $0$.  So once again, $\bU \left(\Tate  \cO(1) \right) \cong \cO(1)$. 
+%\end{example}
+%
+\section{Proofs?}
+\daniel{Everything below here is a mess.  Just working notes so I don't have to recompute some of this stuff.}. The connection of $K_d$ with $\widetilde{\LL}(E_{\leq -d})$ should let us prove that $\bU$ is a well-defined functor. To check that $\bU_{\DM}(\Tate\cE)$ is quasi-isomorphic to $\cE$, it probably suffices to check this on generators for the derived category, such as these complexes $\widetilde{\LL}(E_{\leq -d})(d-w)$.   Would it be enough to check that the Tate module of $\widetilde{\LL}(E_{\leq -d})(d-w)$ is $E_{\leq -d}$, maybe up to an appropriate twist?
+
+%This is really sketchy, but here's an idea.  Each $\widetilde{\LL}(E_{\leq -d})(d-w)$ involves only line bundles in the range $\cO, \cO(1), \cdots, \cO(w-1)$.  And thus in the range of degrees in the Beilinson window $W = \{0,-1,\dots, -w+1\}$, none of the line bundles appearing in any of the $\widetilde{\LL}(E_{\leq -d})(d)$ will ever have higher cohomology.  So within the range of degrees in the Beilinson window, the Tate functor $\Tate$ and the $\RR$-functor should be essentially equivalent.  In other words, if we write $F_W$ for the subquotient differential module in degrees $W$, then we should have:
+%\[
+%\Tate( \widetilde{\LL}(E_{\leq -d})(d-w))_W = \RR( \LL(E_{\leq -d})(d-w))_W
+%\]
+%So maybe we can reduce to proving something about $\RR$ and $\LL$ which are simpler to work with\dots
+%
+%Assume that $\cE(-i)$ has no higher cohomology for $i\in W$.
+
+
+\begin{prop}
+Let $M$ be a module such that $\widetilde{M}(-i)=0$ for $i=0,1,2,\dots,w-1$.  Then $\bU \Tate(\widetilde{M})$ is quasi-isomorphic to 
+\end{prop}
+Imagine that $M$ is a module such that $\widetilde{M}(-i)$ has no higher cohomology for $i= 0 ,1, 2, \dots, w-1$ (the Beilinson Window). Then within the Beilinson window, $\Tate(\widetilde{M})$ agrees with $\RR(M)$ and so we can compute $\bU \Tate(\widetilde{M})$ entirely in terms of $\RR(M)$.  What we end up getting is that the total complex of the following
+\[
+\xymatrix{
+M_{-3}\otimes K_3(3) \ar[d]&=& M_{-3}\otimes \left( \cO(3)\gets \cO(2)^2 \oplus \cO(1) \gets \cO(1)\oplus \cO^2\right)\ar[d]\\
+M_{-2}\otimes K_2(2) \ar[d]&=& M_{-2}\otimes \left( \cO(2)\gets \cO(1)^2 \oplus \cO \gets \cO \right)\ar[d]\\
+M_{-1}\otimes K_1(1) \ar[d]&=& M_{-1}\otimes \left( \cO(1)\gets \cO^2 \right)\ar[d]\\
+M_0\otimes K_0 &=& M_0\otimes \cO
+}
+\]
+Of course there is also a differential of (shifted) complexes on this, but we will ignore that and focus on just the object itself, because that seems to be sufficient in the case where $M$ was a free module.  Rewriting according to line bundles we get something like\dots
+\[
+\xymatrix{
+\cO(3)\otimes \left( M_{-3}\right)\\
+\cO(2) \otimes\left( M_{-2} \gets M_{-3}^2\right)\ar[u]\\
+\cO(1)\otimes \left( M_{-1} \gets M_{-2}^2\oplus M_{-3} \gets M_{-3}\right)\ar[u]\\
+\cO \otimes \left( M_{0} \gets M_{-1}^2\oplus M_{-2} \gets M_{-2}\oplus M_{-3}^2\right)\ar[u]\\
+}
+\]
+If $M=S(j)$ then these complexes in parentheses are like the strands of the Koszul complex.  In particular, if $M=S(j)$ with $0\leq j <4$ then we get
+\[
+\xymatrix{
+\cO(3)\otimes \left( S_{j-3}\right) = \cO(3) \otimes  (S/\mathfrak m)_{j-3}\\
+\cO(2) \otimes\left( S_{j-2} \gets S_{j-3}^2\right)=\cO(2) \otimes  (S/\mathfrak m)_{j-2}\ar[u]\\
+\cO(1)\otimes \left( S_{j-1} \gets S_{j-2}^2\oplus S_{j-3} \gets S_{j-3}\right)=\cO(1) \otimes  (S/\mathfrak m)_{j-1}\ar[u]\\
+\cO \otimes \left( S_{j} \gets S_{j-1}^2\oplus S_{j-2} \gets S_{j-2}\oplus S_{j -3}^2\right)=\cO \otimes  (S/\mathfrak m)_{j}\ar[u]\\
+}
+\]
+But since $ (S/\mathfrak m)_0 = k$ and $ (S/\mathfrak m)_j=0$ for $j\ne 0$, we see that $\cO(j)\mapsto \cO(j)$ under this map.  
+
+For an arbitrary $M$, you could imagine that $M_{-4}\ne 0$ and so on.  We could also choose to include $M_{-4}\otimes K_4(4)$ and so in the above; since $K_4(4)$ is irrelevant, this wouldn't change anything in the derived category.  But it would provide a more complete picture, filling in the ``missing terms'' in the above.  We would get a complex whose strands are
+\[
+\oplus_{i\geq 0} \bigg( \cO(i) \otimes (M_{-i} \gets M_{-i-1}^2\oplus M_{-i-2} \gets M_{-i-2}\oplus M_{-i-3}^2 \gets M_{-i-4}) \bigg)
+\]
+So if $M=S(j)$ for $j\geq 0$(?) we would get $\bU \Tate \cO(j) = \oplus_{i\geq 0} \cO(i) \otimes (S/\mathfrak m)_{j-i} = \cO(j)$.  This would seem to have potential to work in the more general setting.
+%
+%To prove the propositions.  For the proof that $\bU$ is a well-defined functor, we need to check that there is a map from $\Hom_E(\omega_E(-d;-i), \omega_E(-d';-i')) = E_{(-d'+d;i'-i)}$ to $\Hom(K_d(d-w)[i], K_{d'}(d'-w)[i'])$.  Without loss of generality, we can choose 
+%
+%
+%I think the key to simplifying this is to parametrize the Koszul complex correctly.  Let's write $\mathcal K_{d;i}:=\cO(d) \otimes_k E_{-d;i}$.  Let $f\in Hom_E(\omega_E(-d;i), \omega_E(-d';i'))$.  Without loss  in In particular, we want to show that an element of $E$ of degree $(-a;j)$ induces a map $K_d(w-d)[i] \to K_{d-a}(d')[i']$.  Unravelling the indexing, in homological degree $n-j$ would we would need maps\dots \daniel{still didn't get this right}
+%\end{proof}
+
+%
+%
+%\subsection*{Other view}
+%Let $n$ be the number of variables in $E$.  To simplify things, we will give new notation for the Koszul complex as a complex where in homological degree $n-i$ we have $(\mathcal K)_{n-i}=\oplus_{d=0}^w \mathcal K_{d;i}$, and where $\mathcal K_{d;i} = \cO(d)\otimes_k E_{-d;i}$.  
+%\[
+%\cO(4)\otimes E_{-4; 3} \gets \cO(3)\otimes E_{-3; 2}  \oplus \cO(2)\otimes E_{-2; 2}  \gets \cO(2)^2\otimes E_{-2; 1} \oplus \cO(1)\otimes E_{-1; 1}  \gets \cO\otimes E_{0; 0} \gets 0.
+%\]
+%The differential  $\tau: \mathcal K\to \mathcal K$ has degree $(0;1)$ and is given by multipication by $\sum x_i\otimes e_i$.
+%
+%In this notation, $\mathcal K_d$ is defined by only taking summands $\mathcal K_{e;i}$ from $\mathcal K$ with $w-d\leq e \leq w$.  So for any $d\leq d'$ we have a canonical $\mathcal K_d \to \mathcal K_{d'}$.  
+%
+%\begin{proof}[Sketch of proof of the propsition]
+%The key point is to check that there is a map from $\Hom_E(\omega_E(-d;i), \omega_E(-d';i')) = E_{(-d'+d;i'-i)}$ to $\Hom(K_d(d)[i], K_{d'}(d')[i'])$.  In particular, we want to show that an element of $E$ of degree $(-d'+d;i'-i)$ induces a map $K_d(d)[i] \to K_{d'}(d')[i']$.  Unravelling the indexing, in homological degree $n-j$ would we would need maps\dots \daniel{still didn't get this right}
+%\end{proof}
+%
+
+
+
+\begin{bibdiv}
+\begin{biblist}
+
+\bib{ees-products}{article}{
+   author={Eisenbud, David},
+   author={Erman, Daniel},
+   author={Schreyer, Frank-Olaf},
+   title={Tate resolutions for products of projective spaces},
+   journal={Acta Math. Vietnam.},
+   volume={40},
+   date={2015},
+   number={1},
+   pages={5--36},
+}
+	
+
+
+\bib{EFS}{article}{
+   author={Eisenbud, David},
+   author={Fl{\o}ystad, Gunnar},
+   author={Schreyer, Frank-Olaf},
+   title={Sheaf cohomology and free resolutions over exterior algebras},
+   journal={Trans. Amer. Math. Soc.},
+   volume={355},
+   date={2003},
+   number={11},
+   pages={4397--4426},
+}
+
+
+\end{biblist}
+\end{bibdiv}
+
+
+\end{document}
+
+
