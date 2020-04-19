@@ -33,6 +33,7 @@ exports {
     }
 
 *-
+--load "TateDM.m2"
 
 addTateData = method()
 addTateData (Ring,Ideal) := (S,irr) ->(
@@ -520,17 +521,17 @@ betti target phitrunc, betti source phitrunc
 ---finished creating cached data
 ---------------------------------------
 
-RRfunctor = method();
+RRFunctor = method();
 --Input: (M,L) M a (multi)-graded S-module.
 --             L a list of degrees.
 --Question:  should E be part of the input??
 --Output:  The differenial module RR(M) in degrees from L.
-RRfunctor(Module,List) := (M,L) ->(
+RRFunctor(Module,List) := (M,L) ->(
     S := ring(M);
     E := S.exterior;
     relationsM := gens image presentation M;
 --    numvarsE := numgens E;
-    ev := map(E,S,vars E);
+--    ev := map(E,S,vars E);
     --L := degreeSetup(low,c,r);
     f0 := gens image basis(L_0,M);
     scan(#L-1,i-> f0 = f0 | gens image basis(L_(i+1),M));
@@ -544,12 +545,90 @@ RRfunctor(Module,List) := (M,L) ->(
     newf0 := sub(f0,SE)*tr;
     relationsMinSE := sub(relationsM,SE);
     newf0 = newf0 % relationsMinSE;
+    newg := matrixContract(transpose sub(f0,SE),newf0);
+    g' := transpose sub(newg,E);
+    chainComplex map(E^df0,E^df1, g')
+    )
+-*
+--  The RR functor with variants.
+RRFunctor = method();
+--Input: (M,L) M a (multi)-graded S-module.
+--             L a list of degrees.
+--Question:  should E be part of the input??
+--Output:  The differenial module RR(M) in degrees from L.
+RRFunctor(Module,List) := (M,L) ->(
+    S := ring(M);
+    --E := dualRingToric S;
+    relationsM := gens image presentation M;
+    numvarsE := rank source vars E;
+    ev := map(E,S,vars E);
+    --L := degreeSetup(low,c,r);
+    f0 := gens image basis(L_0,M);
+    scan(#L-1,i-> f0 = f0 | gens image basis(L_(i+1),M));
+    --f0 is the basis for M in degrees given by L
+    df0 := apply(degrees source f0,i-> (-1)*i|{0});
+    df1 := apply(degrees source f0,i-> (-1)*i|{-1});
+    SE := S**E;
+    tr := sum(dim S, i-> SE_i*SE_(dim S+i));
+    newf0 := sub(f0,SE)*tr;
+    relationsMinSE := sub(relationsM,SE);
+    newf0 = newf0 % relationsMinSE;
     newg := contract(transpose sub(f0,SE),newf0);
     g' := transpose sub(newg,E);
     chainComplex map(E^df0,E^df1, g')
     )
 
 
+--  The RR functor with variants.
+RRFunctor = method();
+--Input: (M,L) M a (multi)-graded S-module.
+--             L a list of degrees.
+--Question:  should E be part of the input??
+--Output:  The differenial module RR(M) in degrees from L.
+RRFunctor(Module,List) := (M,L) ->(
+    S := ring(M);
+    --E := dualRingToric S;
+    relationsM := gens image presentation M;
+    numvarsE := rank source vars E;
+    ev := map(E,S,vars E);
+    f0 := gens image basis(L_0,M);
+    scan(#L-1,i-> f0 = f0 | gens image basis(L_(i+1),M));
+    --f0 is the basis for M in degrees given by L
+    df0 := apply(degrees source f0,i-> (-1)*i|{0});
+    df1 := apply(degrees source f0,i-> (-1)*i|{-1});   
+    SE := S**E;
+    tr := sum(dim S, i-> SE_i*SE_(dim S+i));
+    newf0 := sub(f0,SE)*tr;
+    relationsMinSE := sub(relationsM,SE);
+    newf0 = newf0 % relationsMinSE;
+    newg := contract(transpose sub(f0,SE),newf0);
+    g' := sub(newg,E);
+    chainComplex map(E^df0,E^df1, g')
+    )
+
+RRFunctor(Module,List,Boolean) := (M,L,bbb) ->(
+    if bbb == true then return RRFunctor(M,L);
+    S := ring(M);
+    --E := dualRingToric S;
+    relationsM := gens image presentation M;
+    numvarsE := rank source vars E;
+    ev := map(E,S,vars E);
+    f0 := gens image basis(L_0,M);
+    scan(#L-1,i-> f0 = f0 | gens image basis(L_(i+1),M));
+    --f0 is the basis for M in degrees given by L
+    df0 := apply(degrees source f0,i-> (-1)*i);
+    df1 := apply(degrees source f0,i-> (-1)*i);   
+    SE := S**E;
+    tr := sum(dim S, i-> SE_i*SE_(dim S+i));
+    newf0 := sub(f0,SE)*tr;
+    relationsMinSE := sub(relationsM,SE);
+    newf0 = newf0 % relationsMinSE;
+    newg := contract(transpose sub(f0,SE),newf0);
+    g' := sub(newg,E);
+    chainComplex map(E^df0,E^df1, g')
+    )
+
+*-
 -*
 TEST 
 restart
@@ -563,7 +642,7 @@ E=S.exterior
 degrees source vars E
 M=S^1/ideal x_0
 L=apply(10,i->{i}+S.degOmega)
-T=RRfunctor(M,L)
+T=RRFunctor(M,L)
 T.dd_1 
 source (T.dd_1)==target (T.dd_1)**E^{{0,-1}}
 (T.dd_1)*((T.dd_1)**E^{{0,-1}})
@@ -588,8 +667,6 @@ beilinsonWindow(ChainComplex,List) := (T,degs) -> (
 ---------------
 -- DMonond 
 ------------------
-
-
 diffModToChainComplexMaps = TB->(
     --Input:  a free diff module for Beilinson window
     --Output:  a hash table H where H#(i,j) is the chain complex
@@ -605,12 +682,16 @@ diffModToChainComplexMaps = TB->(
 --   allKeys := apply(ijs,ij-> {ij=> (i=ij_0;(-drop((degrees TB_0)_i,-1),TB.dd_1_ij))});
 --   HT := hashTable flatten allKeys;
     degsTB = apply(degrees TB_0,d-> -drop(d,-1));
-    zeroMaps := apply(zeroijs,ij->ij => map(S.complexes#(degsTB#(ij_0))[-1],S.complexes#(degsTB#(ij_1)),i-> 0));
+    zeroMaps := apply(zeroijs,ij->ij => map(S.complexes#(degsTB#(ij_0))[-1],
+	                                    S.complexes#(degsTB#(ij_1)),
+	                                    k -> 0));
     nzMaps := apply(nonzeroijs, ij->(
-	    i=ij_0;
-	    d = -drop((degrees TB_0)_i,-1);
-	    ij =>  map(S.complexes#(degsTB#(ij_0))[-1],S.complexes#(degsTB#(ij_1)),
-		i-> (entry(TB.dd_1_ij,d,S))_i)
+	    i := ij_0;
+	    d := -drop((degrees TB_0)_i,-1);
+--	    ij =>  S^{d}**map(S.complexes#(degsTB#i)[-1],S.complexes#(degsTB#(ij_1)),
+	    ij =>  map(S.complexes#(degsTB#i)[-1],
+		       S.complexes#(degsTB#(ij_1)),		
+		       k-> (entry(TB.dd_1_ij,d,S))_k)
 	    ));
     hashTable(zeroMaps|nzMaps)
     )
@@ -625,21 +706,20 @@ S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
 addTateData(S,irr)
 
-M= S^1/ideal(x_0)**S^{{4}}
+M= S^1/ideal(x_0+2*x_1,x_2)
 LL=apply(10,i->S.degOmega+{i})
-elapsedTime betti(TM=RRfunctor(M,LL))
+elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 TB.dd_1
-diffModToChainComplexMaps(TB)
+HT = diffModToChainComplexMaps(TB);
+HT#(1,2)
+kHT = keys HT
+netList apply(toList(min(kHT/first)..max(kHT/first)), i->(
+	    apply(toList (min(kHT/last)..max(kHT/last)), j->(
+		    betti target HT#(i,j)))))
 
 ///
 *-
-
-
-
-
-
-
 entry=method()
 entry(RingElement,List,Ring) := (f,d,S) -> (
     -- Input: f an homogeneous element of the exterior algebra
@@ -656,12 +736,6 @@ entry(RingElement,List,Ring) := (f,d,S) -> (
     phi
     )
 
-
-
-
-
-
-
 bigChainMap = (TB)->(
 --  Input:  the Beilinson window chain complex.  Might require
 --           differential entries to be monomials(?)
@@ -672,47 +746,45 @@ bigChainMap = (TB)->(
     rows = apply(rank TB_0,i->(
 	    mm := HT#(i,0);
 	    scan(rank TB_1-1,j-> mm = mm|HT#(i,j+1));
+--	    scan(rank TB_1-1,j-> mm = mm|map(target mm,,HT#(i,j+1)));
 	    mm
 	    ));
     nn = rows_0;
     scan(#rows -1,i-> nn = nn||rows_(i+1));
+    assert(isHomogeneous nn);
     nn    
     )
  
 --  just a different name for same function
-altDMonad = TB -> bigChainMap(TB)
+altDMonad = TB -> S^{-last S.degs}**bigChainMap(TB)
 --
 
 -*
-TEST ///
+TEST /// --here!
 restart
 load "KoszulFunctor.m2"
 kk=ZZ/101
-L = {1,1,2}
+L = {1,1,3}
 S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
 addTateData(S,irr)
+E = S.exterior
 
-M= S^1/ideal(x_0,x_2)
+M= S^1/ideal(x_0+2*x_1,x_2,x_3)
+M = M++M
+
+M = S^1/ideal(x_0,x_2)
+
 LL=apply(10,i->S.degOmega+{i})
-elapsedTime betti(TM=RRfunctor(M,LL))
+elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 TB.dd_1
+BM = bigChainMap TB
 BM=altDMonad(TB)
 DMHH BM
 presentation M
-presentation truncate(1,M)
 ///
 *-
-
-
-
-
-
-
-
-
-
 
 DMonad = method()
 
@@ -847,7 +919,7 @@ irr=ideal vars S
 addTateData(S,irr)
 M= S^1/ideal(x_0)**S^{{4}}
 LL=apply(10,i->S.degOmega+{i})
-elapsedTime betti(TM=RRfunctor(M,LL))
+elapsedTime betti(TM=RRFunctor(M,LL))
 DTate=TM
 TM.dd
 TB=beilinsonWindow(TM,S.degs)**E^{append(-S.degOmega,0)}
@@ -912,7 +984,7 @@ cplx = cacheComplexes(S)
 values cplx/betti
 M=S^1/ideal(x_0)
 LL=apply(10,i->{i})
-T=RRfunctor(M,LL)
+T=RRFunctor(M,LL)
 isHomogeneous T
 T.dd
 keys cplx
@@ -1148,7 +1220,7 @@ lows={{0}}
 c=5
 degs = apply(4, i->{-i})
 
-elapsedTime betti(TM=RRfunctor(M,E,lows,c))
+elapsedTime betti(TM=RRFunctor(M,E,lows,c))
 T=TM**E^{{12}}
 T=TM
 tally degrees T_0
@@ -1204,7 +1276,7 @@ lows={{0}}
 c=6
 degs = apply(sum L, i->{-i})
 
-elapsedTime betti(TM=RRfunctor(M,E,lows,c))
+elapsedTime betti(TM=RRFunctor(M,E,lows,c))
 T=TM**E^{{10}}
 tally degrees T_0
 tally degrees T_1
@@ -1494,8 +1566,8 @@ keys cplx
 
 
  -*
-RRfunctor = method();
-RRfunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
+RRFunctor = method();
+RRFunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
     S :=ring(M);
     M1 := prune coker presentation M;
     relationsM := gens image presentation M1;
@@ -1534,7 +1606,7 @@ M=S^1
 c=3
 lows={{3,3}}
 
-TM=RRfunctor(M,E,lows,c)
+TM=RRFunctor(M,E,lows,c)
 TM.dd^2
 TM.dd_1
 
@@ -1550,7 +1622,7 @@ M=truncate({1},S^1)
 c=2
 lows={{0}}
 
-TM=RRfunctor(M,E,lows,c)
+TM=RRFunctor(M,E,lows,c)
 assert(isHomogeneous TM)
 assert((TM.dd_1)^2==0)
 TM.dd_1
