@@ -588,22 +588,130 @@ beilinsonWindow(ChainComplex,List) := (T,degs) -> (
 ---------------
 -- DMonond 
 ------------------
+
+
+diffModToChainComplexMaps = TB->(
+    --Input:  a free diff module for Beilinson window
+    --Output:  a hash table H where H#(i,j) is the chain complex
+    --         map corresponding to that entry
+    --Caveat:  might require monomial entries??
+    --In essence, this codes just takes the (i,j) entry of a matrix,
+    --spits out the corresponding map of chain complex (under the proposed U-functor)
+    --and then encodes that in a hash table (i,j) => (corresponding chain complex map)
+    --
+    ijs := flatten apply(rank TB_0,i->apply(rank TB_1,j->(i,j)));
+    zeroijs := select(ijs,ij->TB.dd_1_ij==0);
+    nonzeroijs := select(ijs,ij->TB.dd_1_ij!=0);
+--   allKeys := apply(ijs,ij-> {ij=> (i=ij_0;(-drop((degrees TB_0)_i,-1),TB.dd_1_ij))});
+--   HT := hashTable flatten allKeys;
+    degsTB = apply(degrees TB_0,d-> -drop(d,-1));
+    zeroMaps := apply(zeroijs,ij->ij => map(S.complexes#(degsTB#(ij_0))[-1],S.complexes#(degsTB#(ij_1)),i-> 0));
+    nzMaps := apply(nonzeroijs, ij->(
+	    i=ij_0;
+	    d = -drop((degrees TB_0)_i,-1);
+	    ij =>  map(S.complexes#(degsTB#(ij_0))[-1],S.complexes#(degsTB#(ij_1)),
+		i-> (entry(TB.dd_1_ij,d,S))_i)
+	    ));
+    hashTable(zeroMaps|nzMaps)
+    )
+
+-*
+TEST ///
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,2}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+
+M= S^1/ideal(x_0)**S^{{4}}
+LL=apply(10,i->S.degOmega+{i})
+elapsedTime betti(TM=RRfunctor(M,LL))
+TB=beilinsonWindow(TM,-S.degs)
+TB.dd_1
+diffModToChainComplexMaps(TB)
+
+///
+*-
+
+
+
+
+
+
 entry=method()
-entry(RingElement,List,Ring) := (f,di,S) -> (
+entry(RingElement,List,Ring) := (f,d,S) -> (
     -- Input: f an homogeneous element of the exterior algebra
     --        d the target degree, so d1= d+ +/-degree of m is source degree
     -- return 0 should be improved to rteurn a zero map between the right complexes
     E := ring f;
-    if f==0_E then return 0;
+    if f==0_E then return 0; --should not occure in the new version
     cf := coefficients f;
     cs := (entries cf_0)_0;
+    kk := coefficientRing S;
     fs := flatten (entries sub(cf_1,kk));
-    phi := sum(#fs,n->(m=cs_n;fs_n*(S.phis#(drop(di,-1),m))));  
---    phi := sum(#fs,n->(m=cs_n;fs_n*(S.phis#(-S.degOmega-drop(di,-1),m))));
-   -- map(DMonad(-di,S),DMonad(-di-degree f,S),
---	q->map((DMonad(-di,S))_q,(DMonad(-di-degree f,S))_q,phi_q))
+    phi := sum(#fs,n->(m=cs_n;fs_n*(S.phis#(d,m))));
+--    phi := sum(#fs,n->(m=cs_n;fs_n*(S.phis#(drop(d,-1),m)))); --version for old DMonad   
     phi
     )
+
+
+
+
+
+
+
+bigChainMap = (TB)->(
+--  Input:  the Beilinson window chain complex.  Might require
+--           differential entries to be monomials(?)
+--  Output:  the Beilinson monad (??)
+--  In essence, this code just concatenates the chain complex maps from the HashTable
+--  diffModToChainComplexMaps(TB).
+    HT = diffModToChainComplexMaps(TB);
+    rows = apply(rank TB_0,i->(
+	    mm := HT#(i,0);
+	    scan(rank TB_1-1,j-> mm = mm|HT#(i,j+1));
+	    mm
+	    ));
+    nn = rows_0;
+    scan(#rows -1,i-> nn = nn||rows_(i+1));
+    nn    
+    )
+ 
+--  just a different name for same function
+altDMonad = TB -> bigChainMap(TB)
+--
+
+-*
+TEST ///
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,2}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+
+M= S^1/ideal(x_0,x_2)
+LL=apply(10,i->S.degOmega+{i})
+elapsedTime betti(TM=RRfunctor(M,LL))
+TB=beilinsonWindow(TM,-S.degs)
+TB.dd_1
+BM=altDMonad(TB)
+DMHH BM
+presentation M
+presentation truncate(1,M)
+///
+*-
+
+
+
+
+
+
+
+
 
 
 DMonad = method()
@@ -730,7 +838,13 @@ S=kk[x_0..x_(#L-1),Degrees=>L]
 
 irr=ideal vars S
 addTateData(S,irr)
-E=S.exterior
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,2}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
 M= S^1/ideal(x_0)**S^{{4}}
 LL=apply(10,i->S.degOmega+{i})
 elapsedTime betti(TM=RRfunctor(M,LL))
