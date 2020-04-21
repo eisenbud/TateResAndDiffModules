@@ -764,25 +764,84 @@ TEST /// --here!
 restart
 load "KoszulFunctor.m2"
 kk=ZZ/101
-L = {1,1,3}
+L = {1,1,1,2}
 S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
 addTateData(S,irr)
 E = S.exterior
 
 M= S^1/ideal(x_0+2*x_1,x_2,x_3)
-M = M++M
+M1= (S^{1}/ideal(x_0+2*x_1,x_2,x_3))
+M = M++M1
 
-M = S^1/ideal(x_0,x_2)
 
-LL=apply(10,i->S.degOmega+{i})
+LL=apply(toList(-10..10),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 TB.dd_1
 BM = bigChainMap TB
 BM=altDMonad(TB)
 DMHH BM
-presentation M
+presentation truncate(0,M)
+-- works
+-- the following does not work:
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,1,3}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+E = S.exterior
+
+M= S^1/ideal(x_0+2*x_1,x_2,x_3)
+M1= (S^{1}/ideal(x_0+2*x_1,x_2,x_3))
+M = M++M1
+
+--M = S^1/ideal(x_0,x_2)
+
+LL=apply(toList(-10..10),i->S.degOmega+{i})
+elapsedTime betti(TM=RRFunctor(M,LL))
+TB=beilinsonWindow(TM,-S.degs)
+TB.dd_1
+BM = bigChainMap TB
+BM=altDMonad(TB)
+DMHH BM
+presentation truncate(0,M)
+
+-- the following does not work:
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,2}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+E = S.exterior
+
+M= S^1/ideal(x_0+2*x_1)
+M1= (S^{1}/ideal(x_0+3*x_1))
+M = M++M1
+
+--M = S^1/ideal(x_0,x_2)
+
+LL=apply(toList(-10..10),i->S.degOmega+{i})
+elapsedTime betti(TM=RRFunctor(M,LL))
+TB=beilinsonWindow(TM,-S.degs)
+TB.dd_1
+BM = bigChainMap TB
+
+DMHH BM
+presentation truncate(0,M)
+M
+
+
+
+
+
+
+
+
 ///
 *-
 
@@ -917,16 +976,22 @@ L = {1,1,2}
 S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
 addTateData(S,irr)
-M= S^1/ideal(x_0)**S^{{4}}
-LL=apply(10,i->S.degOmega+{i})
+E=S.exterior
+
+M= S^1/ideal(x_0)**S^{{-10}}
+LL=apply(toList(-10..10),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
 DTate=TM
 TM.dd
-TB=beilinsonWindow(TM,S.degs)**E^{append(-S.degOmega,0)}
+TB=beilinsonWindow(TM,-S.degs)
 betti TB
 degrees TB_0
 TB.dd_1
 degrees TB_1
+BM=altDMonad TB
+DMHH BM
+betti res truncate(0,M)
+
 ijs=flatten apply(rank TB_0,i->apply(rank TB_1,j->(i,j)))
 nonzeroijs=select(ijs,ij->TB.dd_1_ij!=0)
 apply(nonzeroijs,ij->(i=ij_0;(degrees TB_0)_i))
