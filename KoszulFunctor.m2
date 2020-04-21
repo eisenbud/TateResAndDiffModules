@@ -681,22 +681,27 @@ diffModToChainComplexMaps = TB->(
     nonzeroijs := select(ijs,ij->TB.dd_1_ij!=0);
 --   allKeys := apply(ijs,ij-> {ij=> (i=ij_0;(-drop((degrees TB_0)_i,-1),TB.dd_1_ij))});
 --   HT := hashTable flatten allKeys;
-    degsTB = apply(degrees TB_0,d-> -drop(d,-1));
+    degsTB = apply(degrees TB_0,d-> drop(d,-1));
     zeroMaps := apply(zeroijs,ij->ij => map(S.complexes#(degsTB#(ij_0))[-1],
 	                                    S.complexes#(degsTB#(ij_1)),
 	                                    k -> 0));
     nzMaps := apply(nonzeroijs, ij->(
 	    i := ij_0;
-	    d := -drop((degrees TB_0)_i,-1);
---	    ij =>  S^{d}**map(S.complexes#(degsTB#i)[-1],S.complexes#(degsTB#(ij_1)),
-	    ij =>  map(S.complexes#(degsTB#i)[-1],
+	    j := ij_1;
+	    d := drop((degrees TB_0)_j,-1);
+	    ij =>  map(
 		       S.complexes#(degsTB#(ij_1)),		
-		       k-> (entry(TB.dd_1_ij,d,S))_k)
-	    ));
+		       S.complexes#(degsTB#i)[1],
+		       k-> (entry(TB.dd_1_ij,d,S)[1])_k)
+	    )
+	);
     hashTable(zeroMaps|nzMaps)
     )
 
 -*
+S.complexes#(degsTB#i)
+		       S.complexes#(degsTB#(ij_1))[-1]
+		       k-> (entry(TB.dd_1_ij,d,S))_k)
 TEST ///
 restart
 load "KoszulFunctor.m2"
@@ -735,6 +740,7 @@ entry(RingElement,List,Ring) := (f,d,S) -> (
 --    phi := sum(#fs,n->(m=cs_n;fs_n*(S.phis#(drop(d,-1),m)))); --version for old DMonad   
     phi
     )
+
 
 bigChainMap = (TB)->(
 --  Input:  the Beilinson window chain complex.  Might require
@@ -777,14 +783,16 @@ M = M++M1
 
 LL=apply(toList(-10..10),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
-TB=beilinsonWindow(TM,-S.degs)
+TB=beilinsonWindow(TM,S.degs)
 TB.dd_1
 BM = bigChainMap TB
 BM=altDMonad(TB)
 DMHH BM
 presentation truncate(0,M)
+presentation M
 -- works
 -- the following does not work:
+
 restart
 load "KoszulFunctor.m2"
 kk=ZZ/101
@@ -819,30 +827,70 @@ irr=ideal vars S
 addTateData(S,irr)
 E = S.exterior
 
-M= S^1/ideal(x_0+2*x_1)
+M= S^1/ideal(x_2)
+
 M1= (S^{1}/ideal(x_0+3*x_1))
 M = M++M1
-
+M = S^{1}**M
 --M = S^1/ideal(x_0,x_2)
 
 LL=apply(toList(-10..10),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
+--elapsedTime betti(TM=RRFunctor(M1,LL))
 TB=beilinsonWindow(TM,-S.degs)
+betti TB
 TB.dd_1
 BM = bigChainMap TB
-
-DMHH BM
+betti source BM
+values(S.complexes)/betti
+H = DMHH BM
 presentation truncate(0,M)
-M
+presentation M
 
-
-
-
-
+radical ann(H#0)
+ann M
+ 
+sum(4, i-> (i+1)*betti(S.complexes#{3-i}))
 
 
 
 ///
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,1}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+E = S.exterior
+
+M= S^1/ideal(x_2)
+
+M1= (S^{1}/ideal(x_0+3*x_1))
+M = M++M1
+
+M = S^{1}**M
+--M = S^1/ideal(x_0,x_2)
+
+
+LL=apply(toList(-10..10),i->S.degOmega+{i})
+elapsedTime betti(TM=RRFunctor(M,LL))
+--elapsedTime betti(TM=RRFunctor(M1,LL))
+TB=beilinsonWindow(TM,S.degs)
+betti TB
+TB.dd_1
+BM = bigChainMap TB
+betti source BM
+values(S.complexes)/betti
+H = DMHH BM
+presentation truncate(0,M)
+presentation M
+
+radical ann(H#0)
+ann M
+ 
+sum(3, i-> (i+1)*betti(S.complexes#{i}))
+
 *-
 
 DMonad = method()
