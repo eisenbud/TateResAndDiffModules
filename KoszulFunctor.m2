@@ -682,9 +682,10 @@ diffModToChainComplexMaps = TB->(
 --   allKeys := apply(ijs,ij-> {ij=> (i=ij_0;(-drop((degrees TB_0)_i,-1),TB.dd_1_ij))});
 --   HT := hashTable flatten allKeys;
     degsTB = apply(degrees TB_0,d-> drop(d,-1));
-    zeroMaps := apply(zeroijs,ij->ij => map(S.complexes#(degsTB#(ij_0))[-1],
-	                                    S.complexes#(degsTB#(ij_1)),
-	                                    k -> 0));
+    zeroMaps := apply(zeroijs,ij->(ij => map(S.complexes#(degsTB#(ij_1)),
+	                                    S.complexes#(degsTB#(ij_0))[1],
+	                                    k -> 0))
+				    );
     nzMaps := apply(nonzeroijs, ij->(
 	    i := ij_0;
 	    j := ij_1;
@@ -697,7 +698,6 @@ diffModToChainComplexMaps = TB->(
 	);
     hashTable(zeroMaps|nzMaps)
     )
-
 -*
 S.complexes#(degsTB#i)
 		       S.complexes#(degsTB#(ij_1))[-1]
@@ -750,8 +750,8 @@ bigChainMap = (TB)->(
 --  diffModToChainComplexMaps(TB).
     HT = diffModToChainComplexMaps(TB);
     rows = apply(rank TB_0,i->(
-	    mm := HT#(i,0);
-	    scan(rank TB_1-1,j-> mm = mm|HT#(i,j+1));
+	    mm := HT#(0,i);
+	    scan(rank TB_1-1,j-> mm = mm|HT#(j+1,i));
 --	    scan(rank TB_1-1,j-> mm = mm|map(target mm,,HT#(i,j+1)));
 	    mm
 	    ));
@@ -865,11 +865,9 @@ addTateData(S,irr)
 E = S.exterior
 
 M= S^1/ideal(x_2)
-
-M1= (S^{1}/ideal(x_0+3*x_1))
-M = M++M1
-
 M = S^{1}**M
+--M1= (S^{1}/ideal(x_0+3*x_1))
+--M = M++M1
 --M = S^1/ideal(x_0,x_2)
 
 
@@ -880,17 +878,27 @@ TB=beilinsonWindow(TM,S.degs)
 betti TB
 TB.dd_1
 BM = bigChainMap TB
+
 betti source BM
 values(S.complexes)/betti
 H = DMHH BM
+DMHHalt BM
+--  The "alt" version seems to get the shift more correct, but the twist is still off
+
 presentation truncate(0,M)
-presentation M
+--Twist off by 1
 
-radical ann(H#0)
-ann M
- 
-sum(3, i-> (i+1)*betti(S.complexes#{i}))
 
+M = S^{3}/ideal(x_2^3)
+elapsedTime betti(TM=RRFunctor(M,LL))
+TB=beilinsonWindow(TM,S.degs)
+betti TB
+TB.dd_1
+BM = bigChainMap TB
+betti source BM
+DMHHalt BM
+presentation truncate(-2,M)
+--  Twist is off, but I also don't know why these aren't these are the same
 *-
 
 DMonad = method()
@@ -1004,7 +1012,16 @@ DMHH=method()
 DMHH(ChainComplexMap) := BM ->( 
     BBM:= BM[1]; 
     prune HH coker( 
-    map(ker BM, source BBM, i->BBM_i//inducedMap(target BBM_i,ker BM_i))))
+    map(ker BM, source BBM, i->BBM_i//inducedMap(target BBM_i,ker BM_i)))
+)
+
+-- Daniel:  I tried a different shift here which seems to work better.
+DMHHalt=method()
+DMHHalt(ChainComplexMap) := BM ->( 
+    BBM:= BM[-1]; 
+    prune HH coker( 
+    map(ker BBM, source BM, i->BM_i//inducedMap(target BM_i,ker BBM_i)))
+)
 
 -*
 TEST ///
