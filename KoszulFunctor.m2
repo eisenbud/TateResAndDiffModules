@@ -28,8 +28,11 @@ exports {
     "entry", -- need to be rewritten?
     "DMonad",
     "DMHH",
+    "DMHHalt",
     "cacheComplexes",
-    "cachePhi"	               
+    "cachePhi",
+    "diffModToChainComplexMaps",
+    "bigChainMap"	               
     }
 
 *-
@@ -549,8 +552,36 @@ RRFunctor(Module,List) := (M,L) ->(
     g' := transpose sub(newg,E);
     chainComplex map(E^df0,E^df1, g')
     )
+
+
+RRFunctor(Module,List,Boolean) := (M,LL,X) ->(
+    S :=ring(M);
+    E := S.exterior;
+    relationsM := gens image presentation M;
+    numvarsE := rank source vars E;
+    f0 := gens image basis(LL_0,M);
+    scan(#LL-1,i-> f0 = f0 | gens image basis(LL_(i+1),M));
+    --f0 is the basis for M in degrees given by L
+    df0 := apply(degrees source f0,i-> (-1)*i|{0});
+    df1 := apply(degrees source f0,i-> (-1)*i|{-1});
+    SE := S**E;
+    tr := sum(dim S, i-> SE_i*SE_(dim S+i));
+    newf0 := sub(f0,SE)*tr;
+    relationsMinSE := sub(relationsM,SE);
+    newf0 = newf0 % relationsMinSE;
+    newg := contract(transpose sub(f0,SE),newf0);
+    g' := sub(newg,E);
+    chainComplex map(E^df0,E^df1, g')
+    )
+
+
 -*
 --  The RR functor with variants.
+TM = RRFunctor(M,LL,true)
+betti TM
+TB = beilinsonWindow(TM,-S.degs)
+TB.dd_1
+betti TB
 RRFunctor = method();
 --Input: (M,L) M a (multi)-graded S-module.
 --             L a list of degrees.
@@ -682,23 +713,27 @@ diffModToChainComplexMaps = TB->(
 --   allKeys := apply(ijs,ij-> {ij=> (i=ij_0;(-drop((degrees TB_0)_i,-1),TB.dd_1_ij))});
 --   HT := hashTable flatten allKeys;
     degsTB = apply(degrees TB_0,d-> drop(d,-1));
-    zeroMaps := apply(zeroijs,ij->(ij => map(S.complexes#(degsTB#(ij_1)),
-	                                    S.complexes#(degsTB#(ij_0))[1],
+    --  zeroMaps go the wrong direction for our RRfunctor!
+    zeroMaps := apply(zeroijs,ij->(ij => map(S.complexes#(-degsTB#(ij_0)),
+	                                    S.complexes#(-degsTB#(ij_1))[1],
 	                                    k -> 0))
 				    );
+    --  nzMaps go the wrong direction for our RRfunctor!
     nzMaps := apply(nonzeroijs, ij->(
-	    i := ij_0;
-	    j := ij_1;
-	    d := drop((degrees TB_0)_j,-1);
+	    --i := ij_0;
+	    --j := ij_1;
+	    d := -drop((degrees TB_0)_(ij_0),-1);
 	    ij =>  map(
-		       S.complexes#(degsTB#(ij_1)),		
-		       S.complexes#(degsTB#i)[1],
+		       S.complexes#(-degsTB#(ij_0)),		
+		       S.complexes#(-degsTB#(ij_1))[1],
 		       k-> (entry(TB.dd_1_ij,d,S)[1])_k)
 	    )
 	);
     hashTable(zeroMaps|nzMaps)
     )
 -*
+betti TM
+TM.dd_1
 S.complexes#(degsTB#i)
 		       S.complexes#(degsTB#(ij_1))[-1]
 		       k-> (entry(TB.dd_1_ij,d,S))_k)
@@ -750,8 +785,8 @@ bigChainMap = (TB)->(
 --  diffModToChainComplexMaps(TB).
     HT = diffModToChainComplexMaps(TB);
     rows = apply(rank TB_0,i->(
-	    mm := HT#(0,i);
-	    scan(rank TB_1-1,j-> mm = mm|HT#(j+1,i));
+	    mm := HT#(i,0);
+	    scan(rank TB_1-1,j-> mm = mm|HT#(i,j+1));
 --	    scan(rank TB_1-1,j-> mm = mm|map(target mm,,HT#(i,j+1)));
 	    mm
 	    ));
@@ -760,7 +795,7 @@ bigChainMap = (TB)->(
     assert(isHomogeneous nn);
     nn    
     )
- 
+
 --  just a different name for same function
 altDMonad = TB -> S^{-last S.degs}**bigChainMap(TB)
 --
@@ -872,14 +907,16 @@ M = S^{1}**M
 
 
 LL=apply(toList(-10..10),i->S.degOmega+{i})
-elapsedTime betti(TM=RRFunctor(M,LL))
+elapsedTime betti(TM=RRFunctor(M,LL,true))
+TM.dd_1
 --elapsedTime betti(TM=RRFunctor(M1,LL))
-TB=beilinsonWindow(TM,S.degs)
+TB=beilinsonWindow(TM,-S.degs)
+--CHANGED BACK TO -S.degs!!
 betti TB
 TB.dd_1
 BM = bigChainMap TB
+betti target BM
 
-betti source BM
 values(S.complexes)/betti
 H = DMHH BM
 DMHHalt BM
@@ -889,9 +926,18 @@ presentation truncate(0,M)
 --Twist off by 1
 
 
-M = S^{3}/ideal(x_2^3)
-elapsedTime betti(TM=RRFunctor(M,LL))
-TB=beilinsonWindow(TM,S.degs)
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,1}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+E = S.exterior
+M = S^{3}/ideal(x_0^3+2*x_1^3+3*x_2^3)
+LL = toList(-5..5)
+elapsedTime betti(TM=RRFunctor(M,LL,true))
+TB=beilinsonWindow(TM,-S.degs)
 betti TB
 TB.dd_1
 BM = bigChainMap TB
@@ -1025,6 +1071,13 @@ DMHHalt(ChainComplexMap) := BM ->(
 
 -*
 TEST ///
+chainComplex(BM,BM[-1],BM[-2])
+chainComplex{BM,BM[-1],BM[-2]}
+CBM = cone(BM)
+betti res prune HH_0 CBM
+
+WANT: chainComplex map F-->G and a chainComplex map G-->H and gives the cone of these.
+viewHelp Complexes
 
 restart
 load "KoszulFunctor.m2"
