@@ -1064,21 +1064,14 @@ DMHH(ChainComplexMap) := BM ->(
 -- Daniel:  I tried a different shift here which seems to work better.
 DMHHalt=method()
 DMHHalt(ChainComplexMap) := BM ->( 
-    BBM:= BM[-1]; 
+    BM:= BM[-1]; 
     prune HH coker( 
     map(ker BBM, source BM, i->BM_i//inducedMap(target BM_i,ker BBM_i)))
 )
 
 -*
-
 TEST ///
-betti source BM
-prune BM
-source BM
-target BM
-cone(BM)
-WANT: chainComplex map F-->G and a chainComplex map G-->H and gives the cone of these.
-viewHelp Complexes
+
 
 restart
 load "KoszulFunctor.m2"
