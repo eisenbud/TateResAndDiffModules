@@ -1070,12 +1070,13 @@ DMHHalt(ChainComplexMap) := BM ->(
 )
 
 -*
-TEST ///
-chainComplex(BM,BM[-1],BM[-2])
-chainComplex{BM,BM[-1],BM[-2]}
-CBM = cone(BM)
-betti res prune HH_0 CBM
 
+TEST ///
+betti source BM
+prune BM
+source BM
+target BM
+cone(BM)
 WANT: chainComplex map F-->G and a chainComplex map G-->H and gives the cone of these.
 viewHelp Complexes
 
