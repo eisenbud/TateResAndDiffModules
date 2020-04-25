@@ -799,6 +799,21 @@ bigChainMap = (TB)->(
 --  just a different name for same function
 altDMonad = TB -> S^{-last S.degs}**bigChainMap(TB)
 --
+horHom = method()
+horHom ChainComplexMap := B->(
+    --
+    --should return a complex of homology modules
+assert(B*(B[1])==0);
+tB = target B;
+sB = source B;
+assert(sB == tB[1]);
+K = ker(B[-1]);
+I = image B;
+inc = inducedMap(K,I);
+H = coker inc
+)
+DMHH = method()
+DMHH ChainComplexMap := B -> HH horHom B
 
 -*
 TEST /// --here!
@@ -889,7 +904,7 @@ sum(4, i-> (i+1)*betti(S.complexes#{3-i}))
 
 
 
-///
+///--there!
 restart
 load "KoszulFunctor.m2"
 kk=ZZ/101
@@ -915,8 +930,20 @@ TB=beilinsonWindow(TM,-S.degs)
 betti TB
 TB.dd_1
 BM = bigChainMap TB
-betti target BM
+assert(BM*(BM[1])==0)
 
+betti target BM
+betti source BM
+(source BM).dd
+(target BM).dd
+
+DMHH = B -> HH horHom B
+D = DMHH BM
+viewHelp GradedModule
+B = BM
+rank D
+horHom BM    
+ker (BM[-1])
 values(S.complexes)/betti
 H = DMHH BM
 DMHHalt BM
@@ -1053,7 +1080,7 @@ map(
    )));
     map(tot,tot1,p->matrix apply(rank TB_0,i-> apply(rank TB_1,j-> (Lphi_i_j)_p)))
 )
-
+-*
 DMHH=method()
 DMHH(ChainComplexMap) := BM ->( 
     BBM:= BM[1]; 
@@ -1064,11 +1091,11 @@ DMHH(ChainComplexMap) := BM ->(
 -- Daniel:  I tried a different shift here which seems to work better.
 DMHHalt=method()
 DMHHalt(ChainComplexMap) := BM ->( 
-    BM:= BM[-1]; 
+    BM = BM[-1]; 
     prune HH coker( 
     map(ker BBM, source BM, i->BM_i//inducedMap(target BM_i,ker BBM_i)))
 )
-
+*-
 -*
 TEST ///
 
