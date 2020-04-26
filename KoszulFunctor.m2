@@ -833,11 +833,11 @@ M = M++M1
 
 LL=apply(toList(-10..10),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
-TB=beilinsonWindow(TM,S.degs)
+TB=beilinsonWindow(TM,-S.degs)
 TB.dd_1
 BM = bigChainMap TB
-BM=altDMonad(TB)
-DMHH BM
+--BM=altDMonad(TB)
+prune DMHH BM
 presentation truncate(0,M)
 presentation M
 -- works
@@ -852,21 +852,21 @@ irr=ideal vars S
 addTateData(S,irr)
 E = S.exterior
 
-M= S^1/ideal(x_0+2*x_1,x_2,x_3)
-M1= (S^{1}/ideal(x_0+2*x_1,x_2,x_3))
+M= S^1/ideal(x_0,x_2)
+M1= (S^{1}/ideal(x_1,x_2))
 M = M++M1
-
+M = M**S^{{5}}
 --M = S^1/ideal(x_0,x_2)
 
 LL=apply(toList(-10..10),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 TB.dd_1
-BM = bigChainMap TB
-BM=altDMonad(TB)
-DMHH BM
+BM = bigChainMap TB;
+--BM=altDMonad(TB)
+prune DMHH BM
 presentation truncate(0,M)
-
+presentation M
 -- the following does not work:
 restart
 load "KoszulFunctor.m2"
@@ -1739,36 +1739,6 @@ keys cplx
 -- Why??
 ///
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
  -*
 RRFunctor = method();
 RRFunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
@@ -1834,6 +1804,48 @@ betti TM
 
 ///*-
 
+///
+--simplest bad example?
+--line in PP^2
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,1}
+L = {1,1}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+E = S.exterior
 
+M= S^1/ideal(x_0^2)
+M = S^{1}**M
+betti res M
+M = S^{1}
+--M1= (S^{1}/ideal(x_0+3*x_1))
+--M = M++M1
+--M = S^1/ideal(x_0,x_2)
+
+
+LL=apply(toList(-10..10),i->S.degOmega+{i})
+elapsedTime betti(TM=RRFunctor(M,LL,true))
+TM.dd_1
+--elapsedTime betti(TM=RRFunctor(M1,LL))
+TB=beilinsonWindow(TM,-S.degs)
+betti TB
+TB.dd_1
+BM = bigChainMap TB
+assert(BM*(BM[1])==0)
+
+betti target BM
+betti source BM
+(source BM).dd
+(target BM).dd
+
+horHom BM    
+ker (BM[-1])
+values(S.complexes)/betti
+H = DMHH BM
+presentation M
+S.complexes
 
 
