@@ -533,6 +533,7 @@ RRFunctor(Module,List) := (M,L) ->(
     S := ring(M);
     E := S.exterior;
     relationsM := gens image presentation M;
+    print "Warning this is an old version and has a transpose error!";
 --    numvarsE := numgens E;
 --    ev := map(E,S,vars E);
     --L := degreeSetup(low,c,r);
@@ -852,9 +853,16 @@ bigChainMap = (TB)->(
     nn    
     )
 
---  just a different name for same function
-altDMonad = TB -> S^{-last S.degs}**bigChainMap(TB)
---
+
+
+doubleComplexBM = TB->(
+    --Input:  a free diff module for Beilinson window
+    --Output: a double complex corresponding to the diff Mod.
+    BM = bigChainMap(TB);
+    FF = target BM;
+    chainComplex apply(dim S, i-> FF.dd_(i+1) + BM_i)
+    )
+
 horHom = method()
 horHom ChainComplexMap := B->(
     --
@@ -1878,6 +1886,88 @@ betti res M
 --M1= (S^{1}/ideal(x_0+3*x_1))
 --M = M++M1
 --M = S^1/ideal(x_0,x_2)
+
+--
+--For April 28
+restart
+--Regular PP2
+load "KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,1}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+E = S.exterior
+
+M= S^1/ideal(x_0^2)
+M = S^{2}**M
+LL=apply(toList(-5..5),i->S.degOmega+{i})
+elapsedTime betti(TM=RRFunctor(M,LL,true));
+TM.dd_1;
+TB=beilinsonWindow(TM,-S.degs);
+betti TB
+TB.dd_1
+BM = doubleComplexBM(TB)
+prune HH BM
+
+M= S^1/ideal(x_0^3+x_1^3+x_2^3)
+M = S^{3}**M
+LL=apply(toList(-5..5),i->S.degOmega+{i})
+elapsedTime betti(TM=RRFunctor(M,LL,true));
+TM.dd_1;
+TB=beilinsonWindow(TM,-S.degs);
+betti TB
+TB.dd_1
+BM = doubleComplexBM(TB)
+prune HH BM
+presentation truncate(-2,M)
+-- what's with the truncation???
+
+
+
+-- Weighted PP2
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+L = {1,1,2}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+E = S.exterior
+
+--rational curve, twisted to avoid higher cohomology.
+M = (S^{2}/ideal(x_0^2+x_1^2+x_2))
+--M = M++M1
+LL=apply(toList(-6..6),i->S.degOmega+{i})
+elapsedTime betti(TM=RRFunctor(M,LL,true))
+TB=beilinsonWindow(TM,-S.degs)
+betti TB
+TB.dd_1
+BM = doubleComplexBM(TB)
+(prune HH BM)
+--sign error on x_2!!;  also still weird degree truncation error.
+presentation truncate(-3,M)
+
+
+--nonrational curve, twisted to avoid higher cohomology.
+M = (S^{5}/ideal(random(5,S)))
+LL=apply(toList(-6..6),i->S.degOmega+{i})
+elapsedTime betti(TM=RRFunctor(M,LL,true))
+TB=beilinsonWindow(TM,-S.degs)
+betti TB
+TB.dd_1
+BM = doubleComplexBM(TB)
+(prune HH BM)
+--sign error;  also still weird degree truncation error.
+presentation truncate(-3,M)
+betti res ((prune HH BM)_0)
+betti res truncate(-3,M)
+
+
+
+
+
+
 
 
 LL=apply(toList(-3..3),i->S.degOmega+{i})
