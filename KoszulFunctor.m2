@@ -555,6 +555,9 @@ RRFunctor(Module,List) := (M,L) ->(
 
 
 RRFunctor(Module,List,Boolean) := (M,LL,X) ->(
+    --M is an S-module
+    --LL a list of the degrees where the terms B^e of RR M might occur, X = true
+    --output is the strictly lower triangular map from sum_e B^e to itself
     S :=ring(M);
     E := S.exterior;
     relationsM := gens image presentation M;
@@ -573,7 +576,62 @@ RRFunctor(Module,List,Boolean) := (M,LL,X) ->(
     g' := sub(newg,E);
     chainComplex map(E^df0,E^df1, g')
     )
+RRTable = method()
+RRTable(Module, List) := (M,LL) ->(
+    --M is an S-module
+    --LL a list of integers
+    --Output is a hashTable Bmaps with keys
+    --(p_0,p_1,x), with p_0, p_1 \in LL andn
+    --deg x == p_0-p_1 (in particular, p_0> p_1).
+    --and values Bmaps#(p_0,p_1,x) the map 
+    --from 
+    --to source basis(p_0)
+    --induced by multiplication with x.
+    --note that the entries of these maps are scalars.
+    --
+    S :=ring M;
+    if not S.?irrelevantIdeal then (
+    	irr := ideal vars S;
+	addTateData(S,irr)
+	);
+    E := S.exterior;
+    triples = flatten flatten apply(LL, ell -> apply(LL, ell' -> apply(gens S, x ->(ell,ell', x))));
+    st = select(triples, p->{p_0-p_1} == (degree p_2));
+    B = hashTable apply(LL, ell -> (ell, basis(ell, M)));
+    Mmaps = hashTable apply(st, 
+	p -> (p,
+	    map(M, 
+		M**S^{p_1-p_0}, 
+		id_M**matrix{{p_2}})));
+    Bmaps = hashTable apply(st, p -> 
+	(p,map(
+		source B#(p_0), 
+		source B#(p_1)**S^{p_1-p_0}, 
+		(Mmaps#p*(B#(p_1)**S^{p_1-p_0})//B#(p_0)))));
+    degsList = unique apply(gens S, x -> degree x);
+    Svars = hashTable apply(degsList, d -> (d, select(gens S, x -> degree x == d)));
+    ev = map(E,S,vars E, DegreeMap => d -> -d|{1});
+    BEmaps = hashTable apply(st, p ->((p_0,p_1,ev p_2), ev p_2**ev Bmaps#p))
+    )
+///
+restart
+load "KoszulFunctor.m2"
 
+kk=ZZ/101
+L = {1,2}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+M= S^1/ideal(x_0^2)
+M = S^{5}**M
+LL = toList(-4..0)
+RRTable(M,LL)
+
+
+irr=ideal vars S
+addTateData(S,irr)
+E = S.exterior
+
+betti res M
+///        
 
 -*
 --  The RR functor with variants.
@@ -1806,27 +1864,26 @@ betti TM
 
 ///
 --simplest bad example?
---line in PP^2
+--conic in PP^2
 restart
 load "KoszulFunctor.m2"
 kk=ZZ/101
 L = {1,1,1}
-L = {1,1}
 S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
 addTateData(S,irr)
 E = S.exterior
 
 M= S^1/ideal(x_0^2)
-M = S^{1}**M
+M = S^{2}**M
 betti res M
-M = S^{1}
+--M = S^{1}
 --M1= (S^{1}/ideal(x_0+3*x_1))
 --M = M++M1
 --M = S^1/ideal(x_0,x_2)
 
 
-LL=apply(toList(-10..10),i->S.degOmega+{i})
+LL=apply(toList(-3..3),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL,true))
 TM.dd_1
 --elapsedTime betti(TM=RRFunctor(M1,LL))
@@ -1834,6 +1891,7 @@ TB=beilinsonWindow(TM,-S.degs)
 betti TB
 TB.dd_1
 BM = bigChainMap TB
+source BM
 assert(BM*(BM[1])==0)
 
 betti target BM
