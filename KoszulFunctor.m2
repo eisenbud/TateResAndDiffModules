@@ -623,8 +623,6 @@ S=kk[x_0..x_(#L-1),Degrees=>L]
 M= S^1/ideal(x_0^2)
 M = S^{5}**M
 LL = toList(-4..0)
-RRTable(M,LL)
-
 
 irr=ideal vars S
 addTateData(S,irr)
@@ -984,7 +982,6 @@ elapsedTime betti(TM=RRFunctor(M,LL,true))
 TM.dd_1
 --elapsedTime betti(TM=RRFunctor(M1,LL))
 TB=beilinsonWindow(TM,-S.degs)
---CHANGED BACK TO -S.degs!!
 betti TB
 TB.dd_1
 BM = bigChainMap TB
