@@ -861,6 +861,7 @@ doubleComplexBM = TB->(
     BM = bigChainMap(TB);
     FF = target BM;
     chainComplex apply(dim S, i-> FF.dd_(i+1) + BM_i)
+    --seems to yield a double complex...  should check sign carefully.
     )
 
 horHom = method()
@@ -1899,7 +1900,7 @@ irr=ideal vars S
 addTateData(S,irr)
 E = S.exterior
 
-M= S^1/ideal(x_0^2)
+M = S^1/ideal(x_0^2)
 M = S^{2}**M
 LL=apply(toList(-5..5),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL,true));
@@ -1907,6 +1908,7 @@ TM.dd_1;
 TB=beilinsonWindow(TM,-S.degs);
 betti TB
 TB.dd_1
+betti BM
 BM = doubleComplexBM(TB)
 prune HH BM
 
@@ -1923,6 +1925,31 @@ prune HH BM
 presentation truncate(-2,M)
 -- what's with the truncation???
 
+
+
+--  PP^n, \Omega^i(i)
+n = 3
+kk=ZZ/101
+L = apply(n+1,i-> 1)
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+E = S.exterior
+--  omega2 is \Omega^2(2)
+omega2 = ker(S.complexes#{2}.dd_2)
+betti res omega2
+
+M = prune omega2
+LL = apply(toList(-5..5),i->S.degOmega+{i})
+elapsedTime betti(TM=RRFunctor(M,LL,true));
+
+
+TM.dd_1;
+TB=beilinsonWindow(TM,-S.degs);
+betti TB
+TB.dd_1
+BM = doubleComplexBM(TB)
+prune HH BM
 
 
 -- Weighted PP2
