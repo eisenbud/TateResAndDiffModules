@@ -304,10 +304,17 @@ isHomogeneous phi
 
 *-
 
+
 greaterEqual=method()
+--Daniel: I think the first option (without the Ring as input) is irrelevant now.
 greaterEqual(List,List) := (d1,d2) -> all(d1-d2,i->i>=0)
+greaterEqual(List,List,Ring) := (d1,d2,S) -> hilbertFunction(d1-d2,S) != 0
+
+
 strictlyGreater=method()
+--Daniel: I think the first option (without the Ring as input) is irrelevant now.
 strictlyGreater(List,List) := (d1,d2) -> all(d1-d2,i->i>=0) and d1!=d2
+strictlyGreater(List,List,Ring) := (d1,d2,S) ->hilbertFunction(d1-d2,S) != 0 and d1!=d2
 -*
 TEST ///
 greaterEqual({1,1},{0,1})==true
@@ -318,6 +325,7 @@ strictlyGreater({1,1},{1,1})
 /// *-
 
 degreeTruncation=method()
+--  Daniel:  I think these are unnecessary now.  See below (input includes ring).
 degreeTruncation(Matrix,List) := (M,d) -> (
     --rows and cols with degrees <= d.
     rows:= positions(degrees target M,d'-> greaterEqual(d,d'));
@@ -326,6 +334,66 @@ degreeTruncation(Matrix,List) := (M,d) -> (
     targetInc := (id_(target M))_rows;    
     ((M^rows)_columns,targetInc,sourceInc)
     )
+
+degreeTruncation(ChainComplex,List) := (K,d) -> (
+    --subcomplex where all rows and cols of differentials have degrees <= d.
+    a := min K;
+    Ka := K[a];
+    L := apply(length Ka,i->degreeTruncation(Ka.dd_(i+1),d));
+--    L := apply(toList(min(K[a]).. max(K[a])-1),i->degreeTruncation(Ka.dd_(i+1),d));    
+    tKa:=chainComplex(apply(length Ka,i->L_i_0));
+    phi := map(K,tKa[-a], i-> if i == a then L_(i-a)_1 else L_(i-a-1)_2);
+    assert(isChainComplexMap phi);
+    phi
+    )
+degreeTruncation(ChainComplexMap,List) := (phi,d) -> (
+    G := target phi;
+    F := source phi;
+    phiF := degreeTruncation(F,d);
+    F' := source (phiF = degreeTruncation(F,d));
+    G' := source (phiG = degreeTruncation(G,d));
+    map(G', F', i->(phi_i * phiF_i)// phiG_i)
+    )
+
+
+
+
+
+
+
+
+--Daniel:  these are the ones we are using now.
+degreeTruncation(Matrix,List,Ring) := (M,d,S) -> (
+    --rows and cols with degrees <= d.
+    rows:= positions(degrees target M,d'-> greaterEqual(d,d',S));
+    columns:= positions(degrees source M,d'-> greaterEqual(d,d',S));
+    sourceInc := (id_(source M))_columns;
+    targetInc := (id_(target M))_rows;    
+    ((M^rows)_columns,targetInc,sourceInc)
+    )
+
+degreeTruncation(ChainComplex,List,Ring) := (K,d,S) -> (
+    --subcomplex where all rows and cols of differentials have degrees <= d.
+    a := min K;
+    Ka := K[a];
+    L := apply(length Ka,i->degreeTruncation(Ka.dd_(i+1),d,S));
+--    L := apply(toList(min(K[a]).. max(K[a])-1),i->degreeTruncation(Ka.dd_(i+1),d));    
+    tKa:=chainComplex(apply(length Ka,i->L_i_0));
+    phi := map(K,tKa[-a], i-> if i == a then L_(i-a)_1 else L_(i-a-1)_2);
+    assert(isChainComplexMap phi);
+    phi
+    )
+
+
+degreeTruncation(ChainComplexMap,List,Ring) := (phi,d,S) -> (
+    G := target phi;
+    F := source phi;
+    phiF := degreeTruncation(F,d,S);
+    F' := source (phiF = degreeTruncation(F,d,S));
+    G' := source (phiG = degreeTruncation(G,d,S));
+    map(G', F', i->(phi_i * phiF_i)// phiG_i)
+    )
+
 -*
 TEST ///
 restart
@@ -349,17 +417,7 @@ isChainComplexMap = phi -> (
    all(toList(mini..maxi-1),i-> phi_(i)*so.dd_(i+1) == ta.dd_(i+1)*phi_(i+1))
    )
 
-degreeTruncation(ChainComplex,List) := (K,d) -> (
-    --subcomplex where all rows and cols of differentials have degrees <= d.
-    a := min K;
-    Ka := K[a];
-    L := apply(length Ka,i->degreeTruncation(Ka.dd_(i+1),d));
---    L := apply(toList(min(K[a]).. max(K[a])-1),i->degreeTruncation(Ka.dd_(i+1),d));    
-    tKa:=chainComplex(apply(length Ka,i->L_i_0));
-    phi := map(K,tKa[-a], i-> if i == a then L_(i-a)_1 else L_(i-a-1)_2);
-    assert(isChainComplexMap phi);
-    phi
-    )
+
 
 -*
  ///
@@ -378,19 +436,6 @@ betti sdtK
 sdtK_(-3)
  ///
 *-
-
-degreeTruncation(ChainComplexMap,List) := (phi,d) -> (
-    G := target phi;
-    F := source phi;
-    phiF := degreeTruncation(F,d);
-    F' := source (phiF = degreeTruncation(F,d));
-    G' := source (phiG = degreeTruncation(G,d));
-    map(G', F', i->(phi_i * phiF_i)// phiG_i)
-    )
-
-
-
-
 
 --the following function are not used so far
 degreeTruncationAbove=method()
@@ -511,7 +556,7 @@ cacheComplexes(Ring) := S-> (
     K := S.koszul;
     koszulRange :=unique flatten apply(length K+1,i->degrees K_i);
     truncatedComplexes := new HashTable from apply(koszulRange, d-> 
-	(d,source degreeTruncation(K,d)));
+	(d,source degreeTruncation(K,d,S)));
     relDegs:=select(koszulRange,d->
 	#select(relevantAnnHH(truncatedComplexes#d,S.irr),j->j!=ideal 1_S)>0);
     new HashTable from apply(relDegs,d->(d,(truncatedComplexes#d)**S^{d}))
@@ -531,8 +576,9 @@ cachePhi Ring := S -> (
 	d:=dm_0;m:=dm_1;
 	phi := completeToMapOfChainComplexes(S.koszul,m);
 
-	(dm,degreeTruncation(phi,d)[-factors(m, S.sortedMons)]**S^{d})))); 
+	(dm,degreeTruncation(phi,d,S)[-factors(m, S.sortedMons)]**S^{d})))); 
     new HashTable from allPhi)
+
 
 ///
 restart
