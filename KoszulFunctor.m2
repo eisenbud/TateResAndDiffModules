@@ -1929,6 +1929,7 @@ presentation truncate(-2,M)
 
 
 --  PP^n, \Omega^i(i)
+--  this one times out when n = 3
 restart
 load "KoszulFunctor.m2"
 n = 3
@@ -1943,9 +1944,20 @@ omega2 = ker(S.complexes#{2}.dd_2)
 betti res omega2
 
 M = prune omega2
-LL = apply(toList(-5..5),i->{i})
+M = M**S^{4}
+LL = apply(toList(-3..1),i->{i})
+elapsedTime betti(TM=RRFunctor(M,LL,true));
+TB=beilinsonWindow(TM,-S.degs);
+betti TB
+-- time issues
+BM = doubleComplexBM(TB)
+prune HH BM
 
-
+---  Omega^1(1) on PP^2 works:
+--- but you need to twist more positively to get higher cohomology outside of the
+--  window.  So it's really Omega^1(4)...
+restart
+load "KoszulFunctor.m2"
 n = 2
 kk=ZZ/101
 L = apply(n+1,i-> 1)
@@ -1953,12 +1965,20 @@ S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
 addTateData(S,irr)
 E = S.exterior
---  omega2 is \Omega^2(2)
 omega1 = ker(S.complexes#{1}.dd_1)
 betti res omega1
 
+M = prune omega1
+M = M**S^{3}
+LL = apply(toList(-3..1),i->{i})
 elapsedTime betti(TM=RRFunctor(M,LL,true));
-break
+TB=beilinsonWindow(TM,-S.degs);
+betti TB
+-- time issues
+BM = doubleComplexBM(TB)
+prune HH BM
+
+
 
 TM.dd_1;
 TB=beilinsonWindow(TM,-S.degs);
