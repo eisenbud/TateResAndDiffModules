@@ -27,18 +27,17 @@ exports {
                -- give this information
     "entry", 
     "DMonad", --drop
-    "DMHH",  --drop
-    "DMHHalt", --drop
     "cacheComplexes",
     "cachePhi",
     "diffModToChainComplexMaps",  
     "bigChainMap",
+    "RRTable",
     "doubleComplexBM"	               
     }
 
 *-
 --load "TateDM.m2"
-
+load "IsIsomorphic.m2"
 
 addTateData = method()
 addTateData (Ring,Ideal) := (S,irr) ->(
@@ -574,37 +573,11 @@ betti target phitrunc, betti source phitrunc
 RRFunctor = method();
 --Input: (M,L) M a (multi)-graded S-module.
 --             L a list of degrees.
---Question:  should E be part of the input??
 --Output:  The differenial module RR(M) in degrees from L.
+
 RRFunctor(Module,List) := (M,L) ->(
-    S := ring(M);
-    E := S.exterior;
-    relationsM := gens image presentation M;
-    print "Warning this is an old version and has a transpose error!";
---    numvarsE := numgens E;
---    ev := map(E,S,vars E);
-    --L := degreeSetup(low,c,r);
-    f0 := gens image basis(L_0,M);
-    scan(#L-1,i-> f0 = f0 | gens image basis(L_(i+1),M));
-    --f0 is the basis for M in degrees given by L
-    --df0 := apply(degrees source f0,i-> (-1)*i|{0});
-    --df1 := apply(degrees source f0,i-> (-1)*i|{-1});
-    df0 := apply(degrees source f0,i-> i|{0});
-    df1 := apply(degrees source f0,i-> i|{-1});
-    SE := S**E;
-    tr := sum(dim S, i-> SE_i*SE_(dim S+i));
-    newf0 := sub(f0,SE)*tr;
-    relationsMinSE := sub(relationsM,SE);
-    newf0 = newf0 % relationsMinSE;
-    newg := matrixContract(transpose sub(f0,SE),newf0);
-    g' := transpose sub(newg,E);
-    chainComplex map(E^df0,E^df1, g')
-    )
-
-
-RRFunctor(Module,List,Boolean) := (M,LL,X) ->(
     --M is an S-module
-    --LL a list of the degrees where the terms B^e of RR M might occur, X = true
+    --LL a list of the degrees where the terms B^e of RR M might occur,
     --output is the strictly lower triangular map from sum_e B^e to itself
     S :=ring(M);
     E := S.exterior;
@@ -625,6 +598,7 @@ RRFunctor(Module,List,Boolean) := (M,LL,X) ->(
     g' := sub(newg,E);
     chainComplex map(E^df0,E^df1, g')
     )
+
 RRTable = method()
 RRTable(Module, List) := (M,LL) ->(
     --M is an S-module
@@ -681,88 +655,7 @@ betti res M
 ///        
 
 -*
---  The RR functor with variants.
-TM = RRFunctor(M,LL,true)
-betti TM
-TB = beilinsonWindow(TM,-S.degs)
-TB.dd_1
-betti TB
-RRFunctor = method();
---Input: (M,L) M a (multi)-graded S-module.
---             L a list of degrees.
---Question:  should E be part of the input??
---Output:  The differenial module RR(M) in degrees from L.
-RRFunctor(Module,List) := (M,L) ->(
-    S := ring(M);
-    --E := dualRingToric S;
-    relationsM := gens image presentation M;
-    numvarsE := rank source vars E;
-    ev := map(E,S,vars E);
-    --L := degreeSetup(low,c,r);
-    f0 := gens image basis(L_0,M);
-    scan(#L-1,i-> f0 = f0 | gens image basis(L_(i+1),M));
-    --f0 is the basis for M in degrees given by L
-    df0 := apply(degrees source f0,i-> (-1)*i|{0});
-    df1 := apply(degrees source f0,i-> (-1)*i|{-1});
-    SE := S**E;
-    tr := sum(dim S, i-> SE_i*SE_(dim S+i));
-    newf0 := sub(f0,SE)*tr;
-    relationsMinSE := sub(relationsM,SE);
-    newf0 = newf0 % relationsMinSE;
-    newg := contract(transpose sub(f0,SE),newf0);
-    g' := transpose sub(newg,E);
-    chainComplex map(E^df0,E^df1, g')
-    )
 
-
---  The RR functor with variants.
-RRFunctor = method();
---Input: (M,L) M a (multi)-graded S-module.
---             L a list of degrees.
---Question:  should E be part of the input??
---Output:  The differenial module RR(M) in degrees from L.
-RRFunctor(Module,List) := (M,L) ->(
-    S := ring(M);
-    --E := dualRingToric S;
-    relationsM := gens image presentation M;
-    numvarsE := rank source vars E;
-    ev := map(E,S,vars E);
-    f0 := gens image basis(L_0,M);
-    scan(#L-1,i-> f0 = f0 | gens image basis(L_(i+1),M));
-    --f0 is the basis for M in degrees given by L
-    df0 := apply(degrees source f0,i-> (-1)*i|{0});
-    df1 := apply(degrees source f0,i-> (-1)*i|{-1});   
-    SE := S**E;
-    tr := sum(dim S, i-> SE_i*SE_(dim S+i));
-    newf0 := sub(f0,SE)*tr;
-    relationsMinSE := sub(relationsM,SE);
-    newf0 = newf0 % relationsMinSE;
-    newg := contract(transpose sub(f0,SE),newf0);
-    g' := sub(newg,E);
-    chainComplex map(E^df0,E^df1, g')
-    )
-
-RRFunctor(Module,List,Boolean) := (M,L,bbb) ->(
-    if bbb == true then return RRFunctor(M,L);
-    S := ring(M);
-    --E := dualRingToric S;
-    relationsM := gens image presentation M;
-    numvarsE := rank source vars E;
-    ev := map(E,S,vars E);
-    f0 := gens image basis(L_0,M);
-    scan(#L-1,i-> f0 = f0 | gens image basis(L_(i+1),M));
-    --f0 is the basis for M in degrees given by L
-    df0 := apply(degrees source f0,i-> (-1)*i);
-    df1 := apply(degrees source f0,i-> (-1)*i);   
-    SE := S**E;
-    tr := sum(dim S, i-> SE_i*SE_(dim S+i));
-    newf0 := sub(f0,SE)*tr;
-    relationsMinSE := sub(relationsM,SE);
-    newf0 = newf0 % relationsMinSE;
-    newg := contract(transpose sub(f0,SE),newf0);
-    g' := sub(newg,E);
-    chainComplex map(E^df0,E^df1, g')
-    )
 
 *-
 -*
@@ -912,22 +805,6 @@ doubleComplexBM = TB->(
     --seems to yield a double complex...  should check sign carefully.
     )
 
-horHom = method()
-horHom ChainComplexMap := B->(
-    --
-    --should return a complex of homology modules
-assert(B*(B[1])==0);
-tB = target B;
-sB = source B;
-assert(sB == tB[1]);
-K = ker(B[-1]);
-I = image B;
-inc = inducedMap(K,I);
-H = coker inc
-)
-DMHH = method()
-DMHH ChainComplexMap := B -> HH horHom B
-
 -*
 TEST /// --here!
 restart
@@ -950,7 +827,6 @@ TB=beilinsonWindow(TM,-S.degs)
 TB.dd_1
 BM = bigChainMap TB
 --BM=altDMonad(TB)
-prune DMHH BM
 presentation truncate(0,M)
 presentation M
 -- works
@@ -977,7 +853,6 @@ TB=beilinsonWindow(TM,-S.degs)
 TB.dd_1
 BM = bigChainMap TB;
 --BM=altDMonad(TB)
-prune DMHH BM
 presentation truncate(0,M)
 presentation M
 -- the following does not work:
@@ -1035,7 +910,7 @@ M = S^{1}**M
 
 
 LL=apply(toList(-10..10),i->S.degOmega+{i})
-elapsedTime betti(TM=RRFunctor(M,LL,true))
+elapsedTime betti(TM=RRFunctor(M,LL))
 TM.dd_1
 --elapsedTime betti(TM=RRFunctor(M1,LL))
 TB=beilinsonWindow(TM,-S.degs)
@@ -1049,8 +924,6 @@ betti source BM
 (source BM).dd
 (target BM).dd
 
-DMHH = B -> HH horHom B
-D = DMHH BM
 viewHelp GradedModule
 B = BM
 rank D
@@ -1075,7 +948,7 @@ addTateData(S,irr)
 E = S.exterior
 M = S^{3}/ideal(x_0^3+2*x_1^3+3*x_2^3)
 LL = toList(-5..5)
-elapsedTime betti(TM=RRFunctor(M,LL,true))
+elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 betti TB
 TB.dd_1
@@ -1084,189 +957,9 @@ betti source BM
 DMHHalt BM
 presentation truncate(-2,M)
 --  Twist is off, but I also don't know why these aren't these are the same
+
 *-
 
-DMonad = method()
-
-DMonad(List,Ring) := (di,S) -> (
-    -- Input: di degree of a monomial in E
-    --        
-    -- Output: a ChainComplex
-    --         perhaps twist and shift are not right 
-    d:= drop(di,-1);
-    i:=last di;
-    cplx:=(S.complexes#d)[i]) -- maybe [i]
-
-DMonad(Sequence,Ring) := (dm,S) -> (
-    -- Input: dm a pair of a degree d and a exterior monomial m;
-    --        is a key od S.phis
-    -- Output: phi a map of chainComplex --
-    --         perhaps twist and shift are not right 
-    d:= dm_0;
-    m:= dm_1;
-    i:=last degree m;
-    phi:=(S.phis#dm)[i]) -- maybe [i]
-
--*
-TEST  ///
-restart
-load "KoszulFunctor.m2"
-kk=ZZ/101
-L = {1,1,2}
-S=kk[x_0..x_(#L-1),Degrees=>L]
-irr=ideal vars S
-addTateData(S,irr)
-d=(keys S.complexes)_1    
-i=0
-di=append(d,i)
-cplx=DMonad(di,S)
-use S.exterior
-dm=(d,e_1)
-d=first dm
-d1=d-drop(degree dm_1,-1)
-betti S.complexes#d, betti S.complexes#d1
-di=append(d,i)
-phi=DMonad(dm,S)
-betti target phi,betti source phi
-d1i=append(d1,i+1)
-cplx1=DMonad(d1i,S)
-betti cplx, betti cplx1
-phi1=map(cplx,cplx1,q->map(cplx_q,cplx1_q,phi_q))
-phi2=map(cplx,cplx1,q->phi_q)
-phi1==phi2
-f=dm_1+2*e_0
-entry(f,di,S)
-apply(values S.phis,phi->(betti target phi,betti source phi))
-keys S.phis
-///
-*-
-
-
-
-
- 
-DMonad(ChainComplex,Ring) := (TM, S) -> (
-    -- Input: DTate = Tate res as diff module
-    -- S polynomial ring
-    --degs "relevant" degrees: in general 
-    --the degrees corresponding to a full exceptional sequence would be best.
-    --calls on: cplx, a hash table of complexes corresponding to the relevant degrees.
-    --sortedMons: a hash table of the monomials in the exterior algebra.
-    --these two should be cached.
-    if not S.?complexes then error"ring needs ToricTateData; use addTateData(S,irr)";
-    --cplx := S.complexes;
---   
--- DTate=TM
-    TB := beilinsonWindow(TM,S.degs);
-    tot := directSum apply(degrees TB_0,d->DMonad(d,S));
---betti tot
-    tot1 := directSum apply(degrees TB_1,d->DMonad(d,S));
---    betti tot,betti tot1
-    Lphi:= apply(rank TB_0,i-> apply(rank TB_1,j-> (
---(i,j)=(0,1)	
-	     di := (degrees TB_0)_i; -- degree of i-th row
-	     di1 := (degrees TB_1)_j; -- degree of j-th col
---di, di1
-	     ee := TB.dd_1_(i,j); --(i,j) entry, as an element of E
---ee, di, degree ee, di1, degree TB_1_j
---S^(drop(di,-1)), 
-	     ff := entry(ee,di,S); --map of complexes corresponding to ee.
-
---ff)))
-	     --probably correct except when ee == 0.
---TB.dd,	    ee, ff	     
---DMonad(-di,S), 
---DMonad(-di1,S)
-	     (map(DMonad(di,S),DMonad(di1,S),q->
-		     if class ff === ZZ then 0 else ff_q)) -- possibly wrong twist.
--*
-di,di1
-q=2
-ff
-betti target ff, betti source ff
-betti DMonad(di,S), betti DMonad(di1,S)
-map(
-    betti (DMonad(di,S))_q, betti (DMonad(di1,S))_q,betti ff_q 
-    )
-*-          
-   )));
-    map(tot,tot1,p->matrix apply(rank TB_0,i-> apply(rank TB_1,j-> (Lphi_i_j)_p)))
-)
--*
-DMHH=method()
-DMHH(ChainComplexMap) := BM ->( 
-    BBM:= BM[1]; 
-    prune HH coker( 
-    map(ker BM, source BBM, i->BBM_i//inducedMap(target BBM_i,ker BM_i)))
-)
-
--- Daniel:  I tried a different shift here which seems to work better.
-DMHHalt=method()
-DMHHalt(ChainComplexMap) := BM ->( 
-    BM = BM[-1]; 
-    prune HH coker( 
-    map(ker BBM, source BM, i->BM_i//inducedMap(target BM_i,ker BBM_i)))
-)
-*-
--*
-TEST ///
-
-
-restart
-load "KoszulFunctor.m2"
-kk=ZZ/101
-L = {1,1,2}
-S=kk[x_0..x_(#L-1),Degrees=>L]
-
-irr=ideal vars S
-addTateData(S,irr)
-restart
-load "KoszulFunctor.m2"
-kk=ZZ/101
-L = {1,1,2}
-S=kk[x_0..x_(#L-1),Degrees=>L]
-irr=ideal vars S
-addTateData(S,irr)
-E=S.exterior
-
-M= S^1/ideal(x_0)**S^{{-10}}
-LL=apply(toList(-10..10),i->S.degOmega+{i})
-elapsedTime betti(TM=RRFunctor(M,LL))
-DTate=TM
-TM.dd
-TB=beilinsonWindow(TM,-S.degs)
-betti TB
-degrees TB_0
-TB.dd_1
-degrees TB_1
-BM=altDMonad TB
-DMHH BM
-betti res truncate(0,M)
-
-ijs=flatten apply(rank TB_0,i->apply(rank TB_1,j->(i,j)))
-nonzeroijs=select(ijs,ij->TB.dd_1_ij!=0)
-apply(nonzeroijs,ij->(i=ij_0;(degrees TB_0)_i))
-neededKeys=apply(nonzeroijs,ij->(i=ij_0;(drop((degrees TB_0)_i,-1),TB.dd_1_ij)))
-apply(neededKeys,dm->S.phis#dm)
-
-TB.dd
-isHomogeneous TB.dd
-netList degrees TB_0,netList degrees TB_1
-BM=DMonad(TB,S)
-(drop(di,-1),m)
-betti tot, betti tot1
-tot1==tot[1]
-(di,m)
-keys S.phis
-TB_0
-degrees oo
-d
-cplx#(-1)
-DMHH BM
-
-
-///
-*-
 
 
 -*
@@ -1340,7 +1033,7 @@ E = S.exterior
 M = S^1/ideal(x_0^2)
 M = S^{2}**M
 LL=apply(toList(-5..5),i->S.degOmega+{i})
-elapsedTime betti(TM=RRFunctor(M,LL,true));
+elapsedTime betti(TM=RRFunctor(M,LL));
 TM.dd_1;
 TB=beilinsonWindow(TM,-S.degs);
 betti TB
@@ -1354,7 +1047,7 @@ isIso(M,M')
 M= S^1/ideal(x_0^3+x_1^3+x_2^3)
 M = S^{3}**M
 LL=apply(toList(-5..5),i->S.degOmega+{i})
-elapsedTime betti(TM=RRFunctor(M,LL,true));
+elapsedTime betti(TM=RRFunctor(M,LL));
 TM.dd_1;
 TB=beilinsonWindow(TM,-S.degs);
 betti TB
@@ -1386,7 +1079,7 @@ betti res omega2
 M = prune omega2
 M = M**S^{4}
 LL = apply(toList(-3..1),i->{i})
-elapsedTime betti(TM=RRFunctor(M,LL,true));
+elapsedTime betti(TM=RRFunctor(M,LL));
 TB=beilinsonWindow(TM,-S.degs);
 betti TB
 -- time issues
@@ -1411,7 +1104,7 @@ betti res omega1
 M = prune omega1
 M = M**S^{3}
 LL = apply(toList(-3..1),i->{i})
-elapsedTime betti(TM=RRFunctor(M,LL,true));
+elapsedTime betti(TM=RRFunctor(M,LL));
 TB=beilinsonWindow(TM,-S.degs);
 betti TB
 -- time issues
@@ -1440,17 +1133,23 @@ S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
 addTateData(S,irr)
 E = S.exterior
+KK = select(keys S.phis,i-> i_1 == e_2)
+apply(KK,k-> S.phis#k)
 
 --rational curve, twisted to avoid higher cohomology.
 M = (S^{2}/ideal(x_0^2+x_1^2+x_2))
 --M = M++M1
 LL=apply(toList(-6..6),i->S.degOmega+{i})
-elapsedTime betti(TM=RRFunctor(M,LL,true))
+elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 betti TB
 TB.dd_1
+newTBdd = sub(TB.dd_1, {e_2 => -e_2})
+chainComplex(newTBdd)
 BM = doubleComplexBM(TB)
+newBM = doubleComplexBM(chainComplex(newTBdd))
 (prune HH BM)
+(prune HH newBM)
 --sign error on x_2!!;  also still weird degree truncation error.
 presentation truncate(-3,M)
 M'' = prune truncate(-3,M)
@@ -1461,19 +1160,24 @@ isIso(M'',M')
 --nonrational curve, twisted to avoid higher cohomology.
 M = (S^{5}/ideal(random(5,S)))
 LL=apply(toList(-6..6),i->S.degOmega+{i})
-elapsedTime betti(TM=RRFunctor(M,LL,true))
+elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 betti TB
 TB.dd_1
 BM = doubleComplexBM(TB)
 (prune HH BM)
+newTBdd = sub(TB.dd_1, {e_2 => -e_2})
+newBM = doubleComplexBM(chainComplex(newTBdd))
+M''' = prune HH_0 newBM
+--
 --sign error;  also still weird degree truncation error.
 presentation truncate(-3,M)
 betti res ((prune HH BM)_0)
 betti res truncate(-3,M)
 M'' = prune truncate(-3,M)
 M' = prune HH_0 BM
-isIso(M'',M')
+isIso(M''',M'')
+break
 
 
 
@@ -1482,38 +1186,3 @@ e_2^2
 degree e_2
 e_1^2
 
-
-LL=apply(toList(-3..3),i->S.degOmega+{i})
-elapsedTime betti(TM=RRFunctor(M,LL,true))
-TM.dd_1
---elapsedTime betti(TM=RRFunctor(M1,LL))
-TB=beilinsonWindow(TM,-S.degs)
-betti TB
-TB.dd_1
-BM = bigChainMap TB
-source BM
-assert(BM*(BM[1])==0)
-
-betti target BM
-betti source BM
-(source BM).dd
-(target BM).dd
-
-horHom BM    
-ker (BM[-1])
-values(S.complexes)/betti
-H = DMHH BM
-presentation M
-S.complexes
-
-
-restart
-load "IsIsomorphic.m2"
-n = 4
-S = ZZ/32003[x_1..x_n]
-m = random(S^3, S^{4:-2})
-A = random(target m, target m)
-B = random(source m, source m)
-m' = A*m*B
-time isIso (coker m, coker m')
-time isLocalIso(coker m, coker m')
