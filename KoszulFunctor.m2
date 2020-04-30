@@ -573,8 +573,8 @@ RRFunctor(Module,List,Boolean) := (M,LL,X) ->(
     newf0 := sub(f0,SE)*tr;
     relationsMinSE := sub(relationsM,SE);
     newf0 = newf0 % relationsMinSE;
-    newg := contract(transpose sub(f0,SE),newf0);
-    --THIS contract DOES SOMETHING WRONG IN THE NON-CYCLIC CASE
+    newg := matrixContract(transpose sub(f0,SE),newf0);
+    --THIS contract DOES SOMETHING WRONG IN THE NON-CYCLIC CASE -- should be fixed
     g' := sub(newg,E);
     chainComplex map(E^df0,E^df1, g')
     )
