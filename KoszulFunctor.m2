@@ -5,34 +5,35 @@ exports {
     "RRFunctor",
     "sortedMonomials",
     "positionInKoszulComplex",
-    "dualElement",
-    "addZeroTerms", -- should be superflous?
-    "completeToMapOfChainComplexes", -- might use addTerms in an option
+    "dualElement",  --keep.
+    "addZeroTerms", -- drop.
+    "completeToMapOfChainComplexes", -- might use addTerms in an option.  drop "true" option and option altogether?
     "greaterEqual",
-    "strictlyGreater",
+    "strictlyGreater",  --drop.
     "degreeTruncation",
     "isChainComplexMap", -- should be in the core of M2
     "degreeTruncationAbove", -- working from the other side, not tested
     "degreeSetup", -- get the degree range from a starting set of degrees
                    -- using c multiplications with variabels in S
-    "strictDegreeTruncationAbove",
+    "strictDegreeTruncationAbove",  --drop.
     "concatMatrices",
     "matrixContract",
     "tallyComplex",
-    "annHH",
-    "dimHH",
-    "relevantAnnHH",
+    "annHH", --drop
+    "dimHH", --drop
+    "relevantAnnHH",  --keep
     "beilinsonWindow",
     "factors", -- now superflous, because the last degree component in E
                -- give this information
-    "entry", -- need to be rewritten?
-    "DMonad",
-    "DMHH",
-    "DMHHalt",
+    "entry", 
+    "DMonad", --drop
+    "DMHH",  --drop
+    "DMHHalt", --drop
     "cacheComplexes",
     "cachePhi",
-    "diffModToChainComplexMaps",
-    "bigChainMap"	               
+    "diffModToChainComplexMaps",  
+    "bigChainMap",
+    "doubleComplexBM"	               
     }
 
 *-
@@ -181,8 +182,8 @@ addZeroTerms(1,K2)
 /// 
 *-
 
-completeToMapOfChainComplexes=method(Options =>{Complete => false})
-completeToMapOfChainComplexes(ChainComplex,RingElement) := o -> (K,m) -> (
+completeToMapOfChainComplexes=method()
+completeToMapOfChainComplexes(ChainComplex,RingElement) :=  (K,m) -> (
 -- Input: m a monomial in \Lambda^i \subset E, 
 --        K the KoszulComplex
 -- Goal: map of complexes given by contraction with m
@@ -196,13 +197,15 @@ completeToMapOfChainComplexes(ChainComplex,RingElement) := o -> (K,m) -> (
    stK := K[i]**S^{-drop(degree m,-1)}; --shifted twisted K
    assert(degrees source stK.dd_0_{j}==degrees K_0);
    phi0 := matrix{apply(rank stK_0,k->if k==j then 1_S else 0)};
-   if o.Complete == false then return extend(K,stK,phi0,Verify=>true);
-      tstK := chainComplex apply(r-i,p->stK.dd_(p+1)); -- truncted shifted twisted
-   phi1 := extend(K,tstK,phi0,Verify=>true);
-   Ke := addZeroTerms(min K- min stK,K);
-   stKe :=addZeroTerms(stK,max K-max stK);
+   --if o.Complete == false then 
+   return extend(K,stK,phi0,Verify=>true);
+   --  The following option o.Complete = true should not be used.  
+   --   tstK := chainComplex apply(r-i,p->stK.dd_(p+1)); -- truncted shifted twisted
+   --phi1 := extend(K,tstK,phi0,Verify=>true);
+   --Ke := addZeroTerms(min K- min stK,K);
+   --stKe :=addZeroTerms(stK,max K-max stK);
 -- map(K,stK,i->phi1_i)
-   map(Ke,stKe,i->if i >= min K and i <= max stKe then phi1_i else map(Ke_i,stKe_i,0))
+   --map(Ke,stKe,i->if i >= min K and i <= max stKe then phi1_i else map(Ke_i,stKe_i,0))
 )
 -* TEST ///
 restart
@@ -217,7 +220,7 @@ K=S.koszul
 sortedMons = S.sortedMons
 (i1,j1) = (3,4)
 m=sortedMons#i1_{j1}_(0,0)
-phi=completeToMapOfChainComplexes(K,m,Complete =>false)
+phi=completeToMapOfChainComplexes(K,m)
 keys phi
 phi#2
 (cone phi).dd^2
@@ -317,35 +320,7 @@ degreeTruncation(ChainComplexMap,List) := (phi,d) -> (
 
 
 
--*///
-restart
-load "KoszulFunctor.m2"
---debug needsPackage "TateOnProducts"
---Hirzebruch S(2,0)xPP(1,2)
-kk=ZZ/101
-S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
-irr=ideal(x_0,x_1)*ideal(x_2,x_3)*ideal(x_4,x_5)
-addTateData(S,irr)
 
-E=S.exterior
-K=koszul vars S
-sortedMons = S.sortedMons 
-(i,j) = (3,10)
-m=sortedMons#i_{j}_(0,0)
-phi=completeToMapOfChainComplexes(K,m,Complete => true)
-d=drop(-degree m,-1)
-phiTrunc=degreeTruncation(phi,d)
-source phiTrunc
-target phiTrunc
-
-phiTruncShifted=degreeTruncation(phi**S^{-{1,2,1}},d)
-source phiTruncShifted
-target phiTruncShifted
-conePhi=cone phiTruncShifted
-conePhi.dd^2
-
-///
-*-
 --the following function are not used so far
 degreeTruncationAbove=method()
     --rows and cols with degrees not <= d.
@@ -483,7 +458,7 @@ cachePhi Ring := S -> (
     netList (allPhi=apply(possiblePairs,dm->(
 	--	dm=possiblePairs_3
 	d:=dm_0;m:=dm_1;
-	phi := completeToMapOfChainComplexes(S.koszul,m,Complete => false);
+	phi := completeToMapOfChainComplexes(S.koszul,m);
 
 	(dm,degreeTruncation(phi,d)[-factors(m, S.sortedMons)]**S^{d})))); 
     new HashTable from allPhi)
@@ -511,7 +486,7 @@ values S.phis/source/betti
 values S.phis/target/betti
 dm=first keys S.phis
 	d:=dm_0;m:=dm_1;
-	phi := completeToMapOfChainComplexes(S.koszul,m,Complete => false);
+	phi := completeToMapOfChainComplexes(S.koszul,m);
 betti target phi, betti source phi
 phitrunc=degreeTruncation(phi,d)[-factors(m, S.sortedMons)]**S^{d}
 betti target phitrunc, betti source phitrunc
@@ -1274,620 +1249,9 @@ end--
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-restart
-load"KoszulFunctor.m2"
-kk=ZZ/101
-L = {1,1,2,3,4}
-S=kk[x_0..x_(#L-1),Degrees=>L]
-irr=ideal vars S
-E=kk[e_0..e_(numgens S - 1),SkewCommutative=>true,Degrees=>-degrees S ]
-K=koszul vars S
-sortedMons = sortedMonomials E
-es=drop((entries concatMatrices values sortedMons)_0,1)
--- derived category should have O(d) with d in - reverse {0,1,.., sum(L)-1}
--- as natural generators (basis?)
-degs=apply(sum L,i->{-i})
-
-possiblePairs = select(flatten apply(degs,d->apply(es,m -> (d,m))), dm-> member(dm_0+degree dm_1,degs)) 
-#oo
-netList (allPhi=apply(possiblePairs,dm->(
-	d=dm_0;m=dm_1;
-	phi=completeToMapOfChainComplexes(K,m,Complete => false);
-	(dm,degreeTruncation(phi,-d)[-factors(m,sortedMons)]**S^{-d})))) 
-
-
-
-phis= new HashTable from allPhi;
-netList (composablePhis = select(
-    apply(keys phis,dm->(dm,select(keys phis, dm' -> dm'_0==dm_0+degree dm_1))),
-      dmL->#dmL_1 >0));
-netList (composablePhis1=flatten apply(composablePhis,ab->(a=ab_0;apply(ab_1,b->(a,b)))))
-netList apply(composablePhis1,ab->(ab,phis#(ab_0),phis#(ab_1)));
-netList apply(composablePhis1,ab->(ab,betti source phis#(ab_0), min source phis#(ab_0),betti target phis#(ab_1), min target phis#(ab_1)))
-oks= select(composablePhis1,ab->betti source phis#(ab_0)==betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
-notOks=  select(composablePhis1,ab->betti source phis#(ab_0)=!=betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
-(#oks,#notOks)
-
-
-all(oks,ab->
-    (phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])==0 and ab_0_1*ab_1_1==0) or 
-	(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])=!=0 and ab_0_1*ab_1_1=!=0))
-use E
-nonTrivialOks=select (oks,ab->ab_0_1*ab_1_1 !=0)
-minusNonTrivialOks=select(nonTrivialOks,ab->(
-	pos=positions(apply(keys phis,k->k_1),m->m==-(ab_0_1*ab_1_1));
-	#pos>0));
-plusNonTrivialOks=select(nonTrivialOks,ab->(
-	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1));
-	#pos>0));
-
-all(minusNonTrivialOks,ab->(
---	ab=minusNonTrivialOks_8
-	pos=positions(apply(keys phis,k->k_1),m->m==-(ab_0_1*ab_1_1));
-	k=first select((keys phis)_pos,k->k_0==ab_0_0);
-	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
-	K = -phis#k[factors(ab_1_1,sortedMons)];
-        assert(target AB== target K and source AB==source K );
-	AB==K or AB==-K))
-all(plusNonTrivialOks,ab->(
---	ab=minusNonTrivialOks_8
-	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1));
-	k=first select((keys phis)_pos,k->k_0==ab_0_0);
-	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
-	K = phis#k[factors(ab_1_1,sortedMons)];
-        assert(target AB== target K and source AB==source K );
-	AB==K or AB==-K))
-all(nonTrivialOks,ab->(
---	ab=minusNonTrivialOks_8
-	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1) or m==-(ab_0_1*ab_1_1));
-	k=first select((keys phis)_pos,k->k_0==ab_0_0);
-	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
-	K = phis#k[factors(ab_1_1,sortedMons)];
-        assert(target AB== target K and source AB==source K );
-	AB==K or AB==-K))	
--- above is a working case 
-
-
-
-
-
-restart
-load "KoszulFunctor.m2"
---debug needsPackage "TateOnProducts"
---Hirzebruch S(2,0)xPP(1,2)
-kk=ZZ/101
-S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
-irr=ideal(x_0,x_1)*ideal(x_2,x_3)*ideal(x_4,x_5)
-degrees S
-E=kk[e_0..e_5,SkewCommutative=>true,Degrees=>-degrees S ]
-K=koszul vars S
-sortedMons = sortedMonomials E
-(i,j) = (3,10)
-m=sortedMons#i_{j}_(0,0)
-M=K.dd_i_{j}
-d=-degree m
-
-F=source degreeTruncation(K,d)
-F=source degreeTruncation(K,{1,1,1})
-netList tallyComplex F, netList (tallyComplex K)_{0..5}
-annHH F
-relevantAnnHH (F,irr)
-prune HH_2 F
-primaryDecomposition ann HH_2 F
-irr
-dimHH F
-n=numgens S
-es=(entries concatMatrices values sortedMons)_0
-
-netList select(apply(es,m->(
-  F=source degreeTruncation(K,-degree m);
-  (m,-degree m,T = tally select(relevantAnnHH(F,irr), I -> I != ideal 1_S and I != ideal 0_S)))),
-p -> #(keys p_2 )>0)
-
-netList (nonTrivList=unique select(apply(es,m->(
-  F=source degreeTruncation(K,-degree m);
-  (-degree m,T = 
-      tally select(relevantAnnHH(F,irr), 
-	  I -> I != ideal 1_S),betti F))),
-p -> #(keys p_1 )>0))
-nonTrivDegs=sort apply(nonTrivList,c->c_0)
-#nonTrivDegs
-netList apply(nonTrivDegs,d->(F=source degreeTruncation(K,d);
-	(d,prune HH F)))
-degES=sort unique apply(es,m->-degree m)   
-trivDegs = select(degES,d->not member(d,nonTrivDegs))
-netList apply(trivDegs,d->(F=source degreeTruncation(K,d);
-	(d,prune HH F)))
-
-source degreeTruncation(K,{3,3,2})==source degreeTruncation(K,{2,3,2})
-F=source degreeTruncation(K,d);(d,prune HH F)
-relevantAnnHH(F,irr)
-
-
-
-phi=completeToMapOfChainComplexes(K,m,Complete => true)
-
-isHomogeneous phi
-
-d=-degree m
-e = d-{0,0,1} --- e = d + {0,0,1} works too
-G=target phi
-F= source phi
-phiF = degreeTruncation(F,d)
-F' = source (phiF = degreeTruncation(F,e))
-G' = source (phiG = degreeTruncation(G,e))
-F ==F'
-
-map(G', F', i->(phi_i * phiF_i)// phiG_i)
-
-
-
-
---------------
---weighted proj L
-restart
-load "KoszulFunctor.m2"
-kk=ZZ/101
-L = {1,1,2}
-S=kk[x_0..x_(#L-1),Degrees=>L]
-degrees S
-irr=ideal vars S
-E=kk[e_0..e_(numgens S - 1),SkewCommutative=>true,Degrees=>-degrees S ]
-K=koszul vars S
-sortedMons = sortedMonomials E
-d = {2}
-F=source degreeTruncation(K,d)
-netList tallyComplex F, netList (tallyComplex K)_{0..numgens S}
-annHH F
-relevantAnnHH (F,irr)
-prune HH F
-n=numgens S
-es=(entries concatMatrices values sortedMons)_0
-
-netList (relEs=select(apply(es,m->(
-  F=source degreeTruncation(K,-degree m);
-  (m,-degree m,T = tally select(relevantAnnHH(F,irr), I -> I != ideal 1_S)))),
-p -> #(keys p_2 )>0))
-relDegs=apply(relEs,m->-degree m_0)
-degs=apply(3,i->{i})
-
-netList (relHH=unique apply(degs,d->(
-  F=source degreeTruncation(K,d);(d,prune HH F))))
-
-
-
-
-
------------------ Example: The stacky point on P(1,1,2)
-restart
-load"KoszulFunctor.m2"
-kk=ZZ/101
-L = {1,1,2}
-S=kk[x_0..x_(#L-1),Degrees=>L]
-irr=ideal vars S
-E=kk[e_0..e_(numgens S - 1),SkewCommutative=>true,Degrees=>-degrees S ]
-K=koszul vars S
-sortedMons = sortedMonomials E
-es=(entries concatMatrices values sortedMons)_0
-
-use S 
-M= S^{{-7}}/ideal(x_0,x_1)
-lows={{0}}
-c=5
-degs = apply(4, i->{-i})
-
-elapsedTime betti(TM=RRFunctor(M,E,lows,c))
-T=TM**E^{{12}}
-T=TM
-tally degrees T_0
-tally degrees T_1
-
-TB=beilinsonWindow(T,degs)
-
-betti TB, betti T
-TB.dd_1^2
-TB.dd
-netList (apply(degs,d->betti source degreeTruncation(K,-d)[0]))
-
-cplxes=new HashTable from (    
-    apply(es,m-> (i := #factor sub(m,vars S);
-	(m,source degreeTruncation(K,-degree m)[i]))))
-
-use E
-m = e_2
-phi=degreeTruncation(completeToMapOfChainComplexes(K,e_2,Complete => true), {0})[-factors(m,sortedMons)]
-phi=phi**S^{{-5}}
-tot = source phi++target phi
-betti tot, betti source phi, betti target phi
-BM = map(tot, tot, i-> matrix{{0*id_(source phi_i),map(source phi_i, target phi_i, 0)},
-	       {phi_i,0*id_(target phi_i)}})
-BM *BM       
-prune HH coker map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i))
-BM
-
-BM'=BM**S^{{-5}}
-prune HH coker map(ker BM', source BM', i->BM'_i//inducedMap(target BM'_i,ker BM'_i))
-M
-betti(target phi**S^{{-5}}), betti(source phi**S^{{-5}})
--- upt to twist korrekt!
-betti (tot**S^{{-5}})
-betti source BM'
-
-
------------------ Example: a smooth point on P(1,1,2) -- correct up to tist and shift
-restart
-load"KoszulFunctor.m2"
-kk=ZZ/101
-L = {1,1,2}
-S=kk[x_0..x_(#L-1),Degrees=>L]
-irr=ideal vars S
-E=kk[e_0..e_(numgens S - 1),SkewCommutative=>true,Degrees=>-degrees S ]
-K=koszul vars S
-sortedMons = sortedMonomials E
-es=(entries concatMatrices values sortedMons)_0
-
-use S 
-M= S^{{2}}/ideal(x_0,x_2)
-lows={{0}}
-c=6
-degs = apply(sum L, i->{-i})
-
-elapsedTime betti(TM=RRFunctor(M,E,lows,c))
-T=TM**E^{{10}}
-tally degrees T_0
-tally degrees T_1
-
-TB=beilinsonWindow(T,degs)
-
-betti TB, betti T
-TB.dd_1^2
-TB.dd
-netList (apply(degs,d->betti source degreeTruncation(K,-d)))
-
-cplxes=new HashTable from (    
-    apply(es,m-> (i := #factor sub(m,vars S);
-	(m,source degreeTruncation(K,-degree m)[i]))))
-use E
-cplxes#(e_0).dd
-cplxes#(e_1).dd
-
-use E
-m = e_1
-phi0=degreeTruncation(completeToMapOfChainComplexes(K,m,Complete => true), {0})[-3]--[-factors(m,sortedMons)]
-phi1=degreeTruncation(completeToMapOfChainComplexes(K,m,Complete => true), {1})[-2]**S^{{1}}--[-factors(m,sortedMons)]
-phi2=degreeTruncation(completeToMapOfChainComplexes(K,m,Complete => true), {2})[-1]**S^{{2}}--[-factors(m,sortedMons)]
-
-phi0*phi1, phi1*phi2
-
-TB.dd
-netList {source phi0, target phi0},netList {source phi1, target phi1}, netList  {source phi2, target phi2},
-netList {target phi0, source phi1, source phi2}
-source phi0==target phi1, source phi1==target phi2 
-tot = source phi2 ++ source phi1 ++ source phi0++ target phi0
-netList (reverse {source phi2,source phi1,source phi0,target phi0}/betti)
-betti tot
-BM = map(tot, tot, i-> matrix{
-{0*id_(source phi2_i), map(source phi2_i, source  phi1_i, 0), map(source phi2_i, source phi0_i, 0), map(source phi2_i, target phi0_i, 0)},
-   {phi2_i,            map(source phi1_i, source  phi1_i, 0), map(source phi1_i, source phi0_i, 0), map(source phi1_i, target phi0_i, 0)},
-{map(source phi0_i, source  phi2_i, 0), phi1_i,               map(source phi0_i, source phi0_i, 0), map(source phi0_i, target phi0_i, 0)},
-{map(target phi0_i, source  phi2_i, 0), map(target phi0_i, source phi1_i, 0),       phi0_i,         map(target phi0_i, target phi0_i, 0)}
-})      
-
-A=apply(toList(-3..0), i-> 
-matrix{{0*id_(source phi2_i), map(source phi2_i, source  phi1_i, 0), map(source phi2_i, source phi0_i, 0), map(source phi2_i, target phi0_i, 0)},
-   {phi2_i,            map(source phi1_i, source  phi1_i, 0), map(source phi1_i, source phi0_i, 0), map(source phi1_i, target phi0_i, 0)},
-{map(source phi0_i, source  phi2_i, 0), phi1_i,               map(source phi0_i, source phi0_i, 0), map(source phi0_i, target phi0_i, 0)},
-{map(target phi0_i, source  phi2_i, 0), map(target phi0_i, source phi1_i, 0),       phi0_i,         map(target phi0_i, target phi0_i, 0)}}
-)      
-
-BM
-
-BM * BM == 0       
-prune HH coker map(ker BM, source BM, i->BM_i//inducedMap(target BM_i,ker BM_i)) 
-DMHH BM
-presentation M -- homological degree and twist have to be adapted
-
-betti tot
-BM'=BM**S^{{-1}}
-TB.dd
-
-
-netList (reverse {source phi2**S^{{-1}},source phi1**S^{{-1}},source phi0**S^{{-1}},target phi0**S^{{-1}}}/betti)
-betti source BM'
-
-netList (apply(degs,d->(d,betti (source degreeTruncation(K,-d)[ -sum L- sum d+1]**S^{-d-{1}}))))              
-,           	netList (reverse {source phi2**S^{{-1}},source phi1**S^{{-1}},source phi0**S^{{-1}},target phi0**S^{{-1}}}/betti)
-betti source BM'
-
-cplx=new HashTable from apply(degs,d->
-    (d,source degreeTruncation(K,-d)[ -sum L- sum d+1]**S^{-d-{1}})) 
-             
-netList (values cplx/betti)
-apply(degrees source TB.dd_1,d1->d1-degree e_1)
-apply(drop(degrees source TB.dd_1,-1),d1->d1-degree e_1)==drop(degrees target TB.dd_1,1)
-degree (e_1*e_2)
-es/degree
-
-degrees source TB.dd_1 
-TB.dd
-DMHH BM'
-betti target BM'
-M
-prune HH coker map(ker BM', source BM', i->BM'_i//inducedMap(target BM'_i,ker BM'_i)) 
-M
-netList (reverse {source phi2,source phi1,source phi0,target phi0}/betti)
-betti tot
-
-
--------- On a general weighted projective space
-restart
-load"KoszulFunctor.m2"
-kk=ZZ/101
-L = {1,1,2,3,4}
-S=kk[x_0..x_(#L-1),Degrees=>L]
-irr=ideal vars S
-E=kk[e_0..e_(numgens S - 1),SkewCommutative=>true,Degrees=>-degrees S ]
-K=koszul vars S
-sortedMons = sortedMonomials E
-es=drop((entries concatMatrices values sortedMons)_0,1)
--- derived category should have O(d) with d in - reverse {0,1,.., sum(L)-1}
--- as natural generators (basis?)
-degs=apply(sum L,i->{-i})
-
-possiblePairs = select(flatten apply(degs,d->apply(es,m -> (d,m))), 
-                                   dm-> member(dm_0+degree dm_1,degs)) 
-#oo
-netList (allPhi=apply(possiblePairs,dm->(
-	d=dm_0;m=dm_1;
-	phi=completeToMapOfChainComplexes(K,m,Complete => false);
-	(dm,degreeTruncation(phi,-d)[-factors(m,sortedMons)]**S^{-d})))) ;
-
-
--*
-each degree corresp to a complex. 
-We need only these: 0..-omega+1 --> complex (Beilinson window).
-
-each monomial m in E corresponds to maps of complex 
-from a deg to that degree + weighted deg m,
-shifted by the number of factors of m. 
-
-To compose two composable maps, corresp to phis#m *phis#n
-you have to shift the second complex by the number of factors of n.
-*-
-phis= new HashTable from allPhi;
-netList (composablePhis = select(
-    apply(keys phis,dm->(dm,select(keys phis, dm' -> dm'_0==dm_0+degree dm_1))),
-      dmL->#dmL_1 >0));
-netList (composablePhis1=flatten apply(composablePhis,ab->(a=ab_0;apply(ab_1,b->(a,b)))))
-netList apply(composablePhis1,ab->(ab,phis#(ab_0),phis#(ab_1)));
-netList apply(composablePhis1,ab->(ab,betti source phis#(ab_0), min source phis#(ab_0),betti target phis#(ab_1), min target phis#(ab_1)));
-oks= select(composablePhis1,ab->betti source phis#(ab_0)==betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
-notOks=  select(composablePhis1,ab->betti source phis#(ab_0)=!=betti target phis#(ab_1)[factors(ab_1_1,sortedMons)])
-(#oks,#notOks)
-
-
-all(oks,ab->
-    (phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])==0 and ab_0_1*ab_1_1==0) or 
-	(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)])=!=0 and ab_0_1*ab_1_1=!=0))
-use E
-
-nonTrivialOks=select (oks,ab->ab_0_1*ab_1_1 !=0); -- wedge product not 0
-
-minusNonTrivialOks=select(nonTrivialOks,ab->(
-	pos=positions(apply(keys phis,k->k_1),m->m==-(ab_0_1*ab_1_1));
-	#pos>0));
-
-plusNonTrivialOks=select(nonTrivialOks,ab->(
-	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1));
-	#pos>0));
-
-all(minusNonTrivialOks,ab->(
---ab=minusNonTrivialOks_9
-	pos=positions(apply(keys phis,k->k_1),m->m==-(ab_0_1*ab_1_1));
-	k=first select((keys phis)_pos,k->k_0==ab_0_0);
-	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
-	K = -phis#k[factors(ab_1_1,sortedMons)];
-        assert(target AB== target K and source AB==source K );
-	AB==K or AB==-K))
-
-all(plusNonTrivialOks,ab->(
---	ab=minusNonTrivialOks_8
-	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1));
-	k=first select((keys phis)_pos,k->k_0==ab_0_0);
-	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
-	K = phis#k[factors(ab_1_1,sortedMons)];
-        assert(target AB== target K and source AB==source K );
-	AB==K or AB==-K))
-
-all(nonTrivialOks,ab->(
---	ab=minusNonTrivialOks_8
-	pos=positions(apply(keys phis,k->k_1),m->m==(ab_0_1*ab_1_1) or m==-(ab_0_1*ab_1_1));
-	k=first select((keys phis)_pos,k->k_0==ab_0_0);
-	AB=(phis#(ab_0)*(phis#(ab_1)[factors(ab_1_1,sortedMons)]));
-	K = phis#k[factors(ab_1_1,sortedMons)];
-        assert(target AB== target K and source AB==source K );
-	AB==K or AB==-K))	
-	
-	
-
-
--- above is a working case 
-
-
     
 
 
---jetsum
-TEST///
-restart
-load "KoszulFunctor.m2"
-kk=ZZ/101
-S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
-irr=ideal(x_0,x_1)*ideal(x_2,x_3)*ideal(x_4,x_5)
---(S,irr) is the Toric variety correpondingto the product of S(3,1) x P(1,2)
--- a Hirzebruch surface times a weighted projective line
-
-degrees S
-E=kk[e_0..e_5,SkewCommutative=>true,Degrees=>-degrees S ]
-K=koszul vars S
-sortedMons = sortedMonomials E
-
-(i,j) = (3,4)
-m=sortedMons#i_{j}_(0,0)
-d=-degree m
-
-
-phi = degreeTruncation(K,d)
-lK=source phi
-       
-lK.dd^2
-HlK=HH lK
-prune HlK#1
-prune HlK#2
-prune HlK#3
-uK=degreeTruncationAbove(K,d)
-lK
-HuK=HH uK
-netList apply(toList(2..6),i->prune HuK#i)
-source degreeTruncation(K,{0,0,0})
-
-for i from 0 to numgens S do(
-    for j from 0 to binomial(numgens S, i)-1 do(
-m = sortedMons#i_{j}_(0,0);
-d = -degree m;
-lK = source degreeTruncation(K,d);
-HlK = HH lK;
-H := apply(toList(0..length lK-1),ell->prune HlK#ell);
-<<(i,m)<<" "<<positions(H, h-> h!=0)<<" "<<endl<<flush;
-))
-
-
-degsK=sort unique flatten apply(length K+1,i->degrees K_i)
-netList( L=apply(degsK,d->(g=degreeTruncation(K,d);
-    (d,betti target g,betti source g)) ))
-tally apply(L,c->c_1)
-netList(L1=apply(L,c->(c_0,c_2)))
-netList(L2=apply(degsK,d->(d,source degreeTruncation(K,d)) ))
-netList apply(L2,F->prune HH F_1) 
-netList apply(L2,dF->(F=dF_1;tally apply(length F+1,i-> 
-	    saturate(ann prune HH_i F, irr))))
-L3=select(L2,dF->(F=dF_1;#tally apply(length F+1,i-> 
-	    saturate(ann prune HH_i F, irr))>1));
-#L3
-netList (L3HH=apply(L3,dF -> (F=dF_1;d=dF_0;
-	homologicalDegs=select(length F+1,i->
-	    saturate(ann prune HH_i F, irr)!=ideal(1_S));
-	(d,betti F,apply(homologicalDegs,i->(h=prune HH_i F;
-		(i,h,betti h)))) )))
-
-tally apply(L3HH,c->#c_2)
-cplx = new HashTable from L3
-
-keys cplx
-
---NOTE: there's always 0th homology;
--- but the other homology degrees seem to form a 
--- consecutive sequence.
--- Why??
-///
-
- -*
-RRFunctor = method();
-RRFunctor(Module,Ring,List,ZZ) := (M,E,lows,c) ->(
-    S :=ring(M);
-    M1 := prune coker presentation M;
-    relationsM := gens image presentation M1;
-    numvarsE := numgens E;
-    ev := map(E,S,vars E);
-    range := degreeSetup(S,lows,c);
-    alldegs:= range#0; newdegs:={};
-    scan(toList(1..c),i->(newdegs = select(range#i,d->not member(d,alldegs));
-	    alldegs=alldegs|newdegs));
-    bases := concatMatrices apply(alldegs,d->basis(d,M));
-    bases1 =map(S^(degrees target bases),, lift(bases,S));
-
-    kk:=coefficientRing S;
-    SE := kk[gens S|gens E,Degrees=>degrees S|degrees E];
-    tr := sum(dim S, i-> SE_i*SE_(dim S+i));
-    baseTr := map(SE^(degrees target bases1),,tr*sub(bases1,SE));
---netList apply(baseTr,m->(isHomogeneous m,degrees target m,degrees source m,m))
-    relationsMinSE := sub(relationsM,SE);
---isHomogeneous relationsMinSE
-    reducedBaseTr:= baseTr % relationsMinSE;
-    F = E^(-degrees source bases1);
-    multTable :=matrixContract(transpose sub(bases1,SE),reducedBaseTr);
-    F:= E^(-degrees source bases1);
-    chainComplex map(F,F, sub(multTable,E))
-    )
-*-
--* TEST ///
-restart
-load "KoszulFunctor.m2"
-
-kk=ZZ/101
-S=kk[x_0..x_2,Degrees=>{{1,0},{1,2},{0,1}}]
-degrees S
-E=kk[e_0..e_2,SkewCommutative=>true,Degrees=>-degrees S ]
-M=S^1
-c=3
-lows={{3,3}}
-
-TM=RRFunctor(M,E,lows,c)
-TM.dd^2
-TM.dd_1
-
-
-restart
-load "KoszulFunctor.m2"
-
-kk=ZZ/101
-S=kk[x_0..x_2,Degrees=>{2:{1},{2}}]
-degrees S
-E=kk[e_0..e_2,SkewCommutative=>true,Degrees=>-degrees S ]
-M=truncate({1},S^1)
-c=2
-lows={{0}}
-
-TM=RRFunctor(M,E,lows,c)
-assert(isHomogeneous TM)
-assert((TM.dd_1)^2==0)
-TM.dd_1
-betti TM
-
-///*-
-
-///
---simplest bad example?
---conic in PP^2
-restart
-load "KoszulFunctor.m2"
-kk=ZZ/101
-L = {1,1,1}
-S=kk[x_0..x_(#L-1),Degrees=>L]
-irr=ideal vars S
-addTateData(S,irr)
-E = S.exterior
-
-M= S^1/ideal(x_0^2)
-M = S^{2}**M
-betti res M
---M = S^{1}
---M1= (S^{1}/ideal(x_0+3*x_1))
---M = M++M1
---M = S^1/ideal(x_0,x_2)
 
 --
 --For April 28
@@ -2027,33 +1391,5 @@ betti res ((prune HH BM)_0)
 betti res truncate(-3,M)
 
 
-
-
-
-
-
-
-LL=apply(toList(-3..3),i->S.degOmega+{i})
-elapsedTime betti(TM=RRFunctor(M,LL,true))
-TM.dd_1
---elapsedTime betti(TM=RRFunctor(M1,LL))
-TB=beilinsonWindow(TM,-S.degs)
-betti TB
-TB.dd_1
-BM = bigChainMap TB
-source BM
-assert(BM*(BM[1])==0)
-
-betti target BM
-betti source BM
-(source BM).dd
-(target BM).dd
-
-horHom BM    
-ker (BM[-1])
-values(S.complexes)/betti
-H = DMHH BM
-presentation M
-S.complexes
 
 
