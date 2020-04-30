@@ -574,6 +574,7 @@ RRFunctor(Module,List,Boolean) := (M,LL,X) ->(
     relationsMinSE := sub(relationsM,SE);
     newf0 = newf0 % relationsMinSE;
     newg := contract(transpose sub(f0,SE),newf0);
+    --THIS contract DOES SOMETHING WRONG IN THE NON-CYCLIC CASE
     g' := sub(newg,E);
     chainComplex map(E^df0,E^df1, g')
     )
@@ -1928,6 +1929,8 @@ presentation truncate(-2,M)
 
 
 --  PP^n, \Omega^i(i)
+restart
+load "KoszulFunctor.m2"
 n = 3
 kk=ZZ/101
 L = apply(n+1,i-> 1)
@@ -1940,9 +1943,22 @@ omega2 = ker(S.complexes#{2}.dd_2)
 betti res omega2
 
 M = prune omega2
-LL = apply(toList(-5..5),i->S.degOmega+{i})
-elapsedTime betti(TM=RRFunctor(M,LL,true));
+LL = apply(toList(-5..5),i->{i})
 
+
+n = 2
+kk=ZZ/101
+L = apply(n+1,i-> 1)
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+E = S.exterior
+--  omega2 is \Omega^2(2)
+omega1 = ker(S.complexes#{1}.dd_1)
+betti res omega1
+
+elapsedTime betti(TM=RRFunctor(M,LL,true));
+break
 
 TM.dd_1;
 TB=beilinsonWindow(TM,-S.degs);
