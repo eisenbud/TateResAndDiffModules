@@ -264,20 +264,28 @@ completeToMapOfChainComplexes(ChainComplex,RingElement) :=  (K,m) -> (
    S:= ring K;
    r:= length K;
    (i,j) := positionInKoszulComplex(K,S.sortedMons,m);
-   --(degrees K_i)_j==-degree m
    stK := K[i]**S^{-drop(degree m,-1)}; --shifted twisted K
    assert(degrees source stK.dd_0_{j}==degrees K_0);
    phi0 := matrix{apply(rank stK_0,k->if k==j then 1_S else 0)};
-   --if o.Complete == false then 
    return extend(K,stK,phi0,Verify=>true);
-   --  The following option o.Complete = true should not be used.  
-   --   tstK := chainComplex apply(r-i,p->stK.dd_(p+1)); -- truncted shifted twisted
-   --phi1 := extend(K,tstK,phi0,Verify=>true);
-   --Ke := addZeroTerms(min K- min stK,K);
-   --stKe :=addZeroTerms(stK,max K-max stK);
--- map(K,stK,i->phi1_i)
-   --map(Ke,stKe,i->if i >= min K and i <= max stKe then phi1_i else map(Ke_i,stKe_i,0))
 )
+
+completeToMapOfChainComplexes(Ring,RingElement) :=  (S,m) -> (
+-- Input: m a monomial in \Lambda^i \subset E, 
+--        K the KoszulComplex
+-- Goal: map of complexes given by contraction with m
+-- m: K_0 <- K_i the  map which maps m to 1 and the other generators to 0
+-- complete this to a map
+-- K <- K[i]**S^{deg m} of complexes
+   K:= S.koszul;
+   (i,j) := positionInKoszulComplex(K,S.sortedMons,m);
+   stK := K[i]**S^{-drop(degree m,-1)}; --shifted twisted K
+   stK.dd = (-1)^i*stK.dd;
+   --assert(degrees source stK.dd_0_{j}==degrees K_0);
+   phi0 := matrix{apply(rank stK_0,k->if k==j then 1_S else 0)};
+   extend(K,stK,phi0,Verify=>true)
+)
+
 -* TEST ///
 restart
 load "KoszulFunctor.m2"
@@ -575,7 +583,7 @@ cachePhi Ring := S -> (
 	--	dm=possiblePairs_3
 	d:=dm_0;m:=dm_1;
 	phi := completeToMapOfChainComplexes(S.koszul,m);
-
+--	phi := completeToMapOfChainComplexes(S,m);--uses shifted complex without changing sign of maps
 	(dm,degreeTruncation(phi,d,S)[-factors(m, S.sortedMons)]**S^{d})))); 
     new HashTable from allPhi)
 
@@ -1232,3 +1240,43 @@ e_2^2
 degree e_2
 e_1^2
 
+--------track the error!
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+--two failures:
+L = {1,2}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+E = S.exterior
+KK = select(keys S.phis,i-> i_1 == e_1)
+apply(KK,k-> S.phis#k)
+M = (S^{2}/ideal(x_0^2+x_1))
+--sign error
+----------
+L = {1,3}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+E = S.exterior
+KK = select(keys S.phis,i-> i_1 == e_1)
+apply(KK,k-> S.phis#k)
+M = (S^{3}/ideal(x_0^3+x_1))
+--wrong module, even wrong # gens.
+---
+
+LL=apply(toList(-6..6),i->S.degOmega+{i})
+elapsedTime betti(TM=RRFunctor(M,LL))
+TB=beilinsonWindow(TM,-S.degs)
+TB.dd_1
+
+--change of sign in first example works: 
+--newTBdd = sub(TB.dd_1, {e_1 => -e_1})
+BM = doubleComplexBM(TB)
+--truncations don't matter: we're a point.
+prune truncate ({0},prune HH_0 BM)
+prune truncate({0},M)
+
+prune HH_0 BM
+M
