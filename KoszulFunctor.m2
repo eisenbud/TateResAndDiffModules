@@ -44,11 +44,11 @@ addTateData (Ring,Ideal) := (S,irr) ->(
     S.irr = irr;
     S.exterior = dualRingToric S;
     S.koszul = koszul vars S;
+    S.degOmega = -(degrees S.koszul_(numgens S))_0;
     S.sortedMons = sortedMonomials S.exterior;
     S.complexes = cacheComplexes S;
     S.phis = cachePhi S;
     S.degs = keys S.complexes;
-    S.degOmega = -(degrees S.koszul_(numgens S))_0;
 )
 
 
@@ -562,7 +562,8 @@ cacheComplexes(Ring) := S-> (
     --be cached in S or otherwise a global var.
     --K:=koszul vars S; 
     K := S.koszul;
-    koszulRange :=unique flatten apply(length K+1,i->degrees K_i);
+--    koszulRange :=unique flatten apply(length K+1,i->degrees K_i);
+    koszulRange :=apply(toList(0..-S.degOmega_0-1), i->{i});
     truncatedComplexes := new HashTable from apply(koszulRange, d-> 
 	(d,source degreeTruncation(K,d,S)));
     relDegs:=select(koszulRange,d->
@@ -586,14 +587,13 @@ cachePhi Ring := S -> (
 --	phi := completeToMapOfChainComplexes(S,m);--uses shifted complex without changing sign of maps
 	(dm,degreeTruncation(phi,d,S)[-factors(m, S.sortedMons)]**S^{d})))); 
     new HashTable from allPhi)
-
-
 ///
 restart
 load"KoszulFunctor.m2"
 
 kk=ZZ/101
 L = {1,1,2}
+L = {1,3}
 S=kk[x_0..x_(#L-1),Degrees=>L]
 irr = ideal vars S
 
@@ -855,7 +855,8 @@ doubleComplexBM = TB->(
     --Output: a double complex corresponding to the diff Mod.
     BM = bigChainMap(TB);
     FF = target BM;
-    chainComplex apply(dim S, i-> FF.dd_(i+1) + BM_i)
+--    chainComplex apply(dim S, i-> FF.dd_(i+1) + BM_i)
+    chainComplex apply(dim S, i->FF.dd_(i+1) + (-1)^(i+1)*BM_i)    
     --seems to yield a double complex...  should check sign carefully.
     )
 
@@ -1255,14 +1256,16 @@ apply(KK,k-> S.phis#k)
 M = (S^{2}/ideal(x_0^2+x_1))
 --sign error
 ----------
-L = {1,3}
+d = 2
+L = {1,d}
 S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
 addTateData(S,irr)
 E = S.exterior
 KK = select(keys S.phis,i-> i_1 == e_1)
 apply(KK,k-> S.phis#k)
-M = (S^{3}/ideal(x_0^3+x_1))
+
+M = (S^{d}/ideal(x_0^d-x_1))
 --wrong module, even wrong # gens.
 ---
 
@@ -1270,13 +1273,21 @@ LL=apply(toList(-6..6),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 TB.dd_1
-
+apply(4, i->basis({i},M))
 --change of sign in first example works: 
 --newTBdd = sub(TB.dd_1, {e_1 => -e_1})
 BM = doubleComplexBM(TB)
 --truncations don't matter: we're a point.
 prune truncate ({0},prune HH_0 BM)
 prune truncate({0},M)
-
+BM.dd_1
 prune HH_0 BM
 M
+S.degs
+S.complexes
+T = matrix{{0,0,0,0},{e_0,0,0,0},{0,e_0,0,0},{e_1,0,-e_0,0}}
+S.complexes#{2}
+Sc = new MutableHashTable from S.complexes
+Sc#{2} = S^{1}**S.complexes#{1}
+(values Sc)/betti
+S.phis
