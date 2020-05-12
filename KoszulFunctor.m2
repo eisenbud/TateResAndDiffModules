@@ -37,7 +37,7 @@ exports {
 
 *-
 --load "TateDM.m2"
-load "IsIsomorphic.m2"
+needs "IsIsomorphic.m2"
 
 addTateData = method()
 addTateData (Ring,Ideal) := (S,irr) ->(
@@ -561,9 +561,14 @@ cacheComplexes(Ring) := S-> (
     --truncation that have relevant homology. the ideal irr = irrelevant ideal should
     --be cached in S or otherwise a global var.
     --K:=koszul vars S; 
+    
+    --needs fixing to work with toric varieties where the effective cone isn't the first quadrant?
+    
     K := S.koszul;
 --    koszulRange :=unique flatten apply(length K+1,i->degrees K_i);
-    koszulRange :=apply(toList(0..-S.degOmega_0-1), i->{i});
+--    koszulRange :=apply(toList(0..-S.degOmega_0-1), i->{i});
+    zz := apply(#(degree S_0),i-> 0); 
+    koszulRange := drop(zz..-(S.degOmega),-1); --
     truncatedComplexes := new HashTable from apply(koszulRange, d-> 
 	(d,source degreeTruncation(K,d,S)));
     relDegs:=select(koszulRange,d->
@@ -849,14 +854,16 @@ bigChainMap = (TB)->(
     )
 
 
-
-doubleComplexBM = TB->(
+doubleComplexBM = method()
+doubleComplexBM ChainComplex := ChainComplex => TB->(
     --Input:  a free diff module for Beilinson window
     --Output: a double complex corresponding to the diff Mod.
-    BM = bigChainMap(TB);
-    FF = target BM;
+    BM := bigChainMap(TB);
+    FF := target BM;
 --    chainComplex apply(dim S, i-> FF.dd_(i+1) + BM_i)
-    chainComplex apply(dim S, i->FF.dd_(i+1) + (-1)^(i+1)*BM_i)    
+    BM = chainComplex apply(dim S, i->FF.dd_(i+1) + (-1)^(i+1)*BM_i);
+    assert(BM.dd^2==0); -- this fails when the number of vars is >2.
+    BM
     --seems to yield a double complex...  should check sign carefully.
     )
 
@@ -880,11 +887,13 @@ LL=apply(toList(-10..10),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 TB.dd_1
-BM = bigChainMap TB
---BM=altDMonad(TB)
+BM = doubleComplexBM TB
 presentation truncate(0,M)
 presentation M
--- works
+isIso(HH_0 BM, truncate(0,M))
+presentation prune HH_0 BM
+--fails 5/12/20
+
 -- the following does not work:
 
 restart
@@ -906,10 +915,13 @@ LL=apply(toList(-10..10),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 TB.dd_1
-BM = bigChainMap TB;
---BM=altDMonad(TB)
+BM = doubleComplexBM TB
 presentation truncate(0,M)
 presentation M
+prune HH BM
+--fails 5/12/20
+
+
 -- the following does not work:
 restart
 load "KoszulFunctor.m2"
@@ -924,8 +936,8 @@ M= S^1/ideal(x_2)
 
 M1= (S^{1}/ideal(x_0+3*x_1))
 M = M++M1
-M = S^{1}**M
---M = S^1/ideal(x_0,x_2)
+M = S^{4}**M
+M = S^1/ideal(x_0,x_2)
 
 LL=apply(toList(-10..10),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
@@ -933,7 +945,9 @@ elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 betti TB
 TB.dd_1
-BM = bigChainMap TB
+BM = doubleComplexBM TB
+prune HH BM
+
 betti source BM
 values(S.complexes)/betti
 H = DMHH BM
@@ -1192,24 +1206,22 @@ KK = select(keys S.phis,i-> i_1 == e_2)
 apply(KK,k-> S.phis#k)
 
 --rational curve, twisted to avoid higher cohomology.
-M = (S^{2}/ideal(x_0^2+x_1^2+x_2))
+M = (S^{4}/ideal(x_0^2+x_1^2+x_2))
+
 --M = M++M1
 LL=apply(toList(-6..6),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 betti TB
 TB.dd_1
-newTBdd = sub(TB.dd_1, {e_2 => -e_2})
-chainComplex(newTBdd)
 BM = doubleComplexBM(TB)
-newBM = doubleComplexBM(chainComplex(newTBdd))
-(prune HH BM)
-(prune HH newBM)
---sign error on x_2!!;  also still weird degree truncation error.
-presentation truncate(-3,M)
+--fails: BM is not a chain complex!
 M'' = prune truncate(-3,M)
 M' = prune HH_0 BM
-isIso(M'',M')
+isIsomorphic(M'',M')
+prune HH BM
+BM.dd^2
+doubleComplexBM 
 
 
 --nonrational curve, twisted to avoid higher cohomology.
@@ -1220,41 +1232,18 @@ TB=beilinsonWindow(TM,-S.degs)
 betti TB
 TB.dd_1
 BM = doubleComplexBM(TB)
+--not a chain complex
 (prune HH BM)
-newTBdd = sub(TB.dd_1, {e_2 => -e_2})
-newBM = doubleComplexBM(chainComplex(newTBdd))
-M''' = prune HH_0 newBM
 --
---sign error;  also still weird degree truncation error.
-presentation truncate(-3,M)
-betti res ((prune HH BM)_0)
-betti res truncate(-3,M)
 M'' = prune truncate(-3,M)
 M' = prune HH_0 BM
-isIso(M''',M'')
-break
+isIso(M',M'')
 
 
-
-vars E
-e_2^2
-degree e_2
-e_1^2
-
---------track the error!
+--------working examples in weighted projective space....with 2 variables
 restart
 load "KoszulFunctor.m2"
 kk=ZZ/101
---two failures:
-L = {1,2}
-S=kk[x_0..x_(#L-1),Degrees=>L]
-irr=ideal vars S
-addTateData(S,irr)
-E = S.exterior
-KK = select(keys S.phis,i-> i_1 == e_1)
-apply(KK,k-> S.phis#k)
-M = (S^{2}/ideal(x_0^2+x_1))
---sign error
 ----------
 d = 2
 L = {1,d}
@@ -1266,9 +1255,7 @@ KK = select(keys S.phis,i-> i_1 == e_1)
 apply(KK,k-> S.phis#k)
 
 M = (S^{d}/ideal(x_0^d-x_1))
---wrong module, even wrong # gens.
 ---
-
 LL=apply(toList(-6..6),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
@@ -1281,13 +1268,34 @@ BM = doubleComplexBM(TB)
 prune truncate ({0},prune HH_0 BM)
 prune truncate({0},M)
 BM.dd_1
-prune HH_0 BM
+prune HH BM
 M
-S.degs
-S.complexes
-T = matrix{{0,0,0,0},{e_0,0,0,0},{0,e_0,0,0},{e_1,0,-e_0,0}}
-S.complexes#{2}
-Sc = new MutableHashTable from S.complexes
-Sc#{2} = S^{1}**S.complexes#{1}
-(values Sc)/betti
-S.phis
+
+
+--------examples with varying dim, codim in proj space
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+----------
+n = 3
+c = 2
+d = 3
+tw = c*d
+
+L = apply(n,i->1)
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+
+M = S^{tw}/ideal apply(c, i->x_i^d)
+---
+LL=apply(toList(-6..6),i->S.degOmega+{i})
+elapsedTime betti(TM=RRFunctor(M,LL))
+TB=beilinsonWindow(TM,-S.degs)
+BM = doubleComplexBM(TB)
+--truncations don't matter: we're a point.
+prune truncate ({0},prune HH_0 BM)
+prune truncate({0},M)
+BM.dd_1
+prune HH BM
+M
