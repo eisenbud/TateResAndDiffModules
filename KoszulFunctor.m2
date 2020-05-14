@@ -566,9 +566,9 @@ cacheComplexes(Ring) := S-> (
     
     K := S.koszul;
 --    koszulRange :=unique flatten apply(length K+1,i->degrees K_i);
---    koszulRange :=apply(toList(0..-S.degOmega_0-1), i->{i});
-    zz := apply(#(degree S_0),i-> 0); 
-    koszulRange := drop(zz..-(S.degOmega),-1); --
+    koszulRange :=apply(toList(0..-S.degOmega_0-1), i->{i});
+--    zz := apply(#(degree S_0),i-> 0); 
+--    koszulRange := drop(zz..-(S.degOmega),-1); --
     truncatedComplexes := new HashTable from apply(koszulRange, d-> 
 	(d,source degreeTruncation(K,d,S)));
     relDegs:=select(koszulRange,d->
@@ -858,10 +858,13 @@ doubleComplexBM = method()
 doubleComplexBM ChainComplex := ChainComplex => TB->(
     --Input:  a free diff module for Beilinson window
     --Output: a double complex corresponding to the diff Mod.
-    BM := bigChainMap(TB);
-    FF := target BM;
+    BC := bigChainMap(TB);
+    FF := target BC;
 --    chainComplex apply(dim S, i-> FF.dd_(i+1) + BM_i)
-    BM = chainComplex apply(dim S, i->FF.dd_(i+1) + (-1)^(i+1)*BM_i);
+    BM = chainComplex apply(dim S, i-> FF.dd_(i+1) - BC_i);
+    --the maps already anticommute.
+    --apply(dim S,i->  BC_(i-1)*FF.dd_(i+1) + FF.dd_(i)*BC_i)
+    --so any sign change should affect both pieces simultaneously.
     assert(BM.dd^2==0); -- this fails when the number of vars is >2.
     BM
     --seems to yield a double complex...  should check sign carefully.
@@ -1201,9 +1204,9 @@ L = {1,1,2}
 S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
 addTateData(S,irr)
-E = S.exterior
-KK = select(keys S.phis,i-> i_1 == e_2)
-apply(KK,k-> S.phis#k)
+--E = S.exterior
+--KK = select(keys S.phis,i-> i_1 == e_2)
+--apply(KK,k-> S.phis#k)
 
 --rational curve, twisted to avoid higher cohomology.
 M = (S^{4}/ideal(x_0^2+x_1^2+x_2))
@@ -1215,13 +1218,9 @@ TB=beilinsonWindow(TM,-S.degs)
 betti TB
 TB.dd_1
 BM = doubleComplexBM(TB)
---fails: BM is not a chain complex!
 M'' = prune truncate(-3,M)
 M' = prune HH_0 BM
-isIsomorphic(M'',M')
-prune HH BM
-BM.dd^2
-doubleComplexBM 
+isIso(M'',M')
 
 
 --nonrational curve, twisted to avoid higher cohomology.
@@ -1245,25 +1244,18 @@ restart
 load "KoszulFunctor.m2"
 kk=ZZ/101
 ----------
-d = 2
+d = 3
 L = {1,d}
 S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
 addTateData(S,irr)
-E = S.exterior
-KK = select(keys S.phis,i-> i_1 == e_1)
-apply(KK,k-> S.phis#k)
-
 M = (S^{d}/ideal(x_0^d-x_1))
 ---
 LL=apply(toList(-6..6),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
-TB.dd_1
-apply(4, i->basis({i},M))
---change of sign in first example works: 
---newTBdd = sub(TB.dd_1, {e_1 => -e_1})
 BM = doubleComplexBM(TB)
+BM.dd^2 == 0
 --truncations don't matter: we're a point.
 prune truncate ({0},prune HH_0 BM)
 prune truncate({0},M)
