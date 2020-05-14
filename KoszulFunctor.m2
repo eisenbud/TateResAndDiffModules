@@ -576,6 +576,24 @@ cacheComplexes(Ring) := S-> (
     new HashTable from apply(relDegs,d->(d,(truncatedComplexes#d)**S^{d}))
     ) 
 
+--TESTING A NEW KOSZUL RANGE FUNCTION on 5/14/20
+
+cacheComplexes(Ring, Boolean) := (S, X)-> (
+    --TESTING
+    K := S.koszul;
+    koszulDegs := unique flatten apply(length K+1,i->degrees K_i);
+    -- this is supposed to some sort of saturation of the koszul Degrees
+    koszulRange = unique flatten flatten apply(koszulDegs, i->(
+	    apply(koszulDegs,j-> toList(i..j)|toList(j..i))
+	    ));
+    truncatedComplexes := new HashTable from apply(koszulRange, d-> 
+	(d,source degreeTruncation(K,d,S)));
+    relDegs:=select(koszulRange,d->
+	#select(relevantAnnHH(truncatedComplexes#d,S.irr),j->j!=ideal 1_S)>0);
+    new HashTable from apply(relDegs,d->(d,(truncatedComplexes#d)**S^{d}))
+    ) 
+
+
 cachePhi=method()
 cachePhi Ring := S -> (
     cplx := S.complexes;
@@ -860,7 +878,6 @@ doubleComplexBM ChainComplex := ChainComplex => TB->(
     --Output: a double complex corresponding to the diff Mod.
     BC := bigChainMap(TB);
     FF := target BC;
---    chainComplex apply(dim S, i-> FF.dd_(i+1) + BM_i)
     BM = chainComplex apply(dim S, i-> FF.dd_(i+1) - BC_i);
     --the maps already anticommute.
     --apply(dim S,i->  BC_(i-1)*FF.dd_(i+1) + FF.dd_(i)*BC_i)
@@ -892,12 +909,14 @@ TB=beilinsonWindow(TM,-S.degs)
 betti TB
 TB.dd_1
 BM = doubleComplexBM TB
+BM.dd^2 == 0
 isIso(HH_0 BM, truncate(4,M))
+prune HH BM
 presentation prune HH_0 BM
 --fails 5/12/20
 --works on 5/14/20
 
--- the following does not work:
+-- the following does not work (working as of 5/14/20)
 
 restart
 load "KoszulFunctor.m2"
@@ -920,7 +939,6 @@ TB=beilinsonWindow(TM,-S.degs)
 TB.dd_1
 betti TB
 BM = doubleComplexBM TB
-presentation truncate(-5,M)
 prune HH BM
 isIso(HH_0 BM, truncate(-sum L + 1,M))
 --fails 5/12/20
@@ -1248,7 +1266,7 @@ restart
 load "KoszulFunctor.m2"
 kk=ZZ/101
 ----------
-d = 3
+d = 4
 L = {1,d}
 S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
