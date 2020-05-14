@@ -881,21 +881,21 @@ irr=ideal vars S
 addTateData(S,irr)
 E = S.exterior
 
-M= S^1/ideal(x_0+2*x_1,x_2,x_3)
-M1= (S^{1}/ideal(x_0+2*x_1,x_2,x_3))
+M= S^{4}/ideal(x_0+2*x_1,x_2,x_3)
+M1= (S^{5}/ideal(x_0+2*x_1,x_2,x_3))
 M = M++M1
 
 
 LL=apply(toList(-10..10),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
+betti TB
 TB.dd_1
 BM = doubleComplexBM TB
-presentation truncate(0,M)
-presentation M
-isIso(HH_0 BM, truncate(0,M))
+isIso(HH_0 BM, truncate(4,M))
 presentation prune HH_0 BM
 --fails 5/12/20
+--works on 5/14/20
 
 -- the following does not work:
 
@@ -918,12 +918,13 @@ LL=apply(toList(-10..10),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 TB.dd_1
+betti TB
 BM = doubleComplexBM TB
-presentation truncate(0,M)
-presentation M
+presentation truncate(-5,M)
 prune HH BM
+isIso(HH_0 BM, truncate(-sum L + 1,M))
 --fails 5/12/20
-
+--works 5/14/20
 
 -- the following does not work:
 restart
@@ -940,7 +941,7 @@ M= S^1/ideal(x_2)
 M1= (S^{1}/ideal(x_0+3*x_1))
 M = M++M1
 M = S^{4}**M
-M = S^1/ideal(x_0,x_2)
+--M = S^1/ideal(x_0,x_2)
 
 LL=apply(toList(-10..10),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
@@ -950,6 +951,9 @@ betti TB
 TB.dd_1
 BM = doubleComplexBM TB
 prune HH BM
+isIso(HH_0 BM, truncate(-sum L +1,M))
+-- works on 5/14/20
+
 
 betti source BM
 values(S.complexes)/betti
