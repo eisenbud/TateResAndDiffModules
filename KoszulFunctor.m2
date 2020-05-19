@@ -589,8 +589,9 @@ cacheComplexes(Ring, Boolean) := (S, X)-> (
 	    ));
     truncatedComplexes := new HashTable from apply(koszulRange, d-> 
 	(d,source degreeTruncation(K,d,S)));
-    relDegs:=select(koszulRange,d->
-	#select(relevantAnnHH(truncatedComplexes#d,S.irr),j->j!=ideal 1_S)>0);
+    relDegs := koszulRange;
+--    relDegs:=select(koszulRange,d->
+--	#select(relevantAnnHH(truncatedComplexes#d,S.irr),j->j!=ideal 1_S)>0);
     new HashTable from apply(relDegs,d->(d,(truncatedComplexes#d)**S^{d}))
     ) 
 
