@@ -46,7 +46,8 @@ addTateData (Ring,Ideal) := (S,irr) ->(
     S.koszul = koszul vars S;
     S.degOmega = -(degrees S.koszul_(numgens S))_0;
     S.sortedMons = sortedMonomials S.exterior;
-    S.complexes = cacheComplexes S;
+--    S.complexes = cacheComplexes S;
+    S.complexes = cacheComplexes(S,true);
     S.phis = cachePhi S;
     S.degs = keys S.complexes;
 )
@@ -795,7 +796,7 @@ diffModToChainComplexMaps = TB->(
 				    );
     --  nzMaps go the wrong direction for our RRfunctor!
     nzMaps := apply(nonzeroijs, ij->(
-	    --i := ij_0;
+	    --i := ij_0; ij = (6,1)
 	    --j := ij_1;
 	    d := -drop((degrees TB_0)_(ij_0),-1);
 	    ij =>  map(
@@ -812,6 +813,8 @@ TM.dd_1
 S.complexes#(degsTB#i)
 		       S.complexes#(degsTB#(ij_1))[-1]
 		       k-> (entry(TB.dd_1_ij,d,S))_k)
+
+entry(TB.dd_1_ij,d,S)
 TEST ///
 restart
 load "KoszulFunctor.m2"
@@ -846,7 +849,7 @@ entry(RingElement,List,Ring) := (f,d,S) -> (
     cs := (entries cf_0)_0;
     kk := coefficientRing S;
     fs := flatten (entries sub(cf_1,kk));
-    phi := sum(#fs,n->(m=cs_n;fs_n*(S.phis#(d,m))));
+    phi := sum(#fs,n->(m=cs_n;sub(fs_n,S)*(S.phis#(d,m))));
 --    phi := sum(#fs,n->(m=cs_n;fs_n*(S.phis#(drop(d,-1),m)))); --version for old DMonad   
     phi
     )
@@ -1180,7 +1183,7 @@ betti TB
 BM = doubleComplexBM(TB)
 prune HH BM
 
----  Omega^1(1) on PP^2 works:
+--- Omega^1(1) on PP^2 works:
 --- but you need to twist more positively to get higher cohomology outside of the
 --  window.  So it's really Omega^1(4)...
 restart
@@ -1284,7 +1287,6 @@ prune truncate({0},M)
 BM.dd_1
 prune HH BM
 M
-
 
 --------examples with varying dim, codim in proj space
 restart
