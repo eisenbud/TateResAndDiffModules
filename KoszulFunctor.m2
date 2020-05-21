@@ -164,17 +164,15 @@ dualRingToric(PolynomialRing) := (S) ->(
 
 
 
-
-
 sortedMonomials=method()
 sortedMonomials(Ring) := E -> (
     -- input: E = \Lambda V, an exterior algebra
     -- Output: a HashTable of Monomial i=> basis of \Lambda^i V
     --         in Koszul order
     kk := coefficientRing E;
-    E' := kk[gens E,SkewCommutative=>true];
+--    E' := kk[e'_0..e'_(numgens E - 1),SkewCommutative=>true];
     bases:= apply(numgens E+1,i->(
-    matrix{reverse (entries gens trim (ideal  vars E')^i)_0}));
+    matrix{reverse (entries gens trim (ideal  vars E)^i)_0}));
     bases1:= apply(numgens E+1,i->i=>map(E^1,,sub(bases_i,E)));
     new HashTable from bases1
     )
@@ -658,7 +656,7 @@ RRFunctor(Module,List) := (M,L) ->(
     --M is an S-module
     --LL a list of the degrees where the terms B^e of RR M might occur,
     --output is the strictly lower triangular map from sum_e B^e to itself
-    S :=ring(M);
+    S := ring(M);
     E := S.exterior;
     relationsM := gens image presentation M;
     numvarsE := rank source vars E;
@@ -668,6 +666,8 @@ RRFunctor(Module,List) := (M,L) ->(
     df0 := apply(degrees source f0,i-> (-1)*i|{0});
     df1 := apply(degrees source f0,i-> (-1)*i|{-1});
     SE := S**E;
+    --print degrees SE;
+    --Does this create a problem with degrees?
     tr := sum(dim S, i-> SE_i*SE_(dim S+i));
     newf0 := sub(f0,SE)*tr;
     relationsMinSE := sub(relationsM,SE);
@@ -886,7 +886,7 @@ doubleComplexBM ChainComplex := ChainComplex => TB->(
     --the maps already anticommute.
     --apply(dim S,i->  BC_(i-1)*FF.dd_(i+1) + FF.dd_(i)*BC_i)
     --so any sign change should affect both pieces simultaneously.
-    assert(BM.dd^2==0); -- this fails when the number of vars is >2.
+    assert(BM.dd^2==0);
     BM
     --seems to yield a double complex...  should check sign carefully.
     )
