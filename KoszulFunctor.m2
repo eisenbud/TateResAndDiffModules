@@ -163,7 +163,7 @@ dualRingToric(PolynomialRing) := (S) ->(
     );
 
 
-
+-*
 sortedMonomials=method()
 sortedMonomials(Ring) := E -> (
     -- input: E = \Lambda V, an exterior algebra
@@ -176,7 +176,21 @@ sortedMonomials(Ring) := E -> (
     bases1:= apply(numgens E+1,i->i=>map(E^1,,sub(bases_i,E)));
     new HashTable from bases1
     )
+*-
 
+sortedMonomials=method()
+sortedMonomials(Ring) := E -> (
+    -- input: E = \Lambda V, an exterior algebra
+    -- Output: a HashTable of Monomial i=> basis of \Lambda^i V
+    --         in Koszul order
+    kk := coefficientRing E;
+    E' := kk[e'_0..e'_(numgens E - 1),SkewCommutative=>true];
+    back := map(E,E',vars E);
+    bases:= apply(numgens E'+1,i->(
+    matrix{reverse (entries gens trim (ideal  vars E')^i)_0}));
+    bases1:= apply(numgens E'+1,i->i=>map(E^1,,back sub(bases_i,E')));
+    new HashTable from bases1
+    )
 
  
 positionInKoszulComplex=method()
@@ -1128,8 +1142,9 @@ irr=ideal vars S
 addTateData(S,irr)
 E = S.exterior
 
-M = S^1/ideal(x_0^2)
-M = S^{2}**M
+M1 = S^1/ideal(x_0^2)
+M = S^{2}**M1
+
 LL=apply(toList(-5..5),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL));
 TM.dd_1;
@@ -1142,8 +1157,8 @@ M' = prune HH_0 BM
 isIso(M,M')
 
 
-M= S^1/ideal(x_0^3+x_1^3+x_2^3)
-M = S^{3}**M
+M1= S^1/ideal(x_0^3+x_1^3+x_2^3)
+M = S^{3}**M1
 LL=apply(toList(-5..5),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL));
 TM.dd_1;
@@ -1152,10 +1167,10 @@ betti TB
 TB.dd_1
 BM = doubleComplexBM(TB)
 prune HH BM
-M'' = prune truncate(-2,M)
+M'' = prune truncate(-3,M)
 M' = prune HH_0 BM
 isIso(M'',M')
--- what's with the truncation???
+
 
 
 
@@ -1244,7 +1259,7 @@ TB=beilinsonWindow(TM,-S.degs)
 betti TB
 TB.dd_1
 BM = doubleComplexBM(TB)
-M'' = prune truncate(-3,M)
+M'' = prune truncate(-4,M)
 M' = prune HH_0 BM
 isIso(M'',M')
 
@@ -1280,7 +1295,9 @@ M = (S^{d}/ideal(x_0^d-x_1))
 LL=apply(toList(-6..6),i->S.degOmega+{i})
 elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
+bigChainMap TB
 BM = doubleComplexBM(TB)
+
 BM.dd^2 == 0
 --truncations don't matter: we're a point.
 prune truncate ({0},prune HH_0 BM)
@@ -1288,6 +1305,12 @@ prune truncate({0},M)
 BM.dd_1
 prune HH BM
 M
+FF = source (alpha = bigChainMap TB)
+GG = target alpha
+betti FF, betti GG
+tally degrees FF_(-1)
+tally degrees GG_(0)
+
 
 --------examples with varying dim, codim in proj space
 restart
@@ -1314,5 +1337,40 @@ BM = doubleComplexBM(TB)
 prune truncate ({0},prune HH_0 BM)
 prune truncate({0},M)
 BM.dd_1
-prune HH BM
-M
+assert(isIsomorphic(prune HH_0 BM, prune truncate(-3,M)))
+FF = source (alpha = bigChainMap TB)
+GG = target alpha
+betti FF, betti GG
+tally degrees FF_(-1)
+tally degrees GG_(0)
+
+--------
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+----------
+L = {4,2,3,1}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+M1 =coker random(S^1, S^{-5})
+M = S^{10}**M1
+---
+LL=apply(toList(-10..10),i->S.degOmega+{i})
+elapsedTime betti(TM=RRFunctor(M,LL))
+TB=beilinsonWindow(TM,-S.degs)
+BM = doubleComplexBM(TB)
+betti prune HH_0 BM == betti M
+assert(isIsomorphic(HH_0 BM, M))
+
+prune HH BM -- no further homology.
+
+prune truncate ({0},
+prune truncate({0},M)
+BM.dd_1
+assert(isIsomorphic(prune HH_0 BM, prune truncate(-3,M)))
+FF = source (alpha = bigChainMap TB)
+GG = target alpha
+betti FF, betti GG
+tally degrees FF_(-1)
+tally degrees GG_(0)
