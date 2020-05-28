@@ -864,7 +864,8 @@ entry(RingElement,List,Ring) := (f,d,S) -> (
     cs := (entries cf_0)_0;
     kk := coefficientRing S;
     fs := flatten (entries sub(cf_1,kk));
-    phi := sum(#fs,n->(m=cs_n;sub(fs_n,S)*(S.phis#(d,m))));
+    m := null;
+    phi := sum(#fs,n->(m = cs_n;sub(fs_n,S)*(S.phis#(d,m))));
 --    phi := sum(#fs,n->(m=cs_n;fs_n*(S.phis#(drop(d,-1),m)))); --version for old DMonad   
     phi
     )
@@ -876,14 +877,14 @@ bigChainMap = (TB)->(
 --  Output:  the Beilinson monad (??)
 --  In essence, this code just concatenates the chain complex maps from the HashTable
 --  diffModToChainComplexMaps(TB).
-    HT = diffModToChainComplexMaps(TB);
-    rows = apply(rank TB_0,i->(
+    HT := diffModToChainComplexMaps(TB);
+    rows := apply(rank TB_0,i->(
 	    mm := HT#(i,0);
 	    scan(rank TB_1-1,j-> mm = mm|HT#(i,j+1));
 --	    scan(rank TB_1-1,j-> mm = mm|map(target mm,,HT#(i,j+1)));
 	    mm
 	    ));
-    nn = rows_0;
+    nn := rows_0;
     scan(#rows -1,i-> nn = nn||rows_(i+1));
     assert(isHomogeneous nn);
     nn    
@@ -894,9 +895,13 @@ doubleComplexBM = method()
 doubleComplexBM ChainComplex := ChainComplex => TB->(
     --Input:  a free diff module for Beilinson window
     --Output: a double complex corresponding to the diff Mod.
+    --NOTE: this is not a double complex construction! -- it's a kind of diagonal sum
+    --the H_0 BM is the coker of the *difference* 
+    --of the horizontal and vertical maps of TB at FF_0. Works because source and target
+    --of BC are equal up to homological shift.
     BC := bigChainMap(TB);
     FF := target BC;
-    BM = chainComplex apply(dim S, i-> FF.dd_(i+1) - BC_i);
+    BM := chainComplex apply(dim S, i-> FF.dd_(i+1) - BC_i);
     --the maps already anticommute.
     --apply(dim S,i->  BC_(i-1)*FF.dd_(i+1) + FF.dd_(i)*BC_i)
     --so any sign change should affect both pieces simultaneously.
@@ -1374,3 +1379,53 @@ GG = target alpha
 betti FF, betti GG
 tally degrees FF_(-1)
 tally degrees GG_(0)
+
+---
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+----------
+L = {2,3,1}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+M1 =coker map(S^1, S^{-3},{{x_0*x_2 - x_1}})
+M = S^{6}**M1
+---
+LL=apply(toList(-10..10),i->S.degOmega+{i})
+elapsedTime betti(TM=RRFunctor(M,LL))
+TB=beilinsonWindow(TM,-S.degs)
+BM = doubleComplexBM(TB)
+betti prune HH_0 BM == betti M
+assert(isIsomorphic(HH_0 BM, M))
+prune HH BM -- no further homology.
+
+---examples in weighted P3:
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+----------
+L = {1,2,3,4}
+S=kk[x_0..x_(#L-1),Degrees=>L]
+irr=ideal vars S
+addTateData(S,irr)
+use S
+m =map(S^(-{2,1,0}),, matrix{{x_0,x_1,x_2},{x_1,x_2,x_3},{x_2,x_3,x_0^5}})
+isHomogeneous m
+betti m
+
+M1 =coker (m_{0,1}^{0,1})
+M1 =coker (m_{0,1}^{0,2})
+M1 =coker (m_{0,1,2}^{0,1})
+M1 =S^1/minors(2, (m_{0,1,2}^{0,1}))
+M = S^{10}**M1
+---
+LL=apply(toList(-10..10),i->S.degOmega+{i});
+elapsedTime betti(TM=RRFunctor(M,LL))
+TB=beilinsonWindow(TM,-S.degs)
+elapsedTime BM = doubleComplexBM(TB)
+m
+betti prune HH_0 BM == betti M
+assert(isIsomorphic(HH_0 BM, M))
+prune HH BM -- no further homology.
+
