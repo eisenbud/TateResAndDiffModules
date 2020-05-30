@@ -684,3 +684,7 @@ phi = map(M,M,matrix{{x^2}})
 phi^2
 F = chainComplex({phi})
 --betti res HH_1 F
+
+restart
+load "diffModules.m2"
+load "koszulFunctor.m2"

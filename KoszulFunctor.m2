@@ -32,13 +32,14 @@ exports {
     "diffModToChainComplexMaps",  
     "bigChainMap",
     "RRTable",
-    "doubleComplexBM"	               
+    "doubleComplexBM",
+    "isIsomorphic"
     }
 
 *-
 --load "TateDM.m2"
---needs "IsIsomorphic.m2"
-load "IsIsomorphic.m2"
+needs "IsIsomorphic.m2"
+isIsomorphic = isIso;
 
 addTateData = method()
 addTateData (Ring,Ideal) := (S,irr) ->(
@@ -878,15 +879,21 @@ bigChainMap = (TB)->(
 --  Output:  the Beilinson monad (??)
 --  In essence, this code just concatenates the chain complex maps from the HashTable
 --  diffModToChainComplexMaps(TB).
-    HT := diffModToChainComplexMaps(TB);
-    rows := apply(rank TB_0,i->(
+elapsedTime   HT := diffModToChainComplexMaps(TB);
+
+--tar = apply(length HT#(0,0), p->directSum(apply(rank TB_0_p, i->target HT#(i,0)));
+--sour = directSum(apply(rank TB_1, j -> source HT#(0,j)));
+--map(tar_p,sour_p,(i,j) -> HT#(i,j)_p)
+--map(tar, sour, p-> map(tar_p,sour_p,(i,j) -> HT#(i,j)_{p}))
+--map(target HT#(0,0),,(i,j) -> HT#(
+
+elapsedTime    rows := apply(rank TB_0,i->(
 	    mm := HT#(i,0);
-	    scan(rank TB_1-1,j-> mm = mm|HT#(i,j+1));
---	    scan(rank TB_1-1,j-> mm = mm|map(target mm,,HT#(i,j+1)));
+elapsedTime	    scan(rank TB_1-1,j-> mm = mm|HT#(i,j+1));
 	    mm
 	    ));
     nn := rows_0;
-    scan(#rows -1,i-> nn = nn||rows_(i+1));
+elapsedTime    scan(#rows -1,i-> nn = nn||rows_(i+1));
     assert(isHomogeneous nn);
     nn    
     )
@@ -1204,7 +1211,7 @@ betti TB
 -- time issues
 BM = doubleComplexBM(TB)
 prune HH BM
-
+M
 --- Omega^1(1) on PP^2 works:
 --- but you need to twist more positively to get higher cohomology outside of the
 --  window.  So it's really Omega^1(4)...
@@ -1424,23 +1431,26 @@ M1 =coker m
 M1 =coker (m_{0,1,2}^{0,1}) --ok
 M1 =S^1/minors(2, (m_{0,1,2}^{0,1})) -- ok
 M1 =coker (m_{0,1,2}^{0,2}) -- ok
-M1 =coker (m_{0,1,2}^{1,2}) -- has a mistake
+M1 =coker (m_{0,1,2}^{1,2}) -- needs twist by 12, LL -12..12 and truncate both in deg 10.
 -- modules on points:
 M1 = coker(m^{0}) -- ok
 M1 = coker(m^{1}) -- ok
-M1 = coker(m^{2}) -- has extra homolology
+M1 = coker(m^{2}) -- same as above
 M1 = S^1/prune minors(2,m)
 -----------------
+LL=apply(toList(-0..12),i->S.degOmega+{i});
 M = S^{10}**M1
+betti res M
 elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 elapsedTime BM = doubleComplexBM(TB)
 
 betti prune HH_0 BM == betti M
 --isIsomorphic(HH_0 BM, M)
-prune HH_0 BM
-M
+isIsomorphic(prune truncate(10,HH_0 BM),prune truncate(10,M))
+
 prune HH BM -- no further homology.
+prune (HH_2 BM)
 -- isIsomorphic
 
 -- example on Toric variety: Hirzebruch(1)xP(1,2)
@@ -1450,5 +1460,30 @@ load "KoszulFunctor.m2"
 kk=ZZ/101
 S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
 irr=ideal(x_0,x_1)*ideal(x_2,x_3)*ideal(x_4,x_5)
-elapsedTime addTateData(S,irr)
+--elapsedTime addTateData(S,irr) -- doesn't finish for Frank
 
+-- example on Toric variety: Hirzebruch(1)
+-------------------------
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+S=kk[x_0..x_3,Degrees=>{{1,0},{1,2},2:{0,1}}]
+irr=ideal(x_0,x_1)*ideal(x_2,x_3)
+elapsedTime addTateData(S,irr)
+degrees (S.koszul_4)
+LL = toList(-{8,8}..{10,10})
+M1 = coker matrix{{x_0,x_2}}
+M = S^{{4,4}}**M1
+
+elapsedTime betti(TM=RRFunctor(M,LL))
+TB=beilinsonWindow(TM,-S.degs)
+elapsedTime BM = doubleComplexBM(TB)
+
+betti prune HH_0 BM == betti M
+--isIsomorphic(HH_0 BM, M)
+isIsomorphic(prune truncate(10,HH_0 BM),prune truncate(10,M))
+prune HH BM
+prune truncate({4,4},HH_0 BM) -- no further homology.
+
+installPackage "Truncations"
+viewHelp Truncations
