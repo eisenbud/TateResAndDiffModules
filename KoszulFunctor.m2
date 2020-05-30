@@ -37,7 +37,8 @@ exports {
 
 *-
 --load "TateDM.m2"
-needs "IsIsomorphic.m2"
+--needs "IsIsomorphic.m2"
+load "IsIsomorphic.m2"
 
 addTateData = method()
 addTateData (Ring,Ideal) := (S,irr) ->(
@@ -1409,23 +1410,45 @@ L = {1,2,3,4}
 S=kk[x_0..x_(#L-1),Degrees=>L]
 irr=ideal vars S
 addTateData(S,irr)
-use S
+LL=apply(toList(-10..10),i->S.degOmega+{i});
+-- we have no result, which descibes the needed range
 m =map(S^(-{2,1,0}),, matrix{{x_0,x_1,x_2},{x_1,x_2,x_3},{x_2,x_3,x_0^5}})
 isHomogeneous m
 betti m
 
+--modules on surfaces:
 M1 =coker (m_{0,1}^{0,1})
 M1 =coker (m_{0,1}^{0,2})
-M1 =coker (m_{0,1,2}^{0,1})
-M1 =S^1/minors(2, (m_{0,1,2}^{0,1}))
+M1 =coker m
+-- modules on curves:
+M1 =coker (m_{0,1,2}^{0,1}) --ok
+M1 =S^1/minors(2, (m_{0,1,2}^{0,1})) -- ok
+M1 =coker (m_{0,1,2}^{0,2}) -- ok
+M1 =coker (m_{0,1,2}^{1,2}) -- has a mistake
+-- modules on points:
+M1 = coker(m^{0}) -- ok
+M1 = coker(m^{1}) -- ok
+M1 = coker(m^{2}) -- has extra homolology
+M1 = S^1/prune minors(2,m)
+-----------------
 M = S^{10}**M1
----
-LL=apply(toList(-10..10),i->S.degOmega+{i});
 elapsedTime betti(TM=RRFunctor(M,LL))
 TB=beilinsonWindow(TM,-S.degs)
 elapsedTime BM = doubleComplexBM(TB)
-m
+
 betti prune HH_0 BM == betti M
-assert(isIsomorphic(HH_0 BM, M))
+--isIsomorphic(HH_0 BM, M)
+prune HH_0 BM
+M
 prune HH BM -- no further homology.
+-- isIsomorphic
+
+-- example on Toric variety: Hirzebruch(1)xP(1,2)
+-------------------------
+restart
+load "KoszulFunctor.m2"
+kk=ZZ/101
+S=kk[x_0..x_5,Degrees=>{{1,0,0},{1,2,0},2:{0,1,0},{0,0,1},{0,0,2}}]
+irr=ideal(x_0,x_1)*ideal(x_2,x_3)*ideal(x_4,x_5)
+elapsedTime addTateData(S,irr)
 
