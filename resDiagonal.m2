@@ -103,6 +103,7 @@ selectBasis = (L,R)->(
     )
 
 --  Computes the difference of sets B \ A, assuming A is a subset of B.
+--
 setDiff = (A,B)->(
     if isSubset(A,B) == false then return "not a subset";
     toList(set(B) - set(A))
@@ -120,6 +121,7 @@ extSign = (M,N)->(
 
 --  Input:  lists A and B corresponding to basis elements of diagComplex.
 --  Output:  the corresponding entry in the differential.
+--  This is where we spend too much time because we are going through everything.
 entryBB = (A,B)->(
     degH = hashTable({{}=>degree(1_R)} | apply(remove(subsets(dim R),0),i-> i => degree product apply(i,j-> R_j)));
     if isSubset(A#1,B#1) == false then return 0;
@@ -135,7 +137,25 @@ buildMap = (L,R,S,i,BB)->(
     --don't want to recompute BB each time
     F = S^(-apply(BB#(i-1),D-> -(D#0)|(D#0+degH#(D#1))));
     G = S^(-apply(BB#(i),D-> -(D#0)|(D#0+degH#(D#1))));
-    map(F,G, (a,b) -> entryBB(BB#(i-1)#a,BB#i#b)  )
+    --Instead of the following line, we want to make a mutable matrix, where given the column
+    --index we simply 
+    phi = mutableMatrix(S,rank F,rank G);
+    scan(rank G,j->(
+	D = (BB#i)_j;
+    	D1 = D#1;
+--these give the indices of the bases with -z entries
+    	scan(#D1,k->(
+		rowIndex = position(BB#(i-1), c -> c == (D#0+degree(x_(D1_k)),remove(D1,k)));
+		columnIndex = j;
+		phi_(rowIndex,columnIndex) = (-1)^k*z_(D1_k)
+      		));
+	scan(#D1,k->(
+		rowIndex = position(BB#(i-1), c -> c == (D#0,remove(D1,k)));
+		columnIndex = j;
+		phi_(rowIndex,columnIndex) = (-1)^(k+1)*y_(D1_k)
+      		));
+    ));
+    map(F,G, matrix phi)
     )
 
 
@@ -150,7 +170,6 @@ diagComplex = (L,R,S)->(
     --m = dim R - #degree(R_0);
     chainComplex apply(m,j-> buildMap(L,R,S,j+1,BB))
     )
-
 --
 --  Just a shortcut for diagComplex.
 --
@@ -244,6 +263,7 @@ diagComplex(L,R,S)
 --to check this for large examples.
 L = makeConvex allKoszulDegrees Y;
 r = diagComplex(L,R,S)
+assert(r.dd^2 == 0)
 apply(length r, i-> HH_i r == 0)
 diagonalCheck(r.dd_1,Y)
 
@@ -258,6 +278,21 @@ L = makeConvex allKoszulDegrees Y;
 r = diagComplex(L,R,S)
 apply(length r, i-> HH_i r == 0)
 diagonalCheck(r.dd_1,Y)
+
+
+
+
+--Another example
+Y = smoothFanoToricVariety(2,4);
+X = Y**Y;
+R = ring Y;
+--Y has Picard group ZZ^3
+S = ZZ/101[z_0..z_(dim ring Y-1),y_0..y_(dim ring Y-1),Degrees => degrees ring X];
+L = makeConvex allKoszulDegrees Y;
+r = diagComplex(L,R,S)
+apply(length r+1, i-> HH_i r == 0)
+
+
 
 r.dd_5
 codim coker r.dd_1
