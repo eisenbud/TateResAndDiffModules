@@ -133,8 +133,6 @@ entryBB = (A,B)->(
 
 --  Packages the subroutines to build the i'th differential of diagComplex.
 buildMap = (L,R,S,i,BB)->(
-    --BB = selectBasis(L,R);
-    --don't want to recompute BB each time
     F = S^(-apply(BB#(i-1),D-> -(D#0)|(D#0+degH#(D#1))));
     G = S^(-apply(BB#(i),D-> -(D#0)|(D#0+degH#(D#1))));
     --Instead of the following line, we want to make a mutable matrix, where given the column
@@ -143,7 +141,6 @@ buildMap = (L,R,S,i,BB)->(
     scan(rank G,j->(
 	D = (BB#i)_j;
     	D1 = D#1;
---these give the indices of the bases with -z entries
     	scan(#D1,k->(
 		rowIndex = position(BB#(i-1), c -> c == (D#0+degree(x_(D1_k)),remove(D1,k)));
 		columnIndex = j;
@@ -262,10 +259,17 @@ diagComplex(L,R,S)
 --then this always appears to give a (virtual) resolution, though it's harder
 --to check this for large examples.
 L = makeConvex allKoszulDegrees Y;
-r = diagComplex(L,R,S)
-assert(r.dd^2 == 0)
-apply(length r, i-> HH_i r == 0)
-diagonalCheck(r.dd_1,Y)
+netList apply(3,i->(sort select(L,c-> c#1 == 2-i)))
+-- L looks like this:
+-- * * * 
+-- * * * * * * 
+--       * * *
+
+--Let E = V(x_1) be the exceptional divisor.
+--O(kE) --> O((k+1)E) mult by x_1.  It's an isomorphism on H^0...
+
+--Need good code for the quotient complex... why is it acyclic?
+--
 
 
 --Another example
@@ -291,6 +295,7 @@ S = ZZ/101[z_0..z_(dim ring Y-1),y_0..y_(dim ring Y-1),Degrees => degrees ring X
 L = makeConvex allKoszulDegrees Y;
 r = diagComplex(L,R,S)
 apply(length r+1, i-> HH_i r == 0)
+
 
 
 
