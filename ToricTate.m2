@@ -39,6 +39,19 @@ exports {
     "unfold"
     }
 
+To Dos:
+1.  toricLL ChainComplex  (to implement Michael's algorithm for sheaf cohomology tables...)
+2.  truncate(ChainComplex, degree) over polynomial ring
+3.  Tor of a non-minimal free DM for the "corner complex".  (Does not need minimal...)
+4.  
+
+
+Tor_E(RR S, k) = "betti numbers of tail RR" != "betti numbers of RR S"
+tail RR S --> RR S
+tail RR
+
+Tor_E(RR M, k) in cat of diff modules... = "betti numbers of corner complex of RR M"
+
 *-
 --load "TateDM.m2"
 
@@ -71,12 +84,14 @@ kernel DifferentialModule := Module => opts -> (D -> kernel D.dd_0);
 image DifferentialModule := Module => (D -> image D.dd_1); 
 homology DifferentialModule := Module => opts -> (D -> HH_0 D);
 
+-*
 DMHH = method();
 DMHH(DifferentialModule) := Module => (D -> HH_0 D);
 DMker = method();
 DMker(DifferentialModule) := Module => (D-> kernel D.dd_0);
 DMimage = method();
 DMimage(DifferentialModule) := Module => (D-> image D.dd_1);
+*-
 
 
 unfold = method();
@@ -98,14 +113,11 @@ load "ToricTate.m2";
 R = QQ[x];
 M = R^1/(x^3);
 phi = map(M,M**R^{-2},matrix{{x^2}})
-target phi == source phi**R^{2}
 D = differentialModule(phi)
 assert(degree D == {2})
 assert(module D == M)
-assert(degree DMHH D == 1)
 assert(isHomogeneous unfold(D,-3,6))
-kernel D
-image D
+kernel D / image D == 0
 HH D
 ///
 
@@ -227,7 +239,9 @@ toricLL(Module) := (N) ->(
 	    )
 	);
     relationsN := presentation N;
-    SE := S**E;
+--    SE := S**E;
+    SE := coefficientRing(S)[gens S|gens E, Degrees => apply(degrees S,d->d|{0}) | degrees E, SkewCommutative => gens E];
+--why is this overwriting the definition of e_i?
     tr := sum(dim S, i-> SE_i*SE_(dim S+i));
     f0 := gens image basis(N);
     newf0 := sub(f0,SE)*tr;
@@ -279,18 +293,26 @@ ptrunc(Module,List) := (M,d) ->(
     M / image concatMatrices apply(toDrop, e-> basis(e,M))
     )
 
+--ptrunc ModuleMap, List which truncat
+--truncate on Symmetric algebra side a ChainComplex and Degree.
+
 TEST ///
 restart
 load "ToricTate.m2";
 S = ZZ/101[x_0,x_1,x_2, Degrees => {1,1,2}];
 E = dualRingToric S;
 FF = toricLL(E^1/(e_0*e_1));
+FF
 assert(FF.dd^2 == 0)
 assert(isHomogeneous FF)
+use E
 Nt = E^1/(e_0*e_1);
 Ns = E^{{1,-1}};
 phi = map(Nt,Ns,matrix{{e_0}});
 assert(isHomogeneous toricLL(phi));
+toricLL(source phi)
+toricLL(target phi)
+
 --
 
 --now let's get these truncated koszul complexes
@@ -314,6 +336,14 @@ truncatedKoszulMap(Ring,List,List,RingElement) := (S,d1,d2,f)->(
     phi := map(N1**E^{d1|{0}},N2**E^{d2|{-last degree f}},matrix{{f}});
     toricLL phi
     )
+use E
+phi = map(E^1,E^{{1,-1}},matrix{{e_0}})
+isHomogeneous phi
+toricLL phi
+break
+
+truncatedKoszul(S,{3})
+--this is truncated from the back...
 (d1,d2,f) = ({3},{4},e_0)
 truncatedKoszulMap(S,d1,d2,f)
 d1 = {1}
