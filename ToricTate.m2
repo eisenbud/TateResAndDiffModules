@@ -56,7 +56,41 @@ Tor_E(RR M, k) in cat of diff modules... = "betti numbers of corner complex of R
 --load "TateDM.m2"
 
 needsPackage "Polyhedra";
+---
+---
+---HELPER FUNCTIONS
+---
+---
 
+--Input:    A list of matrices with the same number of rows.
+--Output:   The concatenation of those matrices.
+concatMatrices=method()
+concatMatrices(List) := L -> (
+    m:= first L;
+    scan(#L-1,i->m=m|L_(i+1));
+    m)
+
+--Input:    A pair of matrices (M,N)
+--Output:   The effect of contracting M by N. 
+matrixContract=method()
+matrixContract(Matrix,Matrix) := (M,N) -> (
+    S := ring M;
+    if M==0 or N==0 then return map(S^(-degrees source N),S^(degrees source M),0);
+    assert(rank source M == rank target N); 
+    transpose map(S^(-degrees source N), , transpose matrix apply(rank target M,i->apply(rank source N,j->		
+           sum(rank source M,k->contract(M_(i,k),N_(k,j) ))
+	    )))
+    )
+
+
+
+---
+---
+---
+---GENERAL STUFF ON DIFFERENTIAL MODULES
+---
+---
+---
 DifferentialModule = new Type of ChainComplex
 DifferentialModule.synonym = "differential module"
 
@@ -72,10 +106,6 @@ differentialModule Matrix := phi -> (
     new DifferentialModule from (chainComplex(phi**R^{d},phi)[1]));
 
 
-
-
-
-
 ring(DifferentialModule) := Ring => D -> D.ring;
 module DifferentialModule :=  (cacheValue symbol module)(D -> D_0);
 degree DifferentialModule := ZZ => (D -> (degrees D_1)_0 - (degrees D_0)_0);
@@ -84,6 +114,10 @@ differential DifferentialModule := Matrix=> (D->D.dd_1);
 kernel DifferentialModule := Module => opts -> (D -> kernel D.dd_0); 
 image DifferentialModule := Module => (D -> image D.dd_1); 
 homology DifferentialModule := Module => opts -> (D -> HH_0 D);
+
+isFreeModule(DifferentialModule) := D ->(
+    isFreeModule module D
+    )
 
 unfold = method();
 --Input:  a differential module and a pair of integers low and high
@@ -112,6 +146,72 @@ assert(kernel D / image D != 0)
 assert(degree HH D == 1)
 ///
 
+
+
+--  This code uses the Cartan-Eilenberg construction to build a "free resolution"
+--  of an arbitrary differential module.
+--  It could use some work.
+
+resDM = method(TypicalValue => DifferentialModule,
+            Options => {
+    	    LengthLimit => 3
+    	    });
+
+resDM(DifferentialModule) := opts -> (D) ->(
+    n := opts.LengthLimit;
+    d := degree D;
+    cyc := res(kernel D,LengthLimit =>n);
+    bou := res(image D,LengthLimit =>n);
+    R := ring D;
+    m := max(length cyc, length bou);
+    -- this is code which turns a resolution into a differential module...
+    L := apply(length cyc+1,j->(
+	    transpose concatMatrices apply(m+1,i->map(cyc_j,cyc_i, if i == j+1 then cyc.dd_i else 0))
+	));
+    cycDiff := transpose(concatMatrices L);
+    cycMod := cyc_0;
+    scan(m+1, i-> cycMod = cycMod ++ ((cyc_(i+1))**(R)^{(i+1)*d}));
+    L' := apply(length bou+1,j->(
+	    transpose concatMatrices apply(m+1,i->map(bou_j,bou_i, if i == j+1 then bou.dd_i else 0))
+	));
+    bouDiff := transpose(concatMatrices L');
+    bouMod := bou_0**(R)^{d};
+    scan(m+1, i-> bouMod = bouMod ++ ((bou_(i+1))**(R)^{(i+2)*d}));
+    --cycDiff and bouDiff are the differentials of cycle and boundary resolutions, as a diff module
+    psi := map(cyc_0,bou_0,gens image D // gens kernel D);
+    PSI = {psi};
+    scan(m,i-> PSI = PSI|{PSI_(i)*bou.dd_(i+1) // cyc.dd_(i+1)} );
+    K := apply(length cyc + 1,j->(
+	    apply(length bou+1,i->(
+		    map(cyc_j,bou_i, if j == i then PSI_i else 0)
+		    ))));
+    bouToCycDiff := transpose concatMatrices apply(K,i-> transpose concatMatrices i);
+    lastMap := map(bouMod,cycMod**R^{-d},0);
+    CEdiff := map(cycMod++bouMod,(cycMod++bouMod)**(ring D)^{-d}, (cycDiff|bouToCycDiff) || (lastMap|bouDiff));
+    differentialModule(chainComplex(CEdiff**(ring D)^{d},CEdiff)[1])
+	)
+    
+
+
+--  Input: a free differential module D
+--  Output: the module D' that would be the minimal part of D. 
+-- (We don't work out the differentials.)
+minimalPart = method();
+minimalPart(DifferentialModule) := G->(
+    if not isFreeModule G then error "G is not free";
+    phi := map(ring G,ring G, apply(# gens ring G, i-> 0));
+    Gbar := differentialModule phi(G);
+    source mingens HH Gbar
+    )
+
+
+
+---
+---
+---
+---TORIC BGG STUFF
+---
+---
 dualRingToric = method(
         Options => {
     	    Variable        => getSymbol "x",
@@ -150,26 +250,6 @@ assert(degrees SY == degrees S)
 ///
 
 
---Input:    A list of matrices with the same number of rows.
---Output:   The concatenation of those matrices.
-concatMatrices=method()
-concatMatrices(List) := L -> (
-    m:= first L;
-    scan(#L-1,i->m=m|L_(i+1));
-    m)
-
---Input:    A pair of matrices (M,N)
---Output:   The effect of contracting M by N. 
-matrixContract=method()
-matrixContract(Matrix,Matrix) := (M,N) -> (
-    S := ring M;
-    if M==0 or N==0 then return map(S^(-degrees source N),S^(degrees source M),0);
-    assert(rank source M == rank target N); 
-    transpose map(S^(-degrees source N), , transpose matrix apply(rank target M,i->apply(rank source N,j->		
-           sum(rank source M,k->contract(M_(i,k),N_(k,j) ))
-	    )))
-    )
-
 
 toricRR = method();
 --Input: (M,LL) M a (multi)-graded S-module.
@@ -205,8 +285,16 @@ TEST ///
 restart
 load "ToricTate.m2"
 kk=ZZ/101
-S=kk[x_0,x_1,Degrees=>{1,2}]
-D = toricRR(S^1,{0,1,2,3,4,5})
+S=kk[x_0,x_1,Degrees=>{1,1}]
+D = toricRR(S^1,{0,1})
+G = cornerDM({0},D,LengthLimit => 3)
+G_0 == minimalPart G
+tally degrees G_0
+--So it
+F = resDM(D, LengthLimit => 2)
+tally degrees F_0
+tally degrees minimalPart F
+F.dd_1
 assert(D.dd^2 == 0)
 assert(isHomogeneous D)
 ///
@@ -274,6 +362,18 @@ toricLL(ModuleMap) := (phi) ->(
 )
 
 
+--  Input:  a polynomial ring S
+--  Output:  a list of all degrees between 0 and the anti-canonical degree
+--  CAVEAT:  needs "Polyhedra" package.
+koszulDegrees = method();
+koszulDegrees(PolynomialRing) := S ->(
+    K := koszul vars S;
+    L := unique flatten apply(dim S+1,i-> degrees K_i);
+    P := convexHull transpose matrix L;
+    LP := latticePoints P;
+    sort flatten apply(#LP,i-> entries transpose (latticePoints P)_(i))
+    )
+
 --  Input:  degrees d1, d2, and a ring S
 --          Assumes d1,d2 are lists of integers of length n and that the variables
 --          of S have degrees which are lists of integers of length n.
@@ -281,6 +381,9 @@ toricLL(ModuleMap) := (phi) ->(
 greaterEqual=method()
 greaterEqual(List,List,Ring) := (d1,d2,S) -> hilbertFunction(d1-d2,S) != 0
 
+
+--  Input:  A module/matrix/chain complex and a multidegree d.
+--  Output:  The truncated module/matrix/chain complex in degrees <= d.
 degreeTruncation=method()
 degreeTruncation(Matrix,List) := (M,d) -> (
     --rows and cols with degrees <= d.
@@ -317,14 +420,20 @@ degreeTruncation(ChainComplexMap,List) := (phi,d) -> (
     )
 
 
+--   Input:  a ring S and a multidegree d.
+--   Output:  the truncated Koszul complex of summands of degrees <= d.
 truncatedKoszul = method();
 truncatedKoszul(Ring,List) := (S,d)->(
+    E := dualRingToric S;
     F := (toricLL(E^1))[-dim S];
     canon := sum degrees S;
     G := F**(ring F)^{-canon+d};
     source degreeTruncation(G,{0})
     )
 
+
+--   Input:  a ring S, degrees d1 and d2, and a map f between koszul complexes of degree d2-d1.
+--   Output:  the inducted map on truncated Koszul complexes.
 truncatedKoszulMap = method();
 truncatedKoszulMap(Ring,List,List,RingElement) := (S,d1,d2,f)->(
     if -remove(degree f,-1) != d2-d1 then error "Wrong degree for such a map";
@@ -334,6 +443,18 @@ truncatedKoszulMap(Ring,List,List,RingElement) := (S,d1,d2,f)->(
     toricLL phi
     )
 
+
+
+--NOW WE GET TO THE PART THAT REALLY NEEDS MORE WORK.
+--The following develop a "corner complex" code.
+--For weighted projective spaces, this can be used to compute parts of the Tate resolution,
+--and there compute sheaf cohomology.
+--But for other toric varieties, these corner complexes seem to compute something else.
+--This actually raises a significant theoretical question:  is there any analogue of the corner complex
+--for arbitrary toric varieties??
+
+--Input:  a differential module F, and a corner degree cDeg.
+--Output:  a new differential module F' where we have adjoined "killed" cycles of F of degree <= cDeg
 oneStepCorner = method();
 oneStepCorner(List,DifferentialModule) := (cDeg,F) -> (
     E := ring F;
@@ -360,68 +481,15 @@ oneStepCorner(List,DifferentialModule) := (cDeg,F) -> (
 
 
 
-resDM = method(TypicalValue => DifferentialModule,
-            Options => {
-    	    LengthLimit => 3
-    	    });
-
-resDM(DifferentialModule) := opts -> (D) ->(
-    --n := opts.LengthLimit;
-    d := degree D;
-    cyc := res kernel D;
-    -- this is code which turns a resolution into a differential module...
-    L := apply(length cyc+1,j->(
-	    transpose concatMatrices apply(m+1,i->map(cyc_j,cyc_i, if i == j+1 then cyc.dd_i else 0))
-	));
-    cycDiff := transpose(concatMatrices L);
-    cycMod := cyc_0;
-    scan(m+1, i-> cycMod = cycMod ++ ((cyc_(i+1))**(ring FF)^{(i+1)*d}));
-    bou := res image D;
-    L' := apply(length bou+1,j->(
-	    transpose concatMatrices apply(m+1,i->map(bou_j,bou_i, if i == j+1 then bou.dd_i else 0))
-	));
-    bouDiff := transpose(concatMatrices L');
-    bouMod := bou_0**(ring FF)^{d};
-    scan(m+1, i-> bouMod = bouMod ++ ((bou_(i+1))**(ring FF)^{(i+2)*d}));
-    --cycDiff and bouDiff are the differentials of cycle and boundary resolutions, as a diff module
-    psi := map(cyc_0,bou_0,gens image D // gens kernel D);
-    PSI = {psi};
-    m := min(length cyc, length bou);
-    scan(m,i-> PSI = PSI|{PSI_(i)*bou.dd_(i+1) // cyc.dd_(i+1)} );
-    K := apply(length cyc + 1,j->(
-	    apply(length bou+1,i->(
-		    map(cyc_j,bou_i, if j == i then PSI_i else 0)
-		    ))));
-    bouToCycDiff := transpose concatMatrices apply(K,i-> transpose concatMatrices i);
-    lastMap := map(bouMod,cycMod**(ring D)^{-d},0);
-    CEdiff := map(cycMod++bouMod,(cycMod++bouMod)**(ring D)^{-d}, (cycDiff|bouToCycDiff) || (lastMap|bouDiff));
-    differentialModule(chainComplex(CEdiff**(ring D)^{d},CEdiff)[1])
-	)
-
-
-
---  Input: a differential module D
---  Output: the module D' that would be the minimal part of D.  (We don't work out the differentials.)
-minimalPart = method();
-minimalPart(DifferentialModule) := G->(
-    phi := map(ring G,ring G, apply(# gens ring G, i-> 0));
-    Gbar := differentialModule phi(G);
-    source mingens HH Gbar
-    )
-
-
---NOW WE GET TO THE PART THAT NEEDS MORE WORK
---The idea is to develop a "corner complex" code
---cornerDM works for weighted projective spaces but seems to have
---issues for other varieties.
-
 cornerDM = method(TypicalValue => DifferentialModule,
             Options => {
     	    LengthLimit => 3
     	    });
 
 
--- options including lengthLimit?
+--Input:  a differential module F, and a corner degree cDeg, and an (optional) LengthLimit.
+--Output:  a new differential module F' where we have adjoined "killed" cycles of F of degree <= cDeg,
+--         and we have itereated that procedure for the specified number of steps.
 cornerDM(List,DifferentialModule) := opts -> (cDeg,F)->(
     n := opts.LengthLimit;
     scan(n, i-> F = oneStepCorner(cDeg,F));
@@ -429,27 +497,6 @@ cornerDM(List,DifferentialModule) := opts -> (cDeg,F)->(
     )   
 
 
-oneStepCorner(List,DifferentialModule) := (cDeg,F) -> (
-    E := ring F;
-    dF := degree F;
-    H := res(coker F.dd_1,LengthLimit => 2);
-    newSyz := (H.dd_2**(ring H)^{dF}) % H.dd_1;
-    G = chainComplex newSyz;
-    newSpots = {};
-    D := degrees G_1;
-    D1 := apply(D,i-> remove(i,-1));
---  keep nontrivial new syzygies which are "below" the corner
-    scan(#D1, i->(if greaterEqual(cDeg,D1#i,S) and D1#i != cDeg and submatrix(newSyz,{i}) != 0 
-	    then(newSpots = newSpots|{i};)));
-    Gpre := E^(apply(newSpots,i-> -D#i + dF));
-    phi := map(G_0,Gpre,(newSyz)_(newSpots));
-    psi := gens trim image(phi % (matrix H.dd_1));
-    Gnew := source psi;
-    d1 := psi|H.dd_1;    
-    d2 := map(Gnew**E^{dF},Gnew++H_1, (i,j)->0);
-    d := (d2||d1);
-    differentialModule(chainComplex(d**E^{dF},d)[1])
-)
 
 
 
@@ -458,17 +505,6 @@ oneStepCorner(List,DifferentialModule) := (cDeg,F) -> (
 
 
 
---  Input:  a polynomial ring S
---  Output:  a list of all degrees between 0 and the anti-canonical degree
---  CAVEAT:  needs "Polyhedra" package.
-koszulDegrees = method();
-koszulDegrees(PolynomialRing) := S ->(
-    K := koszul vars S;
-    L := unique flatten apply(dim S+1,i-> degrees K_i);
-    P := convexHull transpose matrix L;
-    LP := latticePoints P;
-    sort flatten apply(#LP,i-> entries transpose (latticePoints P)_(i))
-    )
 
 end;
 
@@ -509,40 +545,59 @@ G = cornerDM(cDeg,F,LengthLimit => 10)
 tally degrees minimalPart G
 
 
-code res
-addTateData = method()
-addTateData (Ring,Ideal) := (S,irr) ->(
-    S.irr = irr;
-    S.exterior = dualRingToric S;
-    S.koszul = koszul vars S;
-    S.degOmega = -(degrees S.koszul_(numgens S))_0;
---    Dan: I commented out this other "TateData" for now.  Not sure how we want to proceed with it.
---    S.sortedMons = sortedMonomials S.exterior;
---    S.complexes = cacheComplexes S;
---    S.complexes = cacheComplexes(S,true);
---    S.phis = cachePhi S;
---    S.degs = keys S.complexes;
-)
-
-
-end;
-///
-
-S = QQ[x_1,x_2,x_3]
-I = (ideal(x_1,x_2,x_3))^2
-r = res I
-r.dd_3
-///        
 
 
 restart
-n = 3
-d = 2
-S = ZZ/101[x_1..x_4]
-M = matrix{{x_1,x_2,x_3,x_4,0},{0,x_1,x_2,x_3,x_4}}
-betti res minors(2,M)
-mingens minors(2,M) 
-M = matrix{{x_1,x_2,x_3,0,0},{0,x_1,x_2,x_3,0},{0,0,x_1,x_2,x_3}}
-betti res minors(3,M)
-minors(3,M) == (ideal vars S)^3
-eagonNorthcott M
+load "ToricTate.m2"
+kk=ZZ/101
+S=kk[x_0,x_1]
+D = toricRR(S^1,toList(0..15))
+FD = resDM(D,LengthLimit => 8)
+tally degrees minimalPart FD
+tally degrees minimalPart cornerDM({0},D,LengthLimit =>8)
+
+
+
+kk=ZZ/101
+S=kk[x_0,x_1,Degrees =>{1,2}]
+D = toricRR(S^1,{0,1,2,3})
+FD = resDM D
+tally degrees minimalPart FD
+tally degrees minimalPart cornerDM({0},D,LengthLimit =>5)
+
+
+
+restart
+load "ToricTate.m2"
+S=ZZ/101[x,y];
+M = S^1/(x^2,y^2);
+phi = map(M,M**S^{-2},matrix{{x*y}})
+D = differentialModule( chainComplex(phi**S^{-2},phi)[1])
+FD = resDM D
+tally degrees minimalPart FD
+betti res HH D
+betti res HH FD
+
+restart
+load "ToricTate.m2"
+needsPackage "NormalToricVarieties"
+X = hirzebruchSurface(1)
+S = ring X
+F = toricRR(S^1,apply(koszulDegrees S,i-> i+{1,1}))
+FD = resDM(F,LengthLimit => 1)
+tally degrees minimalPart FD
+
+rk = res kernel F
+tally degrees rk_0
+tally degrees rk_1
+
+rb = res image F
+tally degrees rb_0
+tally degrees rb_1
+
+S=ZZ/101[x];
+M = S^1/(x^16);
+phi = map(M**S^{-10},M,matrix{{x^10}})
+D = differentialModule( chainComplex(phi,phi**S^{10})[1])
+betti res HH D
+minimalPart 
