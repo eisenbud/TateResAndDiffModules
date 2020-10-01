@@ -281,6 +281,38 @@ toricRR(Module,List) := (M,LL) ->(
     differentialModule(chainComplex{map(E^dfneg1,E^df0, g'),map(E^df0,E^df1, g')}[1])
     )
 
+
+--Input: (M,LL,VV) M a (multi)-graded S-module.
+--             LL a list of degrees.
+--    	      VV a list of positive integers e.g {1,3,5} paremtrizing variables from S
+--            (eg x_1, x_3,x_5)  which we'll use to construct RR.
+--Output:  The differenial module RR(M) in degrees from LL,
+--         presented as a complex in homological degrees -1, 0 ,1
+--         and with the same differential in both spots.
+toricRR(Module,List,List) := (M,LL,VV) ->(
+    S := ring(M);
+    if not isCommutative S then error "ring M is not commutative";
+    if not S.?exterior then S.exterior = dualRingToric(S);
+    E := S.exterior;
+    relationsM := presentation M;
+    -- this used to say "gens image presentation M"... just in case a bug arises
+    f0 := gens image basis(LL_0,M);
+    scan(#LL-1,i-> f0 = f0 | gens image basis(LL_(i+1),M));
+    df0 := apply(degrees source f0,i-> (-1)*i|{0});
+    df1 := apply(degrees source f0,i-> (-1)*i|{-1});
+    dfneg1 := apply(degrees source f0,i-> (-1)*i|{1});
+    SE := S**E;
+    --the line below is better for degrees,it overwrites S somehow...
+    --SE := coefficientRing(S)[gens S|gens E, Degrees => apply(degrees S,d->d|{0}) | degrees E, SkewCommutative => gens E];
+    tr := sum(VV, i-> SE_i*SE_(dim S+i));
+    newf0 := sub(f0,SE)*tr;
+    relationsMinSE := sub(relationsM,SE);
+    newf0 = newf0 % relationsMinSE;
+    newg := matrixContract(transpose sub(f0,SE),newf0);
+    g' := sub(newg,E);
+    differentialModule(chainComplex{map(E^dfneg1,E^df0, g'),map(E^df0,E^df1, g')}[1])
+    )
+
 TEST ///
 restart
 load "ToricTate.m2"
@@ -445,10 +477,10 @@ truncatedKoszulMap(Ring,List,List,RingElement) := (S,d1,d2,f)->(
 
 
 
---NOW WE GET TO THE PART THAT REALLY NEEDS MORE WORK.
---The following develop a "corner complex" code.
+--NOW WE GET TO A PART THAT REALLY NEEDS MORE WORK.
+--The following develops a "corner complex" code.
 --For weighted projective spaces, this can be used to compute parts of the Tate resolution,
---and there compute sheaf cohomology.
+--and therefore compute sheaf cohomology.
 --But for other toric varieties, these corner complexes seem to compute something else.
 --This actually raises a significant theoretical question:  is there any analogue of the corner complex
 --for arbitrary toric varieties??
@@ -514,7 +546,8 @@ load "ToricTate.m2";
 S = ZZ/101[x_0,x_1,x_2, Degrees => {{1},{1},{2}}];
 cDeg = {3}
 F = toricRR(S^1,apply(koszulDegrees(S),i-> i+cDeg))
-time G = cornerDM(cDeg,F,LengthLimit => 2)
+time G = cornerDM(cDeg,F,LengthLimit => 8)
+tally degrees minimalPart G - tally degrees F_0
 --takes a few seconds
 
 restart
@@ -525,15 +558,19 @@ S = ring X
 F = toricRR(S^1,apply(koszulDegrees S,i-> i+{1,1}))
 G = cornerDM({1,1},F,LengthLimit => 1);
 tally degrees minimalPart G - tally degrees F_0
---None of these seem to be the "right" cohomology groupsl
+tally degrees G_0
+--None of these seem to be the "right" cohomology groups
 --If you investigate the (1,0), we'd expect two syzygies
 --corresponding to x_0 and x_2, the elements of degree (1,0).
 --But there is a third fake syzygy which seems to correspond to x_3/x_1,
 --which is not an element of S but which has degree (1,0).
 --I think the issue is that, somehow, we are not taking the irrelevant ideal 
---into account in any way.  But I don't see how to make that intuition precise.
+--into account in any way, but I don't see how to do that...
 
 
+F = toricRR(S^1,koszulDegrees S)
+G = cornerDM({-1,0},F,LengthLimit => 3);
+tally degrees minimalPart G - tally degrees F_0
 
 restart
 load "ToricTate.m2";
@@ -556,7 +593,12 @@ FD = resDM(D,LengthLimit => 8)
 tally degrees minimalPart FD
 tally degrees minimalPart cornerDM({0},D,LengthLimit =>8)
 
-
+needsPackage "NormalToricVarieties"
+X = smoothFanoToricVariety(2,3)
+S = ring X
+degrees S
+decompose ideal X
+degrees S
 
 kk=ZZ/101
 S=kk[x_0,x_1,Degrees =>{1,2}]
@@ -595,9 +637,10 @@ rb = res image F
 tally degrees rb_0
 tally degrees rb_1
 
+load "ToricTate.m2"
 S=ZZ/101[x];
 M = S^1/(x^16);
 phi = map(M**S^{-10},M,matrix{{x^10}})
 D = differentialModule( chainComplex(phi,phi**S^{10})[1])
-betti res HH D
-minimalPart 
+FD = resDM D
+minimalPart FD
