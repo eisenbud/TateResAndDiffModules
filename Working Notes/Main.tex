@@ -132,6 +132,7 @@
 \newcommand\commentm[1]{{\color{magenta} \sf [#1]}}
 \newcommand{\daniel}[1]{{\color{blue} \sf $\clubsuit\clubsuit\clubsuit$ Daniel: [#1]}}
 \newcommand{\michael}[1]{{\color{red} \sf $\clubsuit\clubsuit\clubsuit$ Michael: [#1]}}
+\newcommand{\david}[1]{{\color{green} \sf $\clubsuit\clubsuit\clubsuit$ David: [#1]}}
 
 \def\edim{\operatorname{edim}}
 \def\reg{\operatorname{reg}}
@@ -291,7 +292,7 @@ $$
 D[j] = D(-a)
 $$
 for all $j \in \Z$, with morphisms given by maps of complexes that are identical in each homological degree. 
-There is an equivalence of categories
+\david{nonsense for $j=0$, assuming that morphisms are degree 0 homogeneous. What's really meant?} There is an equivalence of categories
 $$
 \Ex: \DM(R,a) \xra{\simeq} \Comper(R,a)
 $$
@@ -346,6 +347,7 @@ thought of as a differential module, does not admit a flag. The object $(\ZZ[x]/
 \begin{rem}
 A split flag $(D, \del)$ such that $\del(D_i) \subseteq D_{i + 1}$ is the same thing as a 
 chain complex of $R$-modules that is concentrated in nonnegative degrees.  
+\david{maybe $\del(D_i) \subseteq D_{i - 1}$}
 \end{rem}
 
 \begin{defn}
