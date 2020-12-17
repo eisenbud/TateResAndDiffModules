@@ -161,7 +161,7 @@
 \def\coker{\on{coker}}
 \def\p{\partial}
 \def\wt{\widetilde}
-\def\o{\omega}
+\def\om{\omega}
 \def\l{\ell}
 \def\i{\iota}
 \nc{\into}{\hookrightarrow}
@@ -226,6 +226,9 @@
 \def\b{\beta}
 \nc{\B}{\mathcal{B}}
 \nc{\K}{\mathcal{K}}
+\nc{\kos}{\on{Kos}}
+\nc{\Perf}{\on{Perf}}
+\nc{\tR}{\widetilde{\cR}}
 \title{Title}
 \date{\today}
 
@@ -536,7 +539,7 @@ Now take $h : \tP \to \tP'$ to be the map given by $(p, d) \mapsto s(p)$, and ob
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{$\otimes$ and $\underline{\Hom}$ for differential modules}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-As stated in \cite{ABI}, there is no tensor product for general differential modules. However, suppose $A$ is of the form $B \times \Z$ for some abelian group $B$, and let $a \in A$ be of the form $(b, \pm 1)$ for some $b \in B$. We can use the $\Z$-grading to define notions of tensor product and internal $\Hom$ for degree $a$ differential $R$-modules in the following way. First, if $N$ is an $A$-graded $R$-module, and $n \in N$ is homogeneous with respect to the $\Z$-grading, define $||n|| \in \Z$ to be the $\Z$-degree of $n$. Let $(D, \del_D), (D', \del_{D'}) \in \DM(R, a)$, and assume $D$ and $D'$ are equipped with left $R$-actions making them $R$-$R$-bimodules. Define
+As stated in \cite{ABI}, there is no tensor product for differential modules in general. However, suppose $A$ is of the form $B \times \Z$ for some abelian group $B$, and let $a \in A$ be of the form $(b, \pm 1)$ for some $b \in B$. We can use the $\Z$-grading to define notions of tensor product and internal $\Hom$ for degree $a$ differential $R$-modules in the following way. First, if $N$ is an $A$-graded $R$-module, and $n \in N$ is homogeneous with respect to the $\Z$-grading, define $||n|| \in \Z$ to be the $\Z$-degree of $n$. Let $(D, \del_D), (D', \del_{D'}) \in \DM(R, a)$, and assume $D$ and $D'$ are equipped with left $R$-actions making them $R$-$R$-bimodules. Define
 $$
 D \otimes_R^{\DM} D' = (D \otimes_R D', d \otimes d' \mapsto \del_D(d) \otimes d' + (-1)^{||d||}d \otimes \del_{D'}(d')) \in \DM(R, a)
 $$
@@ -560,7 +563,7 @@ $$
 $$
 and
 $$
-\Ext_R^{\DM}(D, D') = H(\Hom^{\DM}_R(F, D')).
+\Ext_R^{\DM}(D, D') = H(\underline{\Hom}^{\DM}_R(F, D')).
 $$
 It follows easily from Proposition \ref{prop:lifting} that these definitions do not depend on the choice of free flag resolution. 
 
@@ -905,9 +908,9 @@ $$
 $$
 and differential given by multiplication on the right by $\sum_{i = 0}^n e_i \otimes x_i$. The functor $\LL_{\on{st}}$ is extended to complexes by applying the above formula to each term and taking the direct sum totalization of the resulting bicomplex. If $M$ is a graded $S$-module, the complex $\RR_{\on{st}}(M)$ has terms
 $$
-\RR_{\on{st}}(M)_j = M_{-j} \otimes_k \o(j), 
+\RR_{\on{st}}(M)_j = M_{-j} \otimes_k \om(j), 
 $$
-where $\o = \Hom_k(E, k)$. Note that $\o$ is (non-canonically) isomorphic to $E(-n-1)$. The differential on $\RR_{\on{st}}(M)$ is multiplication on the right by $ \sum_{i = 0}^n x_i \otimes e_i$. One extends $\RR_{\on{st}}$ to complexes in the same way as $\LL_{\on{st}}$. 
+where $\om = \Hom_k(E, k)$; the notation ``$\om$" for this module will be explained in Section \ref{FM}. Note that $\om$ is (non-canonically) isomorphic to $E(-n-1)$. The differential on $\RR_{\on{st}}(M)$ is multiplication on the right by $ \sum_{i = 0}^n x_i \otimes e_i$. One extends $\RR_{\on{st}}$ to complexes in the same way as $\LL_{\on{st}}$. 
 
 
 
@@ -916,17 +919,26 @@ Now, let $A$ be an abelian group, let $a_0, \dots, a_n \in A$, and equip $S = \S
 
 \begin{example}
 \label{grading}
-Suppose $S = k[x_0, x_1]$ is equipped with the $\Z$-grading such that $|x_0| = 1$ and $|x_1| = 2$. Take $E= \Lambda(e_0, e_1)$, $\Z$-graded such that $|e_0| = -1$ and $|e_1| = -2$. Let $M$ be a graded $S$-module, and take $\RR(M) = \bigoplus_{j \in \Z} M_{-j} \otimes_k \o(j)$. Notice that the square-zero endomorphism $\del_{\RR} = x_0 \otimes e_0 + x_1 \otimes e_1$ of $\RR(M)$ does not respect the homological grading $\RR(M)_j = M_{-j} \otimes_k \o(j)$. One has the same problem defining the functor $\LL$.
+Suppose $S = k[x_0, x_1]$ is equipped with the $\Z$-grading such that $|x_0| = 1$ and $|x_1| = 2$. Take $E= \Lambda(e_0, e_1)$, $\Z$-graded such that $|e_0| = -1$ and $|e_1| = -2$. Let $M$ be a graded $S$-module, and take $\RR(M) = \bigoplus_{j \in \Z} M_{-j} \otimes_k \om(j)$. Notice that the square-zero endomorphism $\del_{\RR} = x_0 \otimes e_0 + x_1 \otimes e_1$ of $\RR(M)$ does not respect the homological grading $\RR(M)_j = M_{-j} \otimes_k \om(j)$. One has the same problem defining the functor $\LL$. \michael{Add picture of this ``complex."}
 \end{example}
 
-Our solution to the problem in Example \ref{grading} is as follows:
+A solution to the problem in Example \ref{grading} is as follows:
 \begin{enumerate}
 \item We equip the exterior algebra $E = \Lambda(V)$ with an $A \times \Z$-grading given by $|e_i| = (-a_i, -1)$, and we only consider $A \times \Z$-graded $E$-modules. We call the additional $\Z$-grading the \emph{auxiliary grading} of $E$. This extra grading allows us to define a homological grading on the output of the functor $\LL$. \daniel{I'm tempted to use a notation like $(a;1)$ instead of $(a,1)$, though I could be talked out of this.} \michael{I don't have a strong opinion on this.}
 \item We want to consider all $A$-graded $S$-modules, and not only those equipped with an additional auxiliary grading. We therefore do not impose a homological grading on the image of the functor $\RR$; instead, we allow $\RR$ to take values in the category $\DM(E) := \DM(E , (0, -1))$ of degree $(0, -1)$ differential $E$-modules.
 \end{enumerate}
 
-We now discuss the toric BGG correspondence in detail.
+With these modifications, one can use essentially the same arguments as in the classical setting to prove a toric analogue of the BGG correspondence: see Corollary \ref{bounded} below. Since many of the ingredients in the proof will be useful later on, we give a detailed proof here, closely following the exposition in \cite[Sections 2 and 3]{EFS}.
 
+\begin{rem}
+The idea of using differential modules to generalize the BGG correspondence is not new; for instance, Rouquier uses a similar strategy in \cite[Section 4]{rouquier} to give an analogue of the BGG correspondence for non-graded polynomial and exterior algebras. An equivalent formulation of the toric BGG correspondence is also stated by Baranovsky in \cite{baranovsky}. \michael{It's actually stated without proof in Baranovsky's paper, at the end of the proof of Theorem 8. Not sure how fine a point we want to put on this...}
+\end{rem}
+
+%%%
+\iffalse
+ it is stated in the proof of \cite[Theorem 8]{baranovsky} that there is an equivalence of categories between $\Db(S)$ and $\Db(E)$, where $E$ is considered as a dg-algebra with trivial differential and homological grading induced by the ``auxiliary" $\Z$-grading defined above.
+\fi
+%%%
 
 \daniel{I think we want to include the functor $\RR_I$ where $I\subseteq \{1, \dots, n\}$ and the differential is $\sum_{i\in I} x_i\otimes e_i$.  These restricted differentials play a key role in the Tate resolution stuff.} \michael{I agree. Not sure we should expect these functors to be adjoints, by the way. The map $\RR_I$ is given by extending scalars to the smaller set of variables, applying $\RR$, and then restricting scalars back to the larger set of variables; the problem is that extension of scalars is a left adjoint, while $\RR$/restriction of scalars are right adjoints.}
 %%%%%%%%%%%%%%%
@@ -1039,9 +1051,9 @@ given by representing each class in $\LL(D)_m$ by an element concentrated in the
 
 If $M$ is an $S$-module concentrated in degree 0, the differential module $\RR(M)$ has underlying module
 $$
-\bigoplus_{d \in A} M_{-d} \otimes \o(d, 0),
+\bigoplus_{d \in A} M_{-d} \otimes \om(d, 0),
 $$
-where, as in the classical BGG correspondence, $\o$ denotes the $E$-module $\Hom_k(E, k)$. Here, $\o$ is (non-canonically) isomorphic to $E(-\sum_{i = 0}^n a_i, -n-1)$. The differential on $\RR(M)$ is given by $\del_\RR = \sum_{i = 0}^n x_i \otimes e_i$.
+where, as in the classical BGG correspondence, $\om$ denotes the $E$-module $\Hom_k(E, k)$. Here, $\om$ is (non-canonically) isomorphic to $E(-\sum_{i = 0}^n a_i, -n-1)$. The differential on $\RR(M)$ is given by $\del_\RR = \sum_{i = 0}^n x_i \otimes e_i$.
 Given an object $C \in \Com(S)$, we define $\RR(C)$ as follows: form a bicomplex with $q^{\th}$ row given by the expansion $\Ex(\RR(C_q))$ and $p^{\th}$ vertical differential given by $(-1)^p\del_C$, apply $\on{Tot}^{\oplus}( - )$ to get an object in $\Comper(E, (0,-1))$, and apply the equivalence in Section \ref{expansion} to obtain an object in $\DM(E)$. Explicitly: $\RR(C)$ has underlying module $\bigoplus_{j \in \Z} \RR(C_j)(0, -j)$ and differential $\del_\RR$ that acts by $ \sum_{i = 0}^n x_i \otimes e_i + (-1)^j\del_C$ on the summand $\RR(C_j)(0, -j)$.
 
 %%%%%%
@@ -1059,7 +1071,7 @@ Given an object $C \in \Com(S)$, we define $\RR(C)$ as follows: form a bicomplex
 %%%%%%
 
 \begin{remark}\label{rmk:PPn DM is complexes}
-Our toric BGG functors are related to the classical ones in the following way. Suppose $A = \Z$ and $a_i = 1$ for all $i$. Recall that $\Com(E)$ denotes the category of complexes of $\Z$-graded $E$-modules, where $E$ is equipped with the $\Z$-grading given by $|e_i| = -1$; while $\DM(E)$ is the category of degree $(0, -1)$ differential $E$-modules, where $E$ is $\Z \times \Z$-graded such that $|e_i| = (-1, -1)$. In this case, there is an equivalence (in fact, an isomorphism) of categories
+When $A = \Z$ and $a_i = 1$ for all $i$, our toric BGG functors are essentially the same as the classical ones. In detail: recall that $\Com(E)$ denotes the category of complexes of $\Z$-graded $E$-modules, where $E$ is equipped with the $\Z$-grading given by $|e_i| = -1$; while $\DM(E)$ is the category of degree $(0, -1)$ differential $E$-modules, where $E$ is $\Z \times \Z$-graded such that $|e_i| = (-1, -1)$. In this case, there is an equivalence (in fact, an isomorphism) of categories
 $$
 \Com(E) \simeq \DM(E)
 $$
@@ -1075,8 +1087,9 @@ Notice that $N_j$ is a submodule of $N$. Since $\del_N$ is a map from $N$ to $N(
 $$
 \on{Unfold} : \DM(E) \to \Com(E)
 $$
-by $(N, \del_N) \mapsto (\cdots \xra{\del_N} N_j \xra{\del_N} N_{j-1} \xra{\del_N} \cdots ).$ It's easy to check that $\on{Fold}$ and $\on{Unfold}$ are inverses. Moreover, we have $\LL_{\on{st}} = \LL \circ \on{Fold}$ and $\RR_{\on{st}} = \on{Unfold} \circ \RR$.
+by $(N, \del_N) \mapsto (\cdots \xra{\del_N} N_j \xra{\del_N} N_{j-1} \xra{\del_N} \cdots ).$ It's easy to check that $\on{Fold}$ and $\on{Unfold}$ are inverses. Moreover, we have $\LL = \LL_{\on{st}} \circ \on{Unfold}$ and $\RR = \on{Fold} \circ \RR_{\on{st}}$.
 \end{remark}
+
 
 
 \begin{prop}
@@ -1099,143 +1112,36 @@ $$
 $$
 given by morphisms that commute with the differentials. On the other hand, the space $\Hom_{\DM(E)}((N, \del_N), \RR(C))$ is the subspace of 
 \begin{align*}
-\Hom_E(N, \bigoplus_{a \in A, j \in \Z} (M_j)_{-a} \otimes_k \o(a, -j)) &= \prod_{a \in A, j \in \Z}\Hom_E(N,  \Hom_k(E(-a, j), (M_j)_{-a}  ))  \\
+\Hom_E(N, \bigoplus_{a \in A, j \in \Z} (M_j)_{-a} \otimes_k \om(a, -j)) &= \prod_{a \in A, j \in \Z}\Hom_E(N,  \Hom_k(E(-a, j), (M_j)_{-a}  ))  \\
 &=   \prod_{a \in A, j \in \Z} \Hom_k(N(-a, j),  (M_j)_{-a} ) \\
 &=  \prod_{a \in A, j \in \Z} \Hom_k(N_{(-a, j)},   (M_j)_{-a} )
 \end{align*}
-given by morphisms that commute with the differentials; the first equality holds because each $(M_j)_{-a} \otimes_k \o(a, -j)$ is 0 in all but finitely many degrees. Reindexing by replacing $a$ with $-a$, we get
+given by morphisms that commute with the differentials; the first equality holds because each $(M_j)_{-a} \otimes_k \om(a, -j)$ is 0 in all but finitely many degrees. Reindexing by replacing $a$ with $-a$, we get
 $$
 \prod_{a \in A, j \in \Z} \Hom_k(N_{(a, j)},   (M_j)_{a} ),
 $$
 as desired. Finally, one checks that the requirements imposed by compatibility with the differentials coincide.\end{proof}
 
 
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%
-
-\michael{under construction from here.}
-The functors $\LL$ and $\RR$ are not inverses, but they are inverses up to quasi-isomorphism:
-
-\begin{prop}
-\label{resolutions}
-For any $C \in \Com(S)$ and $N \in \DM(E)$, we have equalities
-\begin{align*}
-(\LL \circ \RR)(C) &= C \otimes_k (\LL \circ \RR)(k) \\
-(\RR \circ \LL)(N) &= N \otimes^{\DM}_k (\RR \circ \LL)(k).
-\end{align*}
-In particular, $\LL$ and $\RR$ are inverses up to natural quasi-isomorphism. 
-\end{prop}
-
-\begin{proof}
-We have:
-\begin{align*}
-((\LL \circ \RR)(C)_i)_a &= \bigoplus_{d \in A} \RR(C)_{(d, i)} \otimes_k S_{a - d} \\
-&= \bigoplus_{d \in A} \bigoplus_{j \in \Z} \RR(C_j)(0, -j)_{(d, i)} \otimes_k S_{a - d} \\
-&= \bigoplus_{d \in A} \bigoplus_{j \in \Z} \bigoplus_{b \in A} (C_j)_{-b} \otimes_k \o_{(b + d, i - j)} \otimes_k S_{a - d}. \\
-&= \bigoplus_{j \in \Z} \bigoplus_{d \in A} \bigoplus_{b \in A} (C_j)_b \otimes_k   \o_{(d, i - j)} \otimes_k S(-d)_{a - b} \\
-&= \bigoplus_{j \in \Z} \bigoplus_{d \in A} (C_j \otimes_k   \o_{(d, i - j)} \otimes_k S(-d))_a \\
-&= \bigoplus_{j \in \Z} (C_j \otimes_k  (\LL \circ \RR)(k)_{i - j} )_a \\
-&= ((C \otimes_k  (\LL \circ \RR)(k))_i)_a.
-\end{align*}
-This gives the first equality. As for the second:
-\begin{align*}
-(\RR \circ \LL)(N)_{(a, i)} &= (\bigoplus_{j \in \Z} (\RR(\LL(N)_j)(0, -j))_{(a, i)} \\
-&= \bigoplus_{j \in \Z}  \bigoplus_{d \in A} (\LL(N)_j)_{-d} \otimes_k \o_{(a + d, i-j)} \\
-&= \bigoplus_{j \in \Z}  \bigoplus_{d \in A} \bigoplus_{b \in A} N_{(b,j)} \otimes_k S_{-b-d} \otimes_k \o_{(a + d, i-j)} \\
-&= \bigoplus_{(a,j) \in A \times \Z} N_{(b,j)} \otimes_k (\RR \circ \LL)(k)_{(a-b,i-j)} \\
-&= N \otimes_k (\RR \circ \LL)(k).
-\end{align*}
-For the last statement, observe that $(\LL \circ \RR)(k)$ is the Koszul complex on the variables in $S$, and 
-\end{proof}
-
-$d_L + (-1)^i d_C$
-$d_L + (-1)^{|c|} d_C$
-%%%%
-\iffalse
-\begin{lemma}
-\label{colimit}
-Let $A$ be an $A$ abelian group, let $R$ be an $A$-graded ring, and let $a \in A$. Every differential module $(D, \del) \in \DM(R, a)$ is a direct limit of differential submodules whose underlying modules are finitely generated.
-\end{lemma}
-
-\begin{proof}
-Let $\{D_i \}_{i \in I}$ be the set of all submodules of $D$. Since $D$ is the direct limit of the $D_i$, $(D, \del)$ is the direct limit of the differential modules $(D_i + \del(D_i)(-a), \del)$. 
-\end{proof}
-\fi
-%%%%
-
-
-
-
-
-
-The derived category $\on{D}_{\DM}(E)$ is obtained by inverting quasi-isomorphisms in $\DM(E)$. Denote by $\Db_{\DM}(E)$ the subcategory of $\on{D}_{\DM}(E)$ given by objects with finitely generated homology. 
-
-
-
-
-
-
-We observe that the functors $\LL$ and $\RR$ preserve objects with finitely generated homology, as well as mapping cones and homotopy equivalences. It follows that $\LL$ and $\RR$ induce functors on bounded derived categories. 
-
-
-
-
-\begin{cor}
-The induced maps 
-$$
-\LL : \DMb(E)  \leftrightarrows \on{D}^{\on{b}}(S) : \RR
-$$
-are inverse equivalences.
-\end{cor}
-
-Given any $A \times \Z$-graded ring $R$, define a functor
-$$
-\on{Fold} : \Com(R) \to \DM(R, a)
-$$
-given by
-$$
-(\on{Fold}(C))_i = \bigoplus_{j \in \Z} C_j(0, j-i)
-$$
-and with $i^{\th}$ differential given by $(-1)^id^C$. 
-
-
-
-
-%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Properties of the functors $\LL$ and $\RR$}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We record several properties of the toric BGG functors. Each is a direct analogue of a result in the classical BGG story and is proven in essentially the same way.
+Just as in the classical setting, the functors $\LL$ and $\RR$ are not inverses, but they are inverses up to quasi-isomorphism. Before we prove this, we record the following calculation of the homology of the functors $\LL$ and $\RR$.
 
 \begin{prop}[cf. \cite{EFS} Proposition 2.3]
 \label{tor} 
-Let $C \in \Com(S)$, and let $N$ be a finitely generated $A \times \Z$-graded $E$-module, considered as an object in $\DM(E)$ with trivial differential.
+Let $C \in \Com(S)$, and let $N$ be a finitely generated $A \times \Z$-graded $E$-module. We have
 \begin{itemize}
-\item[(a)] We have
-$$
-H(\RR(C))_{(a, j)} = H_{j} (C \otimes^{\mathbb{L}}_S k)_a.
-$$
-In particular, if $C$ is concentrated in degree 0, $H(\RR(C))_{(a, j)} = \Tor_{j}^S(C, k)_a$
-
-\item[(b)] Letting $w = \sum_{i = 0}^n a_i \in A$, we have
-$$
-H_j(\LL(N))_a=\Ext^{\DM}_E(k, N)_{(a, j)}.
-$$
+\item[(a)] $H(\RR(C))_{(a, j)} = \on{Tor}_j^S(C, k)_a$, and
+\item[(b)] $H_j(\LL(N))_a=\Ext^{\DM}_E(k, N)_{(a, j)}$.
 \end{itemize}
 \end{prop}
 \michael{The finiteness hypothesis on $N$ is not present in \cite[Proposition 2.3]{EFS}, but I think it may be necessary here. See my comment in the proof. Please double check me on this; perhaps I'm wrong and the finiteness assumption isn't necessary!}
 
 \begin{proof}
-We can view the Koszul complex $K$ on the variables of $S$ as the complex of $A$-graded $S$-modules with homological degree $j$ component $\bigoplus_{d \in A} S(-d) \otimes_k \o_{(d, j)}$ and differential  given by multiplication by $\sum_{i = 0}^n x_i \otimes e_i$. We have:
+We can view the Koszul complex $K$ on the variables of $S$ as the complex of $A$-graded $S$-modules with homological degree $j$ component $\bigoplus_{d \in A} S(-d) \otimes_k \om_{(d, j)}$ and differential  given by multiplication by $\sum_{i = 0}^n x_i \otimes e_i$. We have:
 \begin{align*}
 \RR(C)_{(a, j)} &= (\bigoplus_{ i \in \Z} \RR(C_i)(0,-i))_{(a, j)} \\
-& = (\bigoplus_{i \in \Z} \bigoplus_{d \in A} (C_i)_{-d} \otimes_k \o(d, -i))_{(a, j)} \\ 
-& = \bigoplus_{i \in \Z} \bigoplus_{d \in A} (C_i)_{-d} \otimes_k \o_{(d+a, j - i)} \\
-& = \bigoplus_{i \in \Z} \bigoplus_{d \in A} (C_i(-d))_a \otimes_k \o_{(d, j - i)}  \\
+& = (\bigoplus_{i \in \Z} \bigoplus_{d \in A} (C_i)_{-d} \otimes_k \om(d, -i))_{(a, j)} \\ 
+& = \bigoplus_{i \in \Z} \bigoplus_{d \in A} (C_i)_{-d} \otimes_k \om_{(d+a, j - i)} \\
+& = \bigoplus_{i \in \Z} \bigoplus_{d \in A} (C_i(-d))_a \otimes_k \om_{(d, j - i)}  \\
 & = (\bigoplus_{ i \in \Z} C_i \otimes_S K_{j - i})_a \\
 & = ((C \otimes_S K)_{j})_a.
 \end{align*}
@@ -1245,30 +1151,141 @@ This equality identifies cyles in $\RR(P)_{(a, j)}$ with $j$-cycles in $(C \otim
 & = \bigoplus_{d \in A} N_{(d, j)} \otimes_k S_{a-d} \\
 & = \bigoplus_{d \in A} S_{-d} \otimes_k N_{(d + a, j)} \\
 & =  \bigoplus_{d \in A} S_{-d} \otimes_k N(-w + d , -n -1)_{(w + a, j + n + 1)} \\
-& =  (\bigoplus_{d \in A} S_{-d} \otimes_k \o(d, 0) \otimes_E N)_{(w + a, j + n + 1)} \\
-&= (\RR(S) \otimes_E N)_{(w + a, j + n + 1)} \\
-&= \Hom_E(\RR(S)^\vee, N)_{(w + a, j + n + 1)}. 
+& =  (\bigoplus_{d \in A} S_{-d} \otimes_k \om(d, 0) \otimes_E N)_{(w + a, j + n + 1)} \\
+&= (\RR(S) \otimes^{\DM}_E N)_{(w + a, j + n + 1)} \\
+&= \underline{\Hom}_E^{\DM}(\RR(S)^\vee, N)_{(w + a, j + n + 1)}. 
 \end{align*}
 The last equality follows since $N$ is finitely generated. \michael{The reason finitely generated is necessary is that pulling a direct sum out of the first component of $\Hom$ gives a product. Even the fact that we're in the graded setting doesn't seem to help us avoid this. Note that, in \cite{EFS}, there is a homological grading, and each term of the complex $\RR(S)^\vee$ is finitely generated, so this problem doesn't arise. Maybe we should include a comment about this?} As above, this equality identifies $j$-cycles in $\LL(N)_a$ with cycles in $\Hom_E(\RR(S)^\vee, N)_{(w + a, j + n + 1)}$. Finally, note that $\RR(S)^\vee(w, n+1)$ is a free flag resolution of the residue field $k$, considered as an object in $\DM(E)$ with trivial differential.
 \end{proof}
 
 \begin{cor}\label{cor:RM high degree}
-If $M$ is a finitely generated $A$-graded $S$-module, $\dim_k H(\RR(M)) < \infty.$
+If $C$ is a bounded complex of finitely generated $A$-graded $S$-modules, then $H(\RR(M))$ is a finite dimensional $k$-vector space.
 \end{cor}
 
 
+\begin{prop}(cf. \cite{EFS} Theorem 2.6)
+\label{resolutions}
+Let $C \in \Com(S)$ and $N \in \DM(E)$. There is a natural surjective quasi-isomorphism $(\LL \circ \RR)(C) \xra{\simeq} C$ and a natural injective quasi-isomorphism $N \xra{\simeq} (\RR \circ \LL)(N)$.
+\end{prop}
 
-%\begin{rem}
-%$\RR(M)$ does \emph{not} seem to be the 1-periodic folding of $M \otimes_S K$, as complexes of $A \times \Z$-graded $k$-vector spaces. The degrees are off. Note that $M \mapsto M \otimes_S K$ is Baranovsky's BGG functor; he thinks of $M \otimes_S K$ as a dg-module over the dg-algebra $K$. So it's not clear how exactly to relate Baranovsky's BGG functor to ours. 
-%\daniel{I'm confused by this.}
-%\end{rem}
+\michael{I'm resisting calling these quasi-isomorphisms ``resolutions", because I'm not sure this is the right word. For instance, $(\LL \circ \RR)(C) \to C$ is a surjective quasi-isomorphism of a free complex onto $C$, but $(\LL \circ \RR)(C)$ isn't necessarily a projective object in the category of complexes, because it isn't necessarily bounded on the right. Maybe I'm begin overly picky here.}
 
+\michael{A paranthetical at the end of the proof of \cite[Theorem 2.6]{EFS} says that $(\LL \circ \RR)(M)$ is isomorphic to $M \otimes_k K$, where $K$ is the Koszul complex and the $S$-action on $M \otimes_k K$ is the diagonal action. But I don't understand how this could be. For instance, take $M = k[x]/(x^2)$. The $S$-action on $M \otimes_k K$ is given by $x(m \otimes v) = xm \otimes xv$. But this means $x (x \otimes 1) = 0$, i.e. $M \otimes_k K$ has torsion. But of course $(\LL \circ \RR)(M)$ is free. Am I misunderstanding what is meant by ``diagonal action"?
+
+Even if we attempt to resolve the above problem by defining the $S$-module action so that $S$ only acts on $K$, the statement remains false. Again, take $M = k[x]/(x^2)$. Then $M \otimes_k K$ is just a direct sum of two Koszul complexes, so it's a free resolution of two copies of $k$. But, $(\LL \circ \RR) (M)$ is a free resolution of $k[x]/(x^2)$. So, the two complexes can't even be quasi-isomorphic (although one can check they are isomorphic as modules).}
+%%%%
+
+
+\begin{proof}[Proof of Proposition \ref{resolutions}]
+For any $a \in A$ and $i \in \Z$, we have
+\begin{align*}
+((\LL \circ \RR)(C)_i)_a &= \bigoplus_{d \in A} \RR(C)_{(d, i)} \otimes_k S_{a - d} \\
+&= \bigoplus_{d \in A} \bigoplus_{j \in \Z} \RR(C_j)(0, -j)_{(d, i)} \otimes_k S_{a - d} \\
+&= \bigoplus_{d \in A} \bigoplus_{j \in \Z} \bigoplus_{b \in A} (C_j)_{-b} \otimes_k \om_{(b + d, i - j)} \otimes_k S_{a - d}. \\
+&= \bigoplus_{j \in \Z} \bigoplus_{d \in A} \bigoplus_{b \in A} (C_j)_b \otimes_k   \om_{(d, i - j)} \otimes_k S(-d)_{a - b} \\
+&= \bigoplus_{j \in \Z} \bigoplus_{d \in A} (C_j \otimes_k   \om_{(d, i - j)} \otimes_k S(-d))_a \\
+&= \bigoplus_{j \in \Z} (C_j \otimes_k  (\LL \circ \RR)(k)_{i - j} )_a \\
+&= ((C \otimes_k  (\LL \circ \RR)(k))_i)_a,
+\end{align*}
+and 
+\begin{align*}
+(\RR \circ \LL)(N)_{(a, i)} &= \bigoplus_{j \in \Z} (\RR(\LL(N)_j)(0, -j))_{(a, i)} \\
+&= \bigoplus_{j \in \Z}  \bigoplus_{d \in A} (\LL(N)_j)_{-d} \otimes_k \om_{(a + d, i-j)} \\
+&= \bigoplus_{j \in \Z}  \bigoplus_{d \in A} \bigoplus_{b \in A} N_{(b,j)} \otimes_k S_{-b-d} \otimes_k \om_{(a + d, i-j)} \\
+&= \bigoplus_{(a,j) \in A \times \Z} N_{(b,j)} \otimes_k (\RR \circ \LL)(k)_{(a-b,i-j)} \\
+&= (N \otimes_k (\RR \circ \LL)(k))_{(a, i)}.
+\end{align*}
+We therefore have an identification $(\LL \circ \RR)(C)_i = (C \otimes_k  (\LL \circ \RR)(k))_i$ of $A$-graded $S$-modules for all $i \in \Z$ and an identification $(\RR \circ \LL)(N) = N \otimes_k (\RR \circ \LL)(k)$ of $A \times \Z$-graded $E$-modules, where the module action is on the right tensor factor in both cases.
+
+Note that $(\LL \circ \RR)(k)$ is the Koszul complex on the variables of $S$. There is a natural map of $S$-modules $(\LL \circ \RR)(k) \to k$, and tensoring this map over $k$ with $\id_C$ gives a surjective chain map $f: (\LL \circ \RR)(C) \to C$. Similarly, there is a natural $E$-module map $k \to (\RR \circ \LL)(k)$, and tensoring this map over $k$ with $\id_N$ gives an injective morphism of differential modules $g: N \to (\RR \circ \LL)(N)$. One easily checks that $f$ is also surjective on homology and $g$ is injective on homology. \michael{We should probably mention that the first map is the counit of adjunction and the second map is the unit, just for completeness (I haven't checked this carefully, but I'd be surprised if this wasn't true). But I don't think we need this.}
+
+Every object in $\Com(S)$ is a filtered colimit of bounded complexes of finitely generated modules, and every object in $\DM(E)$ is a filtered colimit of differential submodules whose underlying modules are finitely generated. To see the second statement, let $D \in \DM(E)$, and let $\{D_i \}_{i \in I}$ be the set of all submodules of $D$; since $D$ is the direct limit of the $D_i$, $(D, \del)$ is the direct limit of the differential modules $(D_i + \del(D_i)(1), \del)$. The functor $\LL$ preserves colimits since it is a left adjoint, and it is easy to prove the functor $\RR$ preserves colimits as well. Since filtered colimits are exact, we may assume $C$ is a bounded complex of finitely generated modules and $N$ is finitely generated. By exactly the same argument as in the proof of \cite[Theorem 2.6]{EFS}, we may further reduce to the case where $C$ is a module $M$ concentrated in degree 0. 
+
+We now show that $f$ is a quasi-isomorphism. Let $\m$ denote the homogeneous maximal ideal of $S$, set
+$$
+A^i = \{ a \in A \text{ : } M_a \cap \m^i M = 0\},
+$$
+and equip $M$ with the $k$-linear filtration 
+$$
+F^i M = \bigoplus_{a \in A^i} M_a.
+$$
+Using the identification $(\LL \circ \RR)(M) = M \otimes_k (\LL \circ \RR)(k)$ of $A$-graded $S$-modules, we get an induced filtration of $(\LL \circ \RR)(M)$, as a complex of $A$-graded $k$-vector spaces. Consider the associated spectral sequence with
+$$
+E^0_{p,q} = F^p (\LL \circ \RR)(M)_{p + q} / F^{p-1} (\LL \circ \RR)(M)_{p + q} 
+$$
+and
+$$
+E^1_{p,q} = H_{p + q} E^0_{p,*}.
+$$
+Since the filtration is bounded below and exhaustive, the spectral sequence converges to $H_{p+q}(\LL \circ \RR)(M)$. We have $E^1_{p,p} = F^p M / F^{p-1}M$, and $E^1_{p,q} = 0$ for $p \ne q$. The spectral sequence therefore degenerates at page 1; we conclude that the homology of $(\LL \circ \RR)(M)$ is concentrated in degree 0, and $H_0(\LL \circ \RR)(M)$ has the same Hilbert function as $M$. Since $f$ is injective on homology and $M$ is finitely generated, $f$ is a quasi-isomorphism.
+
+Finally, we show $g$ is a quasi-isomorphism. The bicomplex $\B$ whose totalization is $(\Ex \circ \RR \circ \LL)(N)$ has $q^{\th}$ row given by
+$$
+\cdots \to \RR( \LL(N)_q ) (0, 1) \to \RR( \LL(N)_q ) \to \RR( \LL(N)_q ) (0, -1) \to \cdots
+$$
+and $p^{\th}$ vertical differential given by $(-1)^p\del_{\LL(N)}$. Since $N$ is finitely generated, $\LL(N)$ is a bounded complex; it follows that $\B$ has only finitely many rows, and so the associated spectral sequence whose $E^1$ page is the horizontal homology of $\B$ converges to $H_*(\Ex \circ \RR \circ \LL)(M)$. By Proposition \ref{tor}, $H(\RR(S)) \cong k$; it follows that
+$$
+E^2_{p,q} = \bigoplus_{a \in A} H(N)_{(a, q)} \otimes_k k(-a, p). 
+$$
+There are no $E$-linear maps between $k(a, p)$ and $k(a', p')$ for $p \ne p'$, so the spectral sequence degenerates at page 2. We conclude that there is an isomorphism of $A$-graded $k$-vector spaces
+$$
+H(\RR \circ \LL)(N) = H_0(\Ex \circ \RR \circ \LL)(N) \cong H(N).
+$$
+Since $g$ is injective on homology and $N$ is finitely generated, $g$ is a quasi-isomorphism.
+\end{proof}
+
+The \emph{derived category of differential $E$-modules} $\on{D}_{\DM}(E)$ is obtained by inverting quasi-isomorphisms in $\DM(E)$. It is easy to check that the functors $\LL$ and $\RR$ are exact, and so they factor through the derived categories $\on{D}_{\DM}(E)$ and $\on{D}(S)$. 
+\begin{cor} 
+\label{derived}
+The functors
+$$
+\LL : \on{D}_{\DM}(E) \leftrightarrows \on{D}(S) : \RR
+$$
+are inverse equivalences.
+\end{cor}
+
+The \emph{bounded derived category of differential $E$-modules} $\Db_{\DM}(E)$ is the subcategory of $\on{D}_{\DM}(E)$ given by objects with finitely generated homology. By Proposition \ref{tor}, the functor $\RR$ restricts to a map
+$$
+\RR : \Db(S) \to \Db_{\DM}(E).
+$$
+To conclude that this induced map is an equivalence, we must show that $\LL$ maps $\Db_{\DM}(E)$ into $\Db(S)$. We will deduce this from the following result.
+
+\begin{prop}
+Let $C \in \Com(S)$ be a bounded complex, and let $N \in \DM(E)$ be a differential module with finitely generated homology.
+\begin{itemize}
+\item[(a)] $\RR(C)$ is homotopy equivalent to a minimal differential module whose linear part  is $\RR(H_*(C))$.
+\item[(b)] $\LL(N)$ is homotopy equivalent to a minimal complex whose linear part is $\LL(H(N))$.
+\end{itemize}
+\end{prop}
+
+\begin{proof}
+\michael{Fill in. Use homological perturbation. Also define ``linear part".}
+\end{proof}
+
+\begin{cor}
+\label{bounded}
+The equivalence of derived categories in Corollary \ref{derived} induces an equivalence on bounded derived categories
+$$
+ \Db_{\DM}(E)\simeq \Db(S).
+$$
+\end{cor}
+
+
+%%%%%%%%%%%%%%%%%
+\subsection{BGG and linearity}
+%%%%%%%%%%%%%%%%%
+
+\michael{This section is under construction from here on. I still want to fill in analogues of Theorem 3.4 and Corollary 3.6 from \cite{EFS}, as well as the Reciprocity Theorem, and of course examples need to be added throughout. The reciprocity theorem will require a notion of injective resolutions for DM's, which we have not developed yet. It would also be great to figure out a connection between regularity on the symmetric side and some notion of acyclicity on the exterior side.}
 
 \begin{defn}
-A complex of free modules over $S$ (resp. free differential $E$-module) is \emph{linear} if each of its differentials can be expressed as a matrix whose entries are linear forms (resp. if it is of the form $(\bigoplus_{d \in A} \o(d, 0), \del)$, where $\del$ is a matrix whose entries are linear forms). 
+We will call a complex of free modules over $S$ is \emph{linear} if each of its differentials can be expressed as a matrix whose entries are linear forms, and we will say a free differential $E$-module is \emph{linear} if it is of the form $(\bigoplus_{d \in A} \om(d, 0), \del)$.
+\end{defn}
 
 Let $\on{Lin}(S)$ (resp. $\on{Lin}_{\DM}(E)$) denote the category of linear free complexes of $S$-modules (resp. linear free differential $E$-modules).
-\end{defn}
+
+\begin{rem}
+Note that, since the differential of an object in $\DM(E)$ is required to be homogeneous of degree $(0, -1)$, the differential on an object in $\on{Lin}_{\DM}(E)$ is necessarily expressible as a matrix whose entries are linear forms. 
+\end{rem}
 
 
 \begin{prop}[\cite{EFS} Proposition 2.1] We have induced equivalences
@@ -1283,7 +1300,7 @@ $$
 
 
 \begin{proof}
-We prove the first functor is an equivalence; one uses a similar argument to prove the second functor is an equivalence. Let $U$ be a $k$-vector space and $e \in V$. Identifying $V$ with $\Hom_k(W, k)$, we get an induced map
+We prove the first functor is an equivalence; one uses a similar argument for the second. Let $U$ be a $k$-vector space and $e \in V$. Identifying $V$ with $\Hom_k(W, k)$, we get an induced map
 $$
 e : W \otimes U \to U
 $$
@@ -1295,10 +1312,109 @@ be an object in $\on{Lin}(S)$. Let $N = \bigoplus_{d \in A, i \in \Z} N_{d, i}$.
 \end{proof}
 
 
+%%%%%%%%%%%%%%%%%%
+\section{A Fourier-Mukai definition of the Tate resolution over $\PP^n$}
+%%%%%%%%%%%%%%%%%%
 
-\daniel{We need to state and prove reciprocity theroem.  For that, we'll need to define an injective resolution of differential modules.  That's not difficult, but it does need to be added.}
+Suppose $S = k[x_0, \dots, x_n]$ is $\Z$-graded with $|x_i| = 1$. In this section, we temporarily revert back to the grading convention for $E = \Lambda_k(e_0, \dots, e_n)$ from the classical BGG correspondence, so that $E$ is $\Z$-graded with $|e_i| = 1$ for all $i$. 
+
+The classical BGG equivalence 
+$$
+\RR_{\on{st}} : \Db(S) \xra{\simeq} \Db(E)
+$$
+may be refined to a commutative square
+$$
+\xymatrix{
+\Db(S) \ar[r]^-{\simeq} \ar[d]& \Db(E) \ar[d] \\
+\Db(\PP^n) \ar[r]^-{\simeq}& \on{D}_{\on{sing}}(E), \\
+}
+$$
+where $\on{D}_{\on{sing}}(E) := \Db(E) / \Perf(E)$ denotes the \emph{singularity category of $E$}. One of the key insights of Eisenbud-Fl\o ystad-Schreyer in \cite{EFS} is that the ``geometric BGG correspondence" given by the equivalence $\overline{\RR}_{\on{st}}:\Db(\PP^n) \xra{\simeq} \on{D}_{\on{sing}}(E)$ can be used to develop an efficient algorithm for computing sheaf cohomology over $\PP^n$.
+
+To explain the idea, we need an alternative model for the singularity category of $E$. Let $K^{\on{ex}}(E)$ denote the homotopy category of exact complexes of finitely generated free  $\Z$-graded $E$-modules. By a theorem of Buchweitz (\cite[Theorem 4.4.1]{buchweitz}), there is an equivalence 
+$$
+C: \on{D}_{\on{sing}}(E) \xra{\simeq} K^{\on{ex}}(E)
+$$
+given as follows. Let $Y$ be a bounded complex of finitely generated $E$-modules. Choose minimal free resolutions $F \to Y$ and $G \to Y^\vee$, where $( - )^{\vee} = \Hom_E( - , E)$. Since $E$ is Gorenstein, dualizing is exact, and so the dual map $Y^{\vee \vee} \to G^\vee$ is a quasi-isomorphism. Since every finitely generated $E$-module is maximal Cohen-Macaulay, there is a natural isomorphism $Y \xra{\cong} Y^{\vee \vee}$. Composing, we arrive at a quasi-isomorphism
+$$
+F \to Y \xra{\cong} Y^{\vee \vee} \to G^{\vee}. 
+$$
+The mapping cone of this quasi-isomorphism is called a (minimal) \emph{complete resolution} of $Y$. We define $C(Y)$ to be this minimal complete resolution.
+
+Set $T = C \circ \overline{\RR}_{\on{st}}$. When $\F \in \on{coh}(\PP^n)$, we call $T(\F)$ the \emph{Tate resolution of $\F$}. 
+
+\begin{example}
+Fill in method for computing Tate resolution of a sheaf. Truncate, apply $\RR$, resolve. \michael{Finish this.}
+\end{example}
 
 
+One of the main results of Eisenbud-Fl\o ystad-Schreyer in \cite{EFS} is that one can read off the cohomology of $\F(\l)$ for all $\l$ from the ranks of the terms of $T(\F)$:
+
+\begin{thm}[\cite{EFS} Corollary 4.2]
+\label{EFS}
+For all $j, \l \in \Z$, $H^j(\PP^n, \F(\l)) = \Hom_E(K, T^{j + \l})_{-\l}$.
+\end{thm}
+Theorem \ref{EFS} leads to an algorithm for computing sheaf cohomology over $\PP^n$ which is, in some cases, the fastest available. One of the main goals of this article is to generalize the Tate resolution, and Theorem \ref{EFS}, from $\PP^n$ to any projective toric variety. In this section, we describe an alternative construction of the Tate resolution over $\PP^n$ that more easily generalizes to toric varieties. This alternative construction also clarifies the relationship between the Tate resolution, sheaf cohomology, and Beilinson's resolution of the diagonal. 
+
+The idea is to define the Tate resolution via a Fourier-Mukai-type functor
+$$
+\Phi_{\tR}: \on{coh}(\PP^n) \to \Com(E).
+$$
+We define our ``kernel" $\tR$ to be the exact complex 
+$$
+\cdots \from \OO(1) \otimes_k \om(-1) \from \OO \otimes_k \om \from \OO(-1) \otimes_k \om(1) \from \cdots
+$$
+with differential $\sum_{i = 0}^n x_i \otimes e_i$. Loosely speaking, we think of $\tR$ as a complex of sheaves on ``$\PP^n \times E$"; the rough idea is that we define $\Phi_{\tR}(\F)$ by ``pulling $\F$ back to $E$, tensoring with $\tR$, and pushing forward to $E$." \michael{I'm resisting going too far with the Fourier-Mukai metaphor here, because I don't know what sort of category the object $\tR$ should really live in. Since it's exact, we certainly don't want it to live in an ordinary derived category. Probably something more like a singularity category, but involving both $\PP^n$ and $E$. I don't quite see it. It would probably be helpful to comment on this, to make this all seem less mysterious.} 
+
+We now give the precise definition of $\Phi_{\tR}$. Let $\F \in \on{coh}(\PP^n)$. We take a \v{C}ech resolution of the complex
+$$
+\cdots \from \F(1) \otimes_k \om(-1) \from \F \otimes_k \om \from \F(-1) \otimes_k \om(1) \from \cdots
+$$
+of sheaves on $\PP^n$ associated to the usual open cover, giving the bicomplex
+$$
+\xymatrix{
+ & \vdots \ar[d] & \vdots \ar[d]  & \vdots \ar[d] &\\
+\cdots  & \fC^1_{\F(1)} \otimes_k \om(-1) \ar[l] \ar[d] & \fC^1_{\F} \otimes_k \om \ar[l] \ar[d]  & \fC^1_{\F(-1)} \otimes_k \om(1) \ar[l] \ar[d] & \ar[l] \cdots \\
+\cdots & \fC^0_{\F(1)} \otimes_k \om(-1) \ar[l] & \fC^0_{\F} \otimes_k \om \ar[l] & \fC^0_{\F(-1)} \otimes_k \om(1) \ar[l] & \ar[l]  \cdots
+}
+$$
+with horizontal differentials given by multiplication by $\sum_{i = 0}^n x_i \otimes e_i$. Denote this bicomplex by $\B$. Notice that $\B$ is a bicomplex of free $E$-modules. Since $\B$ is bounded and its rows are exact, $\Phi_{\tR}(\F)$ is exact. But, it is not minimal; to minimize it, we use the Homological Perturbation Lemma...\michael{Fill in these details and finish definition of $\Phi_{\tR}$}.
+
+
+\begin{thm}
+For any $\F \in \on{coh}(\PP^n)$, there is an isomorphism $T(\F) \xra{\cong} \Phi_{\tR}(\F)$ of complexes of $E$-modules.
+\end{thm}
+
+\begin{proof}
+In high homological degrees, the complexes are equal. Use uniqueness of minimal free resolutions. \michael{Fill in details.}
+\end{proof}
+
+\begin{rem}
+The intuition is that, by 
+
+if we apply the functor $\Omega$ to the $\om(i)$ and to the maps given by contraction by $\frac{\partial}{\partial y_i}$ appearing in $\tR$, we get Beilinson's resolution $\cR$ of the diagonal over $\PP^n$ (\cite{beilinson}); we recall that $\cR$ is the Koszul complex
+$$
+0 \from \OO \boxtimes \OO \from \cdots \from \OO(-n + 1) \boxtimes \Omega^{n-1}(n-1) \from \OO(-n) \boxtimes \Omega^n(n) \from 0
+$$
+of the section $\sum_{i = 0}^n x_i \boxtimes \frac{\partial}{\partial y_i} \in H^0(\PP^n \times \PP^n, \OO(1) \boxtimes T(-1))$, where the $x_i$ and $y_i$ are the coordinates of the first and second copies $\PP^n$, respectively. 
+We begin by recalling from \cite[Section 6]{EFS} that there is a functor
+\begin{equation}
+\label{geobgg}
+\Omega: \Com_{\on{Free}}(E) \to \Com(\PP^n)
+\end{equation}
+from complexes of free $\Z$-graded $E$-modules to complexes of sheaves on $\PP^n$ such that
+$$
+H_i(\Omega \circ T)(\F) = \begin{cases} \F & i = 0 \\ 0 & i \ne 0. \end{cases}
+$$
+We briefly explain the definition of $\Omega$. By \cite[Proposition 5.6]{EFS}, there is a canonical map
+\begin{equation}
+\label{mapid}
+\Hom_E(\om(i), \om(j)) \to \Hom_{\PP^n}(\Omega^i(i), \Omega^j(j))
+\end{equation}
+for all $i, j$. Noting that any free $E$-module can be written as a direct sum of twists of $\om$, define $\Omega$ by 
+replacing each summand $\om(j)$ of an object in $\Com_{\on{Free}}(E)$ with $\Omega^j(j)$ and by using (\ref{mapid}) to give the differentials (this explains the choice of notation for the module $\om$). 
+
+\end{rem}
 
 \section{Pushforward of differential modules}\label{sec:tau}
 \daniel{This section is in rough shape.}
@@ -1386,9 +1502,7 @@ G_i = \HH^0(C^\bullet_i)\oplus  \HH^1(C^\bullet_{i+1}).
 So to get the map $H^1\to H^0$ we would require at least $3$ copies of the Cech complex.  This explains why we can't just define the differential as ``the pushforward of the map $\partial$''.
 \end{example}
 
-\begin{remark}
-Rouquier also uses differential modules in \cite[Section 4]{rouquier} to provide an analogue of the BGG correspondence for non-graded polynomial and exterior algebras. \michael{Also mention Baranovsky here.}
-\end{remark}
+
 
 
 
@@ -1672,75 +1786,6 @@ The irrelevant ideal is generated by monomials corresponding to the product of t
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{The Tate resolution and $A_\infty$-operations on sheaf cohomology}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\michael{I don't know if we should include this, because I see no application...}
-
-%%%%%%%%%%%%%%%%
-\subsection{$A_\infty$ operations and the tensor coalgebra}
-%%%%%%%%%%%%%%%%
-Let $R$ be a ring and $M$ an $R$-module. The tensor coalgebra $T^c(M)$ is the sum of all the tensor powers of $M$, equipped with the comultiplication
-$$
-x_1 \otimes \cdots \otimes x_r \mapsto \sum_{i = 1}^r (x_1 \otimes \cdots \otimes x_i) \otimes (x_{i + 1} \otimes \cdots \otimes x_r) \in T^c(M) \otimes T^c(M).
-$$
-We recall that a \emph{coderivation} on an $R$-coalgebra $(C, \delta)$ is an $R$-linear map $d: C \to C$ satisfying the co-Leibniz rule $\Delta \circ d = (d \otimes 1 + 1 \otimes d) \circ \Delta$.  A \emph{dg-coalgebra over $R$} is a $\Z$-graded $R$-coalgebra equipped with a square zero coderivation of degree $-1$.
-
-Suppose $S$ is a $\Z$-graded $R$-module. Then $T^c(S)$ inherits a $\Z$-grading, and the datum of an $A_\infty$-algebra structure on $S$ is exactly the datum of a square 0 coderivation on $T^c(S)$. In more detail: any coderivation $d$ on $T^c(S)$ is determined by its projection $T^c(S) \xra{d} T^c(S) \onto S$ onto the first tensor power. So, a coderivation is the same thing as a degree $-1$ map $d : T^c(S) \to S$. The components of this map are the higher multiplications on $S$, and the requirement that $d^2= 0$ encodes the $A_\infty$ relations. 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Perturbations and $A_\infty$-structures}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Let $R$ be a ring, and suppose $A$ is an augmented, connected, unital differential graded $R$-algebra. Moreover, suppose $A$ contracts onto its homology, i.e. there are maps
-$$
-\beta : A \leftrightarrows H_*(A) : \alpha
-$$ 
-of graded $R$-modules such that $\beta \alpha = \id_{H_*(A)}$ and $\alpha \beta$ is homotopic to $\id_A$. We get induced maps of tensor coalgebras
-\begin{equation}
-\label{tensorcontraction}
-T^c(\beta) : T^c(A) \leftrightarrows T^c(H_*(A)) : T^c(\alpha).
-\end{equation}
-We observe that $T^c(A)$ is again a dg-coalgebra with differential induced by the one on $A$:
-$$
-x_1 \otimes \cdots \otimes x_r \mapsto \sum_{i = 1}^r \pm x_1 \otimes \cdots \otimes d(x_i) \otimes \cdots \otimes x_r
-$$
-(note: this is the coderivation determined by the degree $-1$ map $T^c(A) \to A$ given by $x_1 \otimes \cdots \otimes x_r \mapsto \sum_{i = 1}^r \pm d(x_i)$). We will abuse notation and call this induced differential $d$. The homotopy between $\alpha \beta$ and $\id_A$ induces a homotopy between $T^c(\alpha) T^c(\beta)$ and $\id_{T^c(A)}$. That is, the maps in (\ref{tensorcontraction}) give a contraction of $T^c(A)$ onto $T^c(H_*(A))$ (where the latter has no differential).
-
-Now, suppose we perturb the differential on $T^c(A)$ via some second differential $\del$ so that $d + \del$ remains a coderivation. For instance, we could do this by perturbing the differential on $A$ so that $A$ remains a dga. The so-called Coalgebra Perturbation Lemma (\cite{HK} $(2.1_*)$) says that the differential on $T^c(H_*(A))$ obtained from the usual perturbation lemma is a coderivation. We therefore obtain an induced $A_\infty$ structure on $H_*(A)$.
-
-\begin{example}
-Suppose $R$ is a field. Then one of course one can always give an $R$-linear contraction of $A$ onto $H_*(A)$. We can perturb the differential on $T^c(A)$ by adding in the \emph{bar differential}
-$$
-a_1 \otimes \cdots \otimes a_r \mapsto (\sum_{i = 1}^{r-1} \pm a_1 \otimes \cdots \otimes a_i a_{i+1} \otimes \cdots \otimes a_r)  \pm (a_r a_1 \otimes \cdots \otimes a_{r-1}).
-$$
-We obtain from this an $A_\infty$-structure on $H_*(A)$. Moreover, $H_*(A)$ is quasi-isomorphic to $A$ as an $A_\infty$-algebra (the point is that the $A_\infty$-structure on $A$ induced by the perturbed coderivation on $T^c(A)$ yields the original dg-algebra structure on $A$). That is, we recover the usual statement that a dga over a field can be recovered from its homology equipped with certain $A_\infty$-operations.
-\end{example}
-
-In summary: a perturbation $\del$ of the coderivation $d$ on $T^c(A)$ \emph{such that $d + \del$ is also a coderivation} determines an $A_\infty$-algebra structure on $H_*(A)$. In particular, a perturbation $\del$ of the differential on $A$ \emph{such that $d + \del$ is also a derivation} determines such a structure.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{The Tate differential and $A_\infty$ operations}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We wish to apply the above formalism to the Tate resolution.
-Let $X$ be a toric variety, and let $\K$ denote the exact differential module $\bigoplus_{\l \in \Pic(X)} \OO(-\l) \otimes_k \o(\l, 0)$ with differential $\sum_{i = 0}^n x_i \otimes e_i$. For the purpose of making it more transparent that the above dg-methods extend to our setting, expand $\K$ into a 1-periodic complex:
-\begin{equation}
-\label{1per}
-\cdots \to \K(0, 1) \to \K \to \K(0, -1)  \to \cdots.
-\end{equation}
-Form a bicomplex $\B$ whose columns are the \v{C}ech complexes of the terms of (\ref{1per}), with trivial horizontal differentials. Notice that the columns of $\B$ split $E$-linearly. The complex $A = \on{Tot}^{\oplus}(\B)$ therefore contracts onto its homology. Note also that the \v{C}ech cup product makes $A$ a dga over the ring $E$. \michael{Or maybe $\o$ and not $E$...of course the difference just amounts to a grading twist. A possibly more significant issue is that $A$ is not a connected dga, because it's 1-periodic.}
-
-We can perturb the differential on $A$ by adding in the horizontal differentials. The result remains a dga. To see this, recall the general fact that, given two complexes $\F$ and $\fG$ of sheaves, there is a map
-$$
-\fC(\F) \otimes \fC(\fG) \to \fC(\F \otimes \fG)
-$$
-of \v{C}ech complexes \michael{tensoring differential modules is subtle, so this may require some more care}. Now note that we have a natural map $\fC(\K \otimes \K) \to \fC(\K)$, since $\K$ is a dga. 
-
-Applying the formalism in the previous section, we obtain an induced $A_\infty$-structure on the homology of $A$. Note that, of course, $H_*(A)$  is just the sheaf cohomology of the twists of $\OO$ in each degree. 
-
-Finally, recall that the perturbed differential on $H_*(A)$ is the Tate differential. On the other hand, the $A_\infty$-operations we constructed are built out of the corresponding perturbation of the differential on $T^c(H_*(A))$. So, these $A_\infty$-operations should be encoding the Tate differential. There is just a little fuzziness here concerning the relationship between the perturbed differential on $H_*(A)$ and the perturbed differential on $T^c(H_*(A))$. Modulo  this, it's clear how the above $A_\infty$-operations are induced by the Tate differential.
-
-To perform this construction with a sheaf other than $\OO$, we need a version of the results in the previous section for dg- and $A_\infty$-\emph{modules}, rather than algebras. I suspect this is possible, but I can't seem to find it written down (perhaps because it's too obvious to write down...).
 
 
 \bibliographystyle{amsalpha}
