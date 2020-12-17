@@ -1390,14 +1390,7 @@ In high homological degrees, the complexes are equal. Use uniqueness of minimal 
 \end{proof}
 
 \begin{rem}
-The intuition is that, by 
-
-if we apply the functor $\Omega$ to the $\om(i)$ and to the maps given by contraction by $\frac{\partial}{\partial y_i}$ appearing in $\tR$, we get Beilinson's resolution $\cR$ of the diagonal over $\PP^n$ (\cite{beilinson}); we recall that $\cR$ is the Koszul complex
-$$
-0 \from \OO \boxtimes \OO \from \cdots \from \OO(-n + 1) \boxtimes \Omega^{n-1}(n-1) \from \OO(-n) \boxtimes \Omega^n(n) \from 0
-$$
-of the section $\sum_{i = 0}^n x_i \boxtimes \frac{\partial}{\partial y_i} \in H^0(\PP^n \times \PP^n, \OO(1) \boxtimes T(-1))$, where the $x_i$ and $y_i$ are the coordinates of the first and second copies $\PP^n$, respectively. 
-We begin by recalling from \cite[Section 6]{EFS} that there is a functor
+Some motivation for the definition of the functor $\Phi_{\tR}$ is in order. We recall from \cite[Section 6]{EFS} that there is a functor
 \begin{equation}
 \label{geobgg}
 \Omega: \Com_{\on{Free}}(E) \to \Com(\PP^n)
@@ -1414,6 +1407,11 @@ We briefly explain the definition of $\Omega$. By \cite[Proposition 5.6]{EFS}, t
 for all $i, j$. Noting that any free $E$-module can be written as a direct sum of twists of $\om$, define $\Omega$ by 
 replacing each summand $\om(j)$ of an object in $\Com_{\on{Free}}(E)$ with $\Omega^j(j)$ and by using (\ref{mapid}) to give the differentials (this explains the choice of notation for the module $\om$). 
 
+Now, let $\cR$ denote Beilinson's resolution of the diagonal over $\PP^n$ (\cite{beilinson}); we recall that $\cR$ is the Koszul complex
+$$
+0 \from \OO \boxtimes \OO \from \cdots \from \OO(-n + 1) \boxtimes \Omega^{n-1}(n-1) \from \OO(-n) \boxtimes \Omega^n(n) \from 0
+$$
+of the section $\sum_{i = 0}^n x_i \boxtimes \frac{\partial}{\partial y_i} \in H^0(\PP^n \times \PP^n, \OO(1) \boxtimes T(-1))$, where the $x_i$ and $y_i$ are the coordinates of the first and second copies $\PP^n$, respectively. The intuition for the definition of $\tR$ is that, if we apply the functor $\Omega$ to the factors $\om(i)$ appearing in $\tR$ and to the maps given by contraction by $\frac{\partial}{\partial y_i}$, we get $\cR$. \michael{This still doesn't fully motivate the definition of $\Phi_{\tR}$. What I want to say is something like: $\Omega$ determines an equivalence $K^{\on{ex}}(E) \to \Db(\PP^n)$, and $\Omega \circ \Phi_{\tR} = \Phi_{\cR}$. Therefore, since $\Phi_{\cR}$ is isomorphic to the identity, $\Phi_{\tR}$ is the inverse of $\Omega$; in particular, it is an equivalence $\Db(\PP^n) \to K^{\on{ex}}(E)$, just like the Tate resolution functor. I'm not sure this is the right way to explain this. Need to think more about this.}
 \end{rem}
 
 \section{Pushforward of differential modules}\label{sec:tau}
