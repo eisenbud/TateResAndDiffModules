@@ -366,10 +366,19 @@ Every $(D, \del) \in \DM(R, a)$ admits a free flag resolution.
 \end{prop}
 
 \begin{proof}
+We give two proofs, each of which highlights a different aspect.
+
+{\em Killing cycles approach:} 
 Choose a set of cycles in $D$ that descends to a generating set of $H(D)$, and let $F_0$ be a free $R$-module with basis indexed by this set. Let $\epsilon_0 : (F_0, 0) \to (D, \del_D)$ be the morphism of differential modules that sends each basis element to its associated cycle. Next, choose a set of cycles in $\on{cone}(\epsilon_0)$ that descends to a generating set of $H(\on{cone}(\epsilon_0))$, let $F_1$ be a free $R$-module with basis indexed by this set, and define $\epsilon_1 : (F_1, 0) \to \cone(\epsilon_0)$ as before. Iterating this process, we obtain a flag $(F = \bigoplus_{i \ge 0} F_i, \del_F)$ 
 and a quasi-isomorphism $\epsilon : (F, \del_F) \xra{\simeq} (D, \del_D)$. 
+
+{\em Cartan-Eilenberg approach:} Let $B,Z\subseteq D$ denote the boundaries and cycles of $(D,\partial)$.  Then, in the cateogry of differential modules, we have a short exact sequence:
+\[
+0\to (Z,0) \to (D,\partial) \to (B(a),0)\to 0.
+\]
+Note that the differentials on $Z$ and $B$ are $0$.  Any free resolution $F^Z\to Z$ in the category of modules will also be a free resolution of $(Z,0)$ in the category of differential modules, and similarly for $F^B\to B(a)$.   The extension above induces a map of complexes $\epsilon: F^B[1]\to F^Z$ (a priori it is only a map in the derived category, but since $F^B$ is free, this is a genuine morphism of complexes). We let $(F^D,d)$ be the mapping cone of $\epsilon$ in the category of differential modules.  Then $(F^D,d)$ is quasi-isomorphic to $(D,\partial)$.  Moreover, we can give $(F^D,d)$ a split flag structure by $F^D_i = F^B_i\oplus F^Z_i$.  Thus $(F^D,d)$ is a free flag resolutino of $(D,\del)$.
 \end{proof}
-\michael{I don't think the Cartan-Eilenberg resolution yields a flag, so the killing cycles algorithm seems to be our only method for building free flag resolutions.}
+%\michael{I don't think the Cartan-Eilenberg resolution yields a flag, so the killing cycles algorithm seems to be our only method for building free flag resolutions.}
 
 
 As in classical homological algebra, morphisms of differential modules may be lifted to projective flag resolutions in a unique way, up to homotopy.  More generally, we have the following
