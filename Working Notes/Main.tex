@@ -195,6 +195,7 @@
 \nc{\Dsg}{\on{D}_{\on{sg}}}
 \nc{\fC}{\mathcal{C}}
 \nc{\fG}{\mathcal{G}}
+\nc{\N}{\mathbb{N}}
 
 
 %When merging files, add these
@@ -247,14 +248,14 @@
 \noindent{\bf Notational conventions:}
 
 \begin{itemize}
-\item We index homologically throughout. 
+\item We index homologically throughout. We say a complex $C$ is \emph{bounded above} (resp. \emph{bounded below}) if $C_i = 0$ for $i \gg 0$ (resp. $i \ll 0$).
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%
 \section{Differential modules}
 %%%%%%%%%%%%%%%%%%%%
 
-Let $A$ be an abelian group, and let $R$ be an $A$-graded ring (for instance, $A$ could be 0). All modules over $R$ are right modules. \michael{We work with right modules because our main example will be $R = E$, and in Macaulay2, entries of matrices over $E$ act on the right. This is the same reason I'm working with homological indexing as opposed to cohomological: I'm trying to match M2.} 
+Let $A$ be an abelian group, and let $R$ be an $A$-graded ring (for instance, $A$ could be 0). We will assume $R_0$ is a commutative ring and that $R_0$ is in the center of $R$, so that $R$ is an $R_0$-algebra. All modules over $R$ are right modules. \michael{We work with right modules because our main example will be $R = E$, and in Macaulay2, entries of matrices over $E$ act on the right. This is the same reason I'm working with homological indexing as opposed to cohomological: I'm trying to match M2.} 
 
 \begin{defn}
 Let $a \in A$. A \emph{degree $a$ differential $R$-module} is a pair $(D, \del_D)$, where $D$ is an $A$-graded module, and
@@ -362,21 +363,23 @@ Let $(D, \del_D) \in \DM(R, a)$, and let $(P, \del_P) \in \DM(R, a)$ be a projec
 
 \begin{prop}
 \label{resexists}
-Every $(D, \del) \in \DM(R, a)$ admits a free flag resolution.
+Every $(D, \del) \in \DM(R, a)$ admits a free flag resolution. If $H(D, \del)$ is finitely generated, then $(D, \del)$ admits a locally finitely generated free flag resolution.
 \end{prop}
 
 \begin{proof}
+
+
 We give two proofs, each of which highlights a different aspect.
 
 {\em Killing cycles approach:} 
 Choose a set of cycles in $D$ that descends to a generating set of $H(D)$, and let $F_0$ be a free $R$-module with basis indexed by this set. Let $\epsilon_0 : (F_0, 0) \to (D, \del_D)$ be the morphism of differential modules that sends each basis element to its associated cycle. Next, choose a set of cycles in $\on{cone}(\epsilon_0)$ that descends to a generating set of $H(\on{cone}(\epsilon_0))$, let $F_1$ be a free $R$-module with basis indexed by this set, and define $\epsilon_1 : (F_1, 0) \to \cone(\epsilon_0)$ as before. Iterating this process, we obtain a flag $(F = \bigoplus_{i \ge 0} F_i, \del_F)$ 
-and a quasi-isomorphism $\epsilon : (F, \del_F) \xra{\simeq} (D, \del_D)$. 
+and a quasi-isomorphism $\epsilon : (F, \del_F) \xra{\simeq} (D, \del_D)$. Finally, if $H(D, \del)$ is finitely generated, then we can choose finite generating sets in every step of this process, yielding a locally finitely generated free flag resolution. 
 
 {\em Cartan-Eilenberg approach:} Let $B,Z\subseteq D$ denote the boundaries and cycles of $(D,\partial)$.  Then, in the cateogry of differential modules, we have a short exact sequence:
 \[
 0\to (Z,0) \to (D,\partial) \to (B(a),0)\to 0.
 \]
-Note that the differentials on $Z$ and $B$ are $0$.  Any free resolution $F^Z\to Z$ in the category of modules will also be a free resolution of $(Z,0)$ in the category of differential modules, and similarly for $F^B\to B(a)$.   The extension above induces a map of complexes $\epsilon: F^B[1]\to F^Z$ (a priori it is only a map in the derived category, but since $F^B$ is free, this is a genuine morphism of complexes). We let $(F^D,d)$ be the mapping cone of $\epsilon$ in the category of differential modules.  Then $(F^D,d)$ is quasi-isomorphic to $(D,\partial)$.  Moreover, we can give $(F^D,d)$ a split flag structure by $F^D_i = F^B_i\oplus F^Z_i$.  Thus $(F^D,d)$ is a free flag resolutino of $(D,\del)$.
+Note that the differentials on $Z$ and $B$ are $0$.  Any free resolution $F^Z\to Z$ in the category of modules will also be a free resolution of $(Z,0)$ in the category of differential modules, and similarly for $F^B\to B(a)$.   The extension above induces a map of complexes $\epsilon: F^B[1]\to F^Z$ (a priori it is only a map in the derived category, but since $F^B$ is free, this is a genuine morphism of complexes). We let $(F^D,d)$ be the mapping cone of $\epsilon$ in the category of differential modules.  Then $(F^D,d)$ is quasi-isomorphic to $(D,\partial)$.  Moreover, we can give $(F^D,d)$ a split flag structure by $F^D_i = F^B_i\oplus F^Z_i$.  Thus $(F^D,d)$ is a free flag resolution of $(D,\del)$.
 \end{proof}
 %\michael{I don't think the Cartan-Eilenberg resolution yields a flag, so the killing cycles algorithm seems to be our only method for building free flag resolutions.}
 
@@ -587,13 +590,42 @@ Suppose $A$ is an arbitrary grading group, $a \in A$, and $(D, \del_D), (D', \de
 \subsection{Minimal free resolutions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-From now on, assume either that
+\begin{defn}
+Let $A_R$ denote the monoid $\{ a \in A \text{ : } R_a \ne 0\}$. We say $R$ is \emph{positively $A$-graded} if there is a morphism $\theta_R: A_R \to \Z$ of monoids such that $\theta_R(a) \ge 0$ for all $a \in A_R$ and $\theta_R(a) = 0$ if and only if $a = 0$. Let $M$ be an $A$-graded $R$-module, and define $A_M$ to be the semigroup $\{a \in A \text{ : } M_a \ne 0\}$. We say $M$ is \emph{positively $A$-graded} if there is a morphism $\theta_M : A_M \to \Z$ of semigroups such that
+\begin{itemize}
+\item the image of $\theta_M$ is bounded below, and
+\item $\theta_M(mr) =\theta_M(m) +  \theta_R(r)$ for all $m \in M$ and $r \in R$.
+\end{itemize}
+\end{defn}
+
+\begin{prop}
+Assume $R$ is positively $A$-graded and finitely generated as an $R_0$-algebra. If $M$ is a positively $A$-graded $R$-module, then $M_a$ is a finitely generated $R_0$-module for all $a \in A$.
+\end{prop}
+
+\begin{proof}
+\michael{Fill in.}
+\end{proof}
+
+\begin{example}
+\label{posgradingex}
+We will be interested in the following examples of positively graded rings and modules. Suppose $A = \Z^{\oplus r}$ for some $r$, and assume the monoid $A_R$ is \emph{pointed}, i.e. the only element $a \in A_R$ such that $-a \in A_R$ is 0. By \cite[Corollary 7.23]{MS}, there is an embedding $\psi: A_R \into \N^{\oplus r}$ of monoids. Defining $\theta_R$ to be the composition of $\psi$ with the map $\N^{\oplus r} \to \Z$ given by $(m_1, \dots, m_r) \mapsto \sum_{i = 1}^r m_i$ gives $R$ the structure of a positively $A$-graded ring. For any $b \in A$, notice that
+$A_{R(b)} = \{a - b \text{ : } a \in A_R\}$. We equip $R(b)$ with a positive grading via the map of monoids $\theta_{R(b)} : A_{R(b)} \to \Z$ given by $a - b \mapsto \theta_R(a) - \sum_{i = 1}^r b_i$. For any $A$-graded free $R$-module $F$, we can use this formula to define a map $\theta_F : A_F \to \Z$ of monoids such that $\theta_F(mr) =\theta_F(m) +  \theta_R(r)$. The map $\theta_F$ gives $F$ a positive grading whenever its image is bounded below. This happens, for instance, when $F$ is finitely generated. We also note that, if $(D, \del_D)$ is an object in $\DM(R, a)$ with finitely generated homology, and $(F, \del_F)$ is locally finitely generated free flag resolution of $(D, \del_D)$ constructed as in the proof of Proposition \ref{resexists}, the map $\theta_F$ gives $F$ a positive grading. Finally, we note that any submodule or quotient of a positively graded $A$-module is again positively graded. 
+\end{example}
+
+
+
+Let $R_+ = \bigoplus_{a \ne 0} R_a$. Note that, if $R$ is positively graded, $R_+$ is an ideal. One can prove the following version of Nakayama's Lemma in the same way as the usual $\Z$-graded version:
+
+\begin{lemma}
+Assume $R$ is positively graded, and let $M$ be a positively graded $R$-module. If $R_+ M = M$, then $M = 0$.
+\end{lemma}
+
+From now on, assume either
 \begin{itemize}
 \item[(1)] the grading group $A$ is trivial and $R$ is local, or
-\item[(2)] the set $\bigoplus_{a \ne 0} R_a$ is a maximal ideal of $R$.
+\item[(2)] $R$ is positively graded and $R_0$ is local.
 \end{itemize}
-\michael{Are these the right assumptions? Double check. We just need graded Nakayama.}\daniel{Maybe you just need that $R_0$ is a local ring?}
-Denote the unique (homogeneous, in the second case) maximal ideal by $\m$. We say a morphism $f : M \to N$ of $A$-graded $R$-modules is \emph{minimal} if $f(M) \subseteq \m N$.
+Let $\m$ denote either the unique maximal ideal of $R$ in the first case or $R_+$ in the second case. We say a morphism $f : M \to N$ of $A$-graded $R$-modules is \emph{minimal} if $f(M) \subseteq \m N$.
 
 We now wish to define a notion of minimal free resolutions for differential $R$-modules. It is tempting to define such a resolution to be a minimal free flag resolution. But, we will see in Example \ref{DNE} that such resolutions do not exist in general. Instead, we proceed as follows. 
 
@@ -700,11 +732,17 @@ and a trivial differential module $(T, \del_T)$ satisfying $(F, \del_F) = (G, \d
 
 
 \begin{prop}
-Every $(D, \del_D) \in \DM(R, a)$ has a minimal free resolution.
+\label{minresexists}
+Let $(D, \del_D) \in \DM(R, a)$, and suppose $(D, \del_D)$ admits a locally finitely generated free flag resolution. Then there exists a minimal resolution $(F, \del_F) \xra{\simeq} (D, \del_D)$.
+ Moreover, when $R$ is nontrivially graded, $F$ may be chosen so that $\dim_{R_0} F_a < \infty$ for all $a$. 
 \end{prop}
 
+\begin{rem}
+By Proposition \ref{resexists}, the assumption that $(D, \del_D)$ admits a locally finitely generated free flag resolution always holds when $H(D, \del_D)$ is finitely generated.
+\end{rem}
+
 \begin{proof}
-Combine Propositions \ref{resexists} and \ref{decomp}.
+The first statement follows from Proposition \ref{decomp}. To prove the second \michael{Finish this. Note that this is essential for the proof of uniqueness of minimal free resolutions.}
 \end{proof}
 
 To prove uniqueness of minimal free resolutions, we will need the following
@@ -950,9 +988,7 @@ The idea of using differential modules to generalize the BGG correspondence is n
 %%%
 
 \daniel{I think we want to include the functor $\RR_I$ where $I\subseteq \{1, \dots, n\}$ and the differential is $\sum_{i\in I} x_i\otimes e_i$.  These restricted differentials play a key role in the Tate resolution stuff.} \michael{I agree. Not sure we should expect these functors to be adjoints, by the way. The map $\RR_I$ is given by extending scalars to the smaller set of variables, applying $\RR$, and then restricting scalars back to the larger set of variables; the problem is that extension of scalars is a left adjoint, while $\RR$/restriction of scalars are right adjoints.}
-%%%%%%%%%%%%%%%
-\subsection{The toric BGG functors}
-%%%%%%%%%%%%%%%
+
 %%%
 \iffalse
 In the BGG correspondence for the standard $\ZZ$-graded polynomial ring, there are adjoint functors $\RR$ and $\LL$, which give equivalences of categories between $D(S)$ and $D(E)$.  
@@ -1167,8 +1203,7 @@ This equality identifies cyles in $\RR(P)_{(a, j)}$ with $j$-cycles in $(C \otim
 The last equality follows since $N$ is finitely generated. \michael{The reason finitely generated is necessary is that pulling a direct sum out of the first component of $\Hom$ gives a product. Even the fact that we're in the graded setting doesn't seem to help us avoid this. Note that, in \cite{EFS}, there is a homological grading, and each term of the complex $\RR(S)^\vee$ is finitely generated, so this problem doesn't arise. Maybe we should include a comment about this?} As above, this equality identifies $j$-cycles in $\LL(N)_a$ with cycles in $\Hom_E(\RR(S)^\vee, N)_{(w + a, j + n + 1)}$. Finally, note that $\RR(S)^\vee(w, n+1)$ is a free flag resolution of the residue field $k$, considered as an object in $\DM(E)$ with trivial differential.
 \end{proof}
 
-\begin{cor}\label{cor:RM high degree}
-If $C$ is a bounded complex of finitely generated $A$-graded $S$-modules, then $H(\RR(M))$ is a finite dimensional $k$-vector space.
+\begin{cor}\label{cor:RM high degree} Let $C \in \Com(S)$. If $C$ is bounded with finitely generated terms, then $\dim_kH(\RR(C)) < \infty$.
 \end{cor}
 
 
@@ -1185,7 +1220,7 @@ Even if we attempt to resolve the above problem by defining the $S$-module actio
 %%%%
 
 
-\begin{proof}[Proof of Proposition \ref{resolutions}]
+\begin{proof}
 For any $a \in A$ and $i \in \Z$, we have
 \begin{align*}
 ((\LL \circ \RR)(C)_i)_a &= \bigoplus_{d \in A} \RR(C)_{(d, i)} \otimes_k S_{a - d} \\
@@ -1244,6 +1279,7 @@ Since $g$ is injective on homology and $N$ is finitely generated, $g$ is a quasi
 \end{proof}
 
 The \emph{derived category of differential $E$-modules} $\on{D}_{\DM}(E)$ is obtained by inverting quasi-isomorphisms in $\DM(E)$. It is easy to check that the functors $\LL$ and $\RR$ are exact, and so they factor through the derived categories $\on{D}_{\DM}(E)$ and $\on{D}(S)$. 
+
 \begin{cor} 
 \label{derived}
 The functors
@@ -1253,57 +1289,128 @@ $$
 are inverse equivalences.
 \end{cor}
 
-The \emph{bounded derived category of differential $E$-modules} $\Db_{\DM}(E)$ is the subcategory of $\on{D}_{\DM}(E)$ given by objects with finitely generated homology. By Proposition \ref{tor}, the functor $\RR$ restricts to a map
+The \emph{bounded derived category of differential $E$-modules} $\Db_{\DM}(E)$ is defined to be the subcategory of $\on{D}_{\DM}(E)$ given by objects with finitely generated homology. Denote by $\on{D}^{\on{fg}}_{\DM}(E)$ the subcategory of $\Db_{\DM}(E)$ given by objects whose underlying module is finitely generated. 
+
+%%%%%%%%%%%%%%%%%%%%
+\iffalse
+We first fix some notation. If $(N, \del) \in \DM(E)$ and $i \ge \Z$, let $N_i = \bigoplus_{a \in A} N_{(a, i)}$. For $j \in \Z$, let $\tau_{\ge j} N$ denote the $E$-submodule of $N$ generated by $(\bigoplus_{i > j} N_i) \oplus \ker(\del |_{N_{j}})$; note that this is a differential submodule of $(N, \del)$. Define $\tau_{\le j} = \cone(\tau_{\ge j + 1}N  \into N)$. 
+
+\begin{lemma}
+\label{truncation}
+Let $N \in \DM(E)$. We have
 $$
-\RR : \Db(S) \to \Db_{\DM}(E).
+H(\tau_{\ge j} N)_i = \begin{cases} H(N)_i, & i \ge j \\ 0, & i < j \end{cases}
 $$
-To conclude that this induced map is an equivalence, we must show that $\LL$ maps $\Db_{\DM}(E)$ into $\Db(S)$. We will deduce this from the following result.
+and
+$$
+H(\tau_{\le j} N)_i = \begin{cases} H(N)_i, & i \le j \\ 0, & i > j. \end{cases}
+$$
+\end{lemma}
+
+\begin{proof}
+\michael{Fill in.}
+\end{proof}
+\fi
+%%%%%%%%%%%%%%%%%%%
 
 \begin{prop}
-Let $C \in \Com(S)$ be a bounded complex, and let $N \in \DM(E)$ be a differential module with finitely generated homology.
+\label{fg}
+The inclusion 
+$$
+\on{D}^{\on{fg}}_{\DM}(E) \into \Db_{\DM}(E)
+$$
+is an equivalence.
+\end{prop}
+
+\begin{proof}
+\michael{This proof is under construction.}
+Let $N \in \DM(E)$. By Proposition \ref{minresexists}, we can choose a minimal free resolution $F$ of $N$. Moreover, since $H(N)$ is finitely generated over $E$, we can assume $\dim_k F_{(a, i)} < \infty$ for all $(a, i) \in A \times \Z$. 
+Using again that $H(N)$ is finitely generated over $E$, choose a finite subset $A' \subseteq A$ such that $H(N)_{(a, i)} = 0$ if $a \notin A'$. Let $F'$ denote the $E$-submodule of $F$ generated by elements of degree $(a', i)$ for some $a' \in A$ and $i \in \Z$. Notice that $F'$ is a differential submodule of $F$, and the inclusion $F' \into F$ is a quasi-isomorphism. Now, since $F'$ is minimal, and there are only 
+\end{proof}
+
+\begin{cor} 
+\label{bddderived}
+The functors
+$$
+\LL : \Db_{\DM}(E) \leftrightarrows \Db(S) : \RR
+$$
+are inverse equivalences.
+\end{cor}
+
+\begin{proof}
+Combine Corollary \ref{cor:RM high degree} and Proposition \ref{fg}.
+\end{proof}
+
+\michael{Transition to linear complexes/differential modules}
+
+\begin{defn}
+We will call a complex of free modules over $S$ is \emph{linear} if each of its differentials can be expressed as a matrix whose entries are linear forms. If $F$ is a minimal complex of free $S$-modules, we define the \emph{linear part} of $F$, denoted $\on{lin}(F)$, to be the complex obtained by expressing each differential as a matrix and removing the non-linear entries. The definitions of linearity for free differential $E$-modules and the linear part $\on{lin}(N)$ of a minimal free differential $E$-module $N$ are similar.
+\end{defn}
+
+
+\begin{prop}
+\label{perturbation}
+Let $C \in \Com(S)$ be a bounded above complex, and let $N \in \DM(E)$ be a differential module such that $N_{(a, i)} = 0$ for $i \gg 0$. 
 \begin{itemize}
-\item[(a)] $\RR(C)$ is homotopy equivalent to a minimal differential module whose linear part  is $\RR(H_*(C))$.
+\item[(a)] $\RR(C)$ is homotopy equivalent to a minimal differential module whose linear part  is $\RR(H_*(C))$, where each $H_i(C)$ is considered as a complex concentrated in degree $i$. 
 \item[(b)] $\LL(N)$ is homotopy equivalent to a minimal complex whose linear part is $\LL(H(N))$.
 \end{itemize}
 \end{prop}
 
 \begin{proof}
-\michael{Fill in. Use homological perturbation. Also define ``linear part".}
+Since $C$ is bounded, the bicomplex whose totalization is $\RR(C)$ has finitely many rows. Notice that the columns of this bicomplex split, and its vertical homology in position $(p,q)$ is $\bigoplus_{d \in A} H_q(C) \otimes_k \om(d, p)$. Part (a) therefore follows immediately from \cite[Lemma 3.5]{EFS}.
+
+Since $\LL(N)$ is not the totalization of a bicomplex, we need a slightly different argument for part (b). We will use the Basic Perturbation Lemma; see, for instance, \cite[Lemma A.4]{coanda} for the statement. Consider the complex $\overline{\LL(N)}$ with underlying $S$-module identical to $\LL(N)$ and $j^{\th}$ differential $(-1)^j \del_N$. This complex splits $S$-linearly; that is, letting $Z_j$ and $B_j$ denote the $j$-cycles and $j$-boundaries in $\overline{\LL(N)}$, we may choose an $S$-module decomposition
+$$
+\overline{\LL(N)}_j = B_j \oplus H_j \oplus L_j,
+$$
+for all $j$ such that $B_j \oplus H_j = Z_j$. For each $j$, let $g_j : L_j \to B_{j -1}$ denote the isomorphism such that the $j^{\th}$ differential $(-1)^j \del_{N}$ on $\overline{\LL(N)}$ can be expressed as
+$$
+\begin{pmatrix}
+0 & 0 & g_j \\
+0 & 0 & 0 \\
+0 & 0 & 0
+\end{pmatrix}.
+$$
+
+Using the isomorphism $H_j \cong H_j(\overline{\LL(N)}) \cong \LL(H(N))_j$, we construct an injection $\iota : \LL(H(N)) \into \overline{\LL(N)}$ and a surjection $\pi : \overline{\LL(N)} \onto \LL(H(N))$ such that $\pi \iota = \id$. There is a null homotopy $h$ of $\id  - \iota  \pi$ given, in degree $j$, by 
+$$
+\begin{pmatrix}
+0 & 0 & 0 \\
+0 & 0 & 0\\
+g_{j+1}^{-1} & 0 & 0
+\end{pmatrix}.
+$$
+As observed in \cite[Section 2.1]{LS}, we may assume without loss that $f  h = 0$, $h \iota = 0$, and $h^2 = 0$. 
+
+The $S$-linear endomorphism $\del_\LL$ of $\overline{\LL(N)}$ is a ``perturbation" of the differential on $\overline{\LL(N)}$, meaning that 
+\begin{itemize}
+\item $\del_\LL^2 = 0$, and
+\item if we add $\del_\LL$ to the differential on $\overline{\LL(N)}$, we again get a complex (namely $\LL(N)$). 
+\end{itemize}
+\michael{finish this.}
 \end{proof}
 
-\begin{cor}
-\label{bounded}
-The equivalence of derived categories in Corollary \ref{derived} induces an equivalence on bounded derived categories
-$$
- \Db_{\DM}(E)\simeq \Db(S).
-$$
-\end{cor}
-
-
-%%%%%%%%%%%%%%%%%
-\subsection{BGG and linearity}
-%%%%%%%%%%%%%%%%%
-
-\michael{This section is under construction from here on. I still want to fill in analogues of Theorem 3.4 and Corollary 3.6 from \cite{EFS}, as well as the Reciprocity Theorem, and of course examples need to be added throughout. The reciprocity theorem will require a notion of injective resolutions for DM's, which we have not developed yet. It would also be great to figure out a connection between regularity on the symmetric side and some notion of acyclicity on the exterior side.}
-
-\begin{defn}
-We will call a complex of free modules over $S$ is \emph{linear} if each of its differentials can be expressed as a matrix whose entries are linear forms, and we will say a free differential $E$-module is \emph{linear} if it is of the form $(\bigoplus_{d \in A} \om(d, 0), \del)$.
-\end{defn}
-
-Let $\on{Lin}(S)$ (resp. $\on{Lin}_{\DM}(E)$) denote the category of linear free complexes of $S$-modules (resp. linear free differential $E$-modules).
-
 \begin{rem}
-Note that, since the differential of an object in $\DM(E)$ is required to be homogeneous of degree $(0, -1)$, the differential on an object in $\on{Lin}_{\DM}(E)$ is necessarily expressible as a matrix whose entries are linear forms. 
+We point out that, while the proofs of parts (a) in (b) in Proposition \ref{perturbation} appear different, they are conceptually the same: it was observed by Coand{\u{a}} in \cite[Lemma A.7]{coanda} that \cite[Lemma 3.5]{EFS} can be proven using the Basic Perturbation Lemma, using an argument essentially identical to the one we give for Proposition \ref{perturbation}(b).
 \end{rem}
 
 
-\begin{prop}[\cite{EFS} Proposition 2.1] We have induced equivalences
+
+\michael{This section is under construction from here on. I still want to fill in analogues of Theorem 3.4 and the Reciprocity Theorem, and of course examples need to be added throughout. The reciprocity theorem will require a notion of injective resolutions for DM's, which we have not developed yet. It would also be great to figure out a connection between regularity on the symmetric side and some notion of acyclicity on the exterior side.}
+
+
+
+Let $\on{Lin}(S)$ (resp. $\on{Lin}_{\DM}(E)$) denote the category of linear free complexes of $S$-modules (resp. linear free differential $E$-modules).
+
+
+\begin{prop} [cf. \cite{EFS} Proposition 2.1] Let $\Com_0(S)$ denote the category of complexes of $A$-graded $S$-modules with trivial differential. We have induced equivalences
 $$
 \LL :  \Mod(E) \xra{\simeq} \on{Lin}(S)
 $$
 and
 $$
-\RR :\Mod(S) \xra{\simeq} \on{Lin}_{\DM}(E).
+\RR :\Com_0(S) \xra{\simeq} \on{Lin}_{\DM}(E).
 $$
 \end{prop}
 
@@ -1353,7 +1460,8 @@ The mapping cone of this quasi-isomorphism is called a (minimal) \emph{complete 
 Set $T = C \circ \overline{\RR}_{\on{st}}$. When $\F \in \on{coh}(\PP^n)$, we call $T(\F)$ the \emph{Tate resolution of $\F$}. 
 
 \begin{example}
-Fill in method for computing Tate resolution of a sheaf. Truncate, apply $\RR$, resolve. \michael{Finish this.}
+\label{tateex}
+Let $\F \in \on{coh}(\PP^n)$; we apply the above description of the functor $C$ to compute $T(\F)$. Choose an $S$-module $M$ such that $\widetilde{M} = \F$, let $r = \on{reg}(\F)$, and denote by $M_{\ge r}$ the $S$-module $\bigoplus_{j \ge r} M_j$. We observe that $\overline{\RR}_{\on{st}}(\F)$ is the image of $\RR(M_{\ge r})$ in $\on{D}_{\on{sing}}(E)$, so $T(\F) = C(\RR(M_{\ge r}))$. Since $\RR(M_{\ge r})^\vee$ is itself a minimal free resolution, we take $G = \RR(M_{\ge r})^\vee$. On the other hand, $\RR(M_{\ge r})$ is typically not bounded below, so one cannot immediately take its minimal free resolution; we first have to choose a bounded complex to which $\RR(M_{\ge r})$ is quasi-isomorphic, and then we choose $F$ to be the minimal free resolution of this bounded object. By \cite[Corollary 2.4]{EFS}, $\RR(M_{\ge r})$ is an injective resolution of the kernel $K$ of the differential $\RR(M_{\ge r})_{-r} \to \RR(M_{\ge r})_{-r -1}$, so we take $F$ to be the minimal free resolution of $K$. There is a canonical quasi-isomorphism $F \to \RR(M_{\ge r})$, and $T(\F)$ is its mapping cone.
 \end{example}
 
 
@@ -1363,43 +1471,20 @@ One of the main results of Eisenbud-Fl\o ystad-Schreyer in \cite{EFS} is that on
 \label{EFS}
 For all $j, \l \in \Z$, $H^j(\PP^n, \F(\l)) = \Hom_E(K, T^{j + \l})_{-\l}$.
 \end{thm}
-Theorem \ref{EFS} leads to an algorithm for computing sheaf cohomology over $\PP^n$ which is, in some cases, the fastest available. One of the main goals of this article is to generalize the Tate resolution, and Theorem \ref{EFS}, from $\PP^n$ to any projective toric variety. In this section, we describe an alternative construction of the Tate resolution over $\PP^n$ that more easily generalizes to toric varieties. This alternative construction also clarifies the relationship between the Tate resolution, sheaf cohomology, and Beilinson's resolution of the diagonal. 
+Theorem \ref{EFS} leads to an algorithm for computing sheaf cohomology over $\PP^n$ which is, in some cases, the fastest available. One of the main goals of this article is to generalize the Tate resolution, and Theorem \ref{EFS}, from $\PP^n$ to any projective toric variety \michael{or stack?}. We conclude this section with an alternative construction of the Tate resolution over $\PP^n$ that more easily generalizes to toric varieties. This alternative construction also clarifies the relationship between the Tate resolution, sheaf cohomology, and Beilinson's resolution of the diagonal. 
 
 The idea is to define the Tate resolution via a Fourier-Mukai-type functor
 $$
-\Phi_{\tR}: \on{coh}(\PP^n) \to \Com(E).
+\Phi_{\tR}: \on{coh}(\PP^n) \to K^{\on{ex}}(E).
 $$
 We define our ``kernel" $\tR$ to be the exact complex 
 $$
 \cdots \from \OO(1) \otimes_k \om(-1) \from \OO \otimes_k \om \from \OO(-1) \otimes_k \om(1) \from \cdots
 $$
-with differential $\sum_{i = 0}^n x_i \otimes e_i$. Loosely speaking, we think of $\tR$ as a complex of sheaves on ``$\PP^n \times E$"; the rough idea is that we define $\Phi_{\tR}(\F)$ by ``pulling $\F$ back to $E$, tensoring with $\tR$, and pushing forward to $E$." \michael{I'm resisting going too far with the Fourier-Mukai metaphor here, because I don't know what sort of category the object $\tR$ should really live in. Since it's exact, we certainly don't want it to live in an ordinary derived category. Probably something more like a singularity category, but involving both $\PP^n$ and $E$. I don't quite see it. It would probably be helpful to comment on this, to make this all seem less mysterious.} 
+with differential $\sum_{i = 0}^n x_i \otimes e_i$. Loosely speaking, we think of $\tR$ as a complex of sheaves on ``$\PP^n \times E$"; we will define $\Phi_{\tR}(\F)$ by ``pulling $\F$ back to $E$, tensoring with $\tR$, and pushing forward to $E$." \michael{I'm resisting going too far with the Fourier-Mukai metaphor here, because I don't know what sort of category the object $\tR$ should really live in. Since it's exact, we certainly don't want it to live in an ordinary derived category. Probably something more like a singularity category, but involving both $\PP^n$ and $E$. I don't quite see it. It would probably be helpful to comment on this.}
 
-We now give the precise definition of $\Phi_{\tR}$. Let $\F \in \on{coh}(\PP^n)$. We take a \v{C}ech resolution of the complex
-$$
-\cdots \from \F(1) \otimes_k \om(-1) \from \F \otimes_k \om \from \F(-1) \otimes_k \om(1) \from \cdots
-$$
-of sheaves on $\PP^n$ associated to the usual open cover, giving the bicomplex
-$$
-\xymatrix{
- & \vdots \ar[d] & \vdots \ar[d]  & \vdots \ar[d] &\\
-\cdots  & \fC^1_{\F(1)} \otimes_k \om(-1) \ar[l] \ar[d] & \fC^1_{\F} \otimes_k \om \ar[l] \ar[d]  & \fC^1_{\F(-1)} \otimes_k \om(1) \ar[l] \ar[d] & \ar[l] \cdots \\
-\cdots & \fC^0_{\F(1)} \otimes_k \om(-1) \ar[l] & \fC^0_{\F} \otimes_k \om \ar[l] & \fC^0_{\F(-1)} \otimes_k \om(1) \ar[l] & \ar[l]  \cdots
-}
-$$
-with horizontal differentials given by multiplication by $\sum_{i = 0}^n x_i \otimes e_i$. Denote this bicomplex by $\B$. Notice that $\B$ is a bicomplex of free $E$-modules. Since $\B$ is bounded and its rows are exact, $\Phi_{\tR}(\F)$ is exact. But, it is not minimal; to minimize it, we use the Homological Perturbation Lemma...\michael{Fill in these details and finish definition of $\Phi_{\tR}$}.
-
-
-\begin{thm}
-For any $\F \in \on{coh}(\PP^n)$, there is an isomorphism $T(\F) \xra{\cong} \Phi_{\tR}(\F)$ of complexes of $E$-modules.
-\end{thm}
-
-\begin{proof}
-In high homological degrees, the complexes are equal. Use uniqueness of minimal free resolutions. \michael{Fill in details.}
-\end{proof}
-
-\begin{rem}
-Some motivation for the definition of the functor $\Phi_{\tR}$ is in order. We recall from \cite[Section 6]{EFS} that there is a functor
+\begin{rem} \michael{This needs to be polished.}
+Some motivation for the definition of $\tR$ is in order. We recall from \cite[Section 6]{EFS} that there is a functor
 \begin{equation}
 \label{geobgg}
 \Omega: \Com_{\on{Free}}(E) \to \Com(\PP^n)
@@ -1420,8 +1505,48 @@ Now, let $\cR$ denote Beilinson's resolution of the diagonal over $\PP^n$ (\cite
 $$
 0 \from \OO \boxtimes \OO \from \cdots \from \OO(-n + 1) \boxtimes \Omega^{n-1}(n-1) \from \OO(-n) \boxtimes \Omega^n(n) \from 0
 $$
-of the section $\sum_{i = 0}^n x_i \boxtimes \frac{\partial}{\partial y_i} \in H^0(\PP^n \times \PP^n, \OO(1) \boxtimes T(-1))$, where the $x_i$ and $y_i$ are the coordinates of the first and second copies $\PP^n$, respectively. The intuition for the definition of $\tR$ is that, if we apply the functor $\Omega$ to the factors $\om(i)$ appearing in $\tR$ and to the maps given by contraction by $\frac{\partial}{\partial y_i}$, we get $\cR$. \michael{This still doesn't fully motivate the definition of $\Phi_{\tR}$. What I want to say is something like: $\Omega$ determines an equivalence $K^{\on{ex}}(E) \to \Db(\PP^n)$, and $\Omega \circ \Phi_{\tR} = \Phi_{\cR}$. Therefore, since $\Phi_{\cR}$ is isomorphic to the identity, $\Phi_{\tR}$ is the inverse of $\Omega$; in particular, it is an equivalence $\Db(\PP^n) \to K^{\on{ex}}(E)$, just like the Tate resolution functor. I'm not sure this is the right way to explain this. Need to think more about this.}
+of the section $\sum_{i = 0}^n x_i \boxtimes \frac{\partial}{\partial y_i} \in H^0(\PP^n \times \PP^n, \OO(1) \boxtimes T(-1))$, where the $x_i$ and $y_i$ are the coordinates of the first and second copies $\PP^n$, respectively. The intuition for the definition of $\tR$ is that, if we apply the functor $\Omega$ to the factors $\om(i)$ appearing in $\tR$ and to the maps given by contraction by $\frac{\partial}{\partial y_i}$, we get $\cR$. \michael{This still doesn't fully motivate the definition of $\Phi_{\tR}$. What I want to say is something like: $\Omega$ determines an equivalence $K^{\on{ex}}(E) \to \Db(\PP^n)$, and $\Omega \circ \Phi_{\tR} = \Phi_{\cR}$. Therefore, since $\Phi_{\cR}$ is isomorphic to the identity, $\Phi_{\tR}$ is an inverse of $\Omega$; in particular, it is an equivalence $\Db(\PP^n) \to K^{\on{ex}}(E)$, just like the Tate resolution functor. I'm not sure this is the right way to explain this. Need to think more about this.}
 \end{rem}
+ 
+
+We now give the precise definition of $\Phi_{\tR}$. Let $\F \in \on{coh}(\PP^n)$. We take a \v{C}ech resolution of the complex
+$$
+\cdots \from \F(1) \otimes_k \om(-1) \from \F \otimes_k \om \from \F(-1) \otimes_k \om(1) \from \cdots
+$$
+of sheaves on $\PP^n$ associated to the usual open cover, giving the bicomplex
+$$
+\xymatrix{
+\cdots & \fC^0_{\F(1)} \otimes_k \om(-1) \ar[l]\ar[d]  & \fC^0_{\F} \otimes_k \om \ar[l] \ar[d] & \fC^0_{\F(-1)} \otimes_k \om(1) \ar[l] \ar[d] & \ar[l]  \cdots\\
+\cdots  & \fC^1_{\F(1)} \otimes_k \om(-1) \ar[l] \ar[d] & \fC^1_{\F} \otimes_k \om \ar[l] \ar[d]  & \fC^1_{\F(-1)} \otimes_k \om(1) \ar[l] \ar[d] & \ar[l] \cdots \\
+& \vdots & \vdots  & \vdots &\\
+}
+$$
+with $(p, q)$ term $\fC^{-p}_\F \otimes \om(q)$ and with horizontal differentials given by multiplication by $\sum_{i = 0}^n x_i \otimes e_i$. Denote this $E$-linear bicomplex by $\B$. 
+
+\begin{lemma}
+\label{splitting}
+The totalization of $\B$ is homotopy equivalent to a minimal exact complex $F$ with $m^{\th}$ term $\bigoplus_{q - p = m} H^p(\PP^n,\F(-q)) \otimes_k \om(q)$. When $m \le -\on{reg}(\F) - n$, $F_m = H^0(\PP^n,\F(-m)) \otimes_k \om(m)$, and the differential in these degrees is given by multiplication by $\sum_{i = 0}^n x_i \otimes e_i$.
+\end{lemma}
+
+\begin{proof}
+Since $\B$ is bounded and its rows are exact, $\on{Tot}(\B)$ is exact. The columns of $\B$ split $E$-linearly, and its vertical homology in position $(p, q)$ is $H^p(\PP^n,\F(-q)) \otimes_k \om(q)$; the rest follows from \cite[Lemma 3.5]{EFS}.
+\end{proof}
+
+We define $\Phi_{\tR}(\F) \in K^{\on{ex}}$ to be a minimal complex as in Lemma \ref{splitting}. 
+
+\begin{thm}
+\label{comparison1}
+For any $\F \in \on{coh}(\PP^n)$, there is an isomorphism $T(\F) \xra{\cong} \Phi_{\tR}(\F)$ of complexes of $E$-modules.
+\end{thm}
+
+\begin{proof}
+It is immediate from Lemma \ref{splitting} and the construction of the Tate resolution in Example \ref{tateex} that $T(\F)$ coincides with $\Phi_{\tR}(\F)$ in degrees $\le -\on{reg}(\F) - n$. The result therefore follows from the uniqueness of minimal free resolutions. 
+\end{proof}
+
+\begin{rem}
+Eisenbud-Fl\o ystad-Schreyer's calculation of sheaf cohomology over $\PP^n$ in terms of the ranks of the terms in the Tate resolution (Theorem \ref{EFS} above) is an immediate consequence of Theorem \ref{comparison1}. 
+\end{rem}
+
 
 \section{Pushforward of differential modules}\label{sec:tau}
 \daniel{This section is in rough shape.}
