@@ -143,6 +143,7 @@
 %Added by MB:
 \def\nc{\newcommand}
 \def\on{\operatorname}
+\nc{\Q}{\mathbb{Q}}
 \nc{\RR}{\mathbf{R}}
 \nc{\LL}{\mathbf{L}}
 \nc{\xra}{\xrightarrow}
@@ -230,6 +231,10 @@
 \nc{\kos}{\on{Kos}}
 \nc{\Perf}{\on{Perf}}
 \nc{\tR}{\widetilde{\cR}}
+\nc{\X}{\mathcal{X}}
+\nc{\Cl}{\on{Cl}}
+\nc{\fU}{\mathcal{U}}
+
 \title{Title}
 \date{\today}
 
@@ -255,7 +260,7 @@
 \section{Differential modules}
 %%%%%%%%%%%%%%%%%%%%
 
-Let $A$ be an abelian group, and let $R$ be an $A$-graded ring (for instance, $A$ could be 0). We will assume $R_0$ is a commutative ring and that $R_0$ is in the center of $R$, so that $R$ is an $R_0$-algebra. All modules over $R$ are right modules. \michael{We work with right modules because our main example will be $R = E$, and in Macaulay2, entries of matrices over $E$ act on the right. This is the same reason I'm working with homological indexing as opposed to cohomological: I'm trying to match M2.} 
+Let $A$ be an abelian group, and let $R$ be an $A$-graded ring (for instance, $A$ could be 0). All modules over $R$ are right modules. \michael{We work with right modules because our main example will be $R = E$, and in Macaulay2, entries of matrices over $E$ act on the right. This is the same reason I'm working with homological indexing as opposed to cohomological: I'm trying to match M2.} 
 
 \begin{defn}
 Let $a \in A$. A \emph{degree $a$ differential $R$-module} is a pair $(D, \del_D)$, where $D$ is an $A$-graded module, and
@@ -549,7 +554,7 @@ Now take $h : \tP \to \tP'$ to be the map given by $(p, d) \mapsto s(p)$, and ob
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{$\otimes$ and $\underline{\Hom}$ for differential modules}
+\subsection{$\otimes$ and $\underline{\Hom}$ for (some) differential modules}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 As stated in \cite{ABI}, there is no tensor product for differential modules in general. However, suppose $A$ is of the form $B \times \Z$ for some abelian group $B$, and let $a \in A$ be of the form $(b, \pm 1)$ for some $b \in B$. We can use the $\Z$-grading to define notions of tensor product and internal $\Hom$ for degree $a$ differential $R$-modules in the following way. First, if $N$ is an $A$-graded $R$-module, and $n \in N$ is homogeneous with respect to the $\Z$-grading, define $||n|| \in \Z$ to be the $\Z$-degree of $n$. Let $(D, \del_D), (D', \del_{D'}) \in \DM(R, a)$, and assume $D$ and $D'$ are equipped with left $R$-actions making them $R$-$R$-bimodules. Define
 $$
@@ -586,46 +591,100 @@ Suppose $A$ is an arbitrary grading group, $a \in A$, and $(D, \del_D), (D', \de
 \end{rem}
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Minimal free resolutions}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{defn}
-Let $A_R$ denote the monoid $\{ a \in A \text{ : } R_a \ne 0\}$. We say $R$ is \emph{positively $A$-graded} if there is a morphism $\theta_R: A_R \to \Z$ of monoids such that $\theta_R(a) \ge 0$ for all $a \in A_R$ and $\theta_R(a) = 0$ if and only if $a = 0$. Let $M$ be an $A$-graded $R$-module, and define $A_M$ to be the semigroup $\{a \in A \text{ : } M_a \ne 0\}$. We say $M$ is \emph{positively $A$-graded} if there is a morphism $\theta_M : A_M \to \Z$ of semigroups such that
-\begin{itemize}
-\item the image of $\theta_M$ is bounded below, and
-\item $\theta_M(mr) =\theta_M(m) +  \theta_R(r)$ for all $m \in M$ and $r \in R$.
-\end{itemize}
-\end{defn}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Positive gradings}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+We will need a generalization of the usual $\Z$-graded version of Nakayama's Lemma that allows for gradings by finitely generated free abelian groups. Before we state it, we formulate notions of ``positively graded" rings and modules in this setting, closely following \cite[Chapter 8]{MS}.
 
 \begin{prop}
-Assume $R$ is positively $A$-graded and finitely generated as an $R_0$-algebra. If $M$ is a positively $A$-graded $R$-module, then $M_a$ is a finitely generated $R_0$-module for all $a \in A$.
+\label{gradingprop}
+Suppose $A = \Z^{\oplus r}$ for some $r$, and assume the monoid
+$$
+A_R = \{ a \in A \text{ : } R_a \ne 0\}
+$$
+is \emph{pointed}, i.e. the only element $a \in A_R$ such that $-a \in A_R$ is 0. There is a morphism $\theta_R: A_R \to \Z$ of monoids such that $\theta_R(a) \ge 0$ for all $a \in A_R$ and $\theta_R(a) = 0$ if and only if $a = 0$. 
 \end{prop}
 
 \begin{proof}
-\michael{Fill in.}
+By \cite[Corollary 7.23]{MS}, there is an embedding $\psi: A_R \into \N^{\oplus r}$ of monoids. Take $\theta_R$ to be the composition of $\psi$ with the map $\N^{\oplus r} \to \Z$ given by $(m_1, \dots, m_r) \mapsto \sum_{i = 1}^r m_i$.
 \end{proof}
 
-\begin{example}
-\label{posgradingex}
-We will be interested in the following examples of positively graded rings and modules. Suppose $A = \Z^{\oplus r}$ for some $r$, and assume the monoid $A_R$ is \emph{pointed}, i.e. the only element $a \in A_R$ such that $-a \in A_R$ is 0. By \cite[Corollary 7.23]{MS}, there is an embedding $\psi: A_R \into \N^{\oplus r}$ of monoids. Defining $\theta_R$ to be the composition of $\psi$ with the map $\N^{\oplus r} \to \Z$ given by $(m_1, \dots, m_r) \mapsto \sum_{i = 1}^r m_i$ gives $R$ the structure of a positively $A$-graded ring. For any $b \in A$, notice that
-$A_{R(b)} = \{a - b \text{ : } a \in A_R\}$. We equip $R(b)$ with a positive grading via the map of monoids $\theta_{R(b)} : A_{R(b)} \to \Z$ given by $a - b \mapsto \theta_R(a) - \sum_{i = 1}^r b_i$. For any $A$-graded free $R$-module $F$, we can use this formula to define a map $\theta_F : A_F \to \Z$ of monoids such that $\theta_F(mr) =\theta_F(m) +  \theta_R(r)$. The map $\theta_F$ gives $F$ a positive grading whenever its image is bounded below. This happens, for instance, when $F$ is finitely generated. We also note that, if $(D, \del_D)$ is an object in $\DM(R, a)$ with finitely generated homology, and $(F, \del_F)$ is locally finitely generated free flag resolution of $(D, \del_D)$ constructed as in the proof of Proposition \ref{resexists}, the map $\theta_F$ gives $F$ a positive grading. Finally, we note that any submodule or quotient of a positively graded $A$-module is again positively graded. 
-\end{example}
+\begin{defn}
+We say $R$ is \emph{positively $A$-graded} if $R$ satisfies the hypotheses of Proposition \ref{gradingprop}, and $R$ is equipped with a morphism $\theta_R : A_R \to \Z$ of monoids as in the conclusion of Proposition \ref{gradingprop}.
+\end{defn}
+If $M$ is an $A$-graded $R$-module, we denote by $A_M$ the semigroup $\{a \in A \text{ : } M_a \ne 0\}.$
+\begin{defn}
+Suppose $R$ is positively $A$-graded and $M$ is a nonzero $A$-graded $R$-module. We say $M$ is \emph{positively $A$-graded} if there is a morphism $\theta_M : A_M \to \Z$ of semigroups such that
+\begin{itemize}
+\item the image of $\theta_M$ is bounded below, and
+\item if $a \in A_R$, $b \in A_M$, and $a + b \in A_M$, then $\theta_M(a + b) =\theta_M(m) +  \theta_R(r)$.
+\end{itemize}
+\end{defn}
 
 
 
-Let $R_+ = \bigoplus_{a \ne 0} R_a$. Note that, if $R$ is positively graded, $R_+$ is an ideal. One can prove the following version of Nakayama's Lemma in the same way as the usual $\Z$-graded version:
+\begin{rem}
+\label{sub}
+Suppose $R$ is positively $A$-graded. Any submodule or quotient module of a positively $A$-graded module is clearly positively $A$-graded. 
+\end{rem}
 
-\begin{lemma}
+Let $R_+ = \bigoplus_{a \ne 0} R_a$. Note that, if $R$ is positively graded, $R_+$ is an ideal. 
+
+\begin{lemma}[Nakayama's Lemma]
+\label{nak}
 Assume $R$ is positively graded, and let $M$ be a positively graded $R$-module. If $R_+ M = M$, then $M = 0$.
 \end{lemma}
+
+\begin{proof}
+Suppose $M \ne 0$. Choose $a \in A_M$ such that $\theta_M(a)$ is as small as possible, and choose some nonzero $m \in M$ such that $|m| = a$. Choose $r \in R_+$ and $m' \in M$ such that $m'r = m$. Say $m' = m'_1 + \cdots + m'_s$ and $r = r_1 + \cdots + r_t$, where each $m'_i$ and $r_j$ is nonzero and homogeneous. Choose $i$ and $j$ such that $m'_i r_j \ne 0$. Then $|m'_ir_j| = a$, so $\theta(|m'|) = \theta(a) - \theta(|r'|) < \theta(a)$, a contradiction.
+\end{proof}
+
+\begin{remark}
+The assumptions on $R$ in Nakayama's Lemma can be weakened: all that is needed is a morphism $\theta_R: A_R \to \Z$ of monoids such that $\theta_R(a) \ge 0$ for all $a \in A_R$ and $\theta_R(a) = 0$ if and only if $a = 0$
+\end{remark}
+
+\begin{prop}
+\label{modules}
+Assume $R$ is positively graded. If $M$ is a finitely generated module, then
+\begin{enumerate}
+\item $M$ is positively graded; and 
+\item when $R$ is a finite type $R_0$-algebra, $M_a$ is a finitely generated $R_0$-module for all $a \in A$.
+\end{enumerate}
+\end{prop}
+
+\begin{proof}
+For any $b \in A$, notice that $A_{R(b)} = \{a - b \text{ : } a \in A_R\}$. We equip $R(b)$ with a positive grading via the map of monoids $\theta_{R(b)} : A_{R(b)} \to \Z$ given by $a - b \mapsto \theta_R(a) - \sum_{i = 1}^r b_i$. For any $A$-graded free $R$-module $F$, we can use this formula to define a map $\theta_F : A_F \to \Z$ of monoids such that $\theta_F(mr) =\theta_F(m) +  \theta_R(r)$. The map $\theta_F$ gives $F$ a positive grading whenever its image is bounded below, which is the case when $F$ is finitely generated. Finally, by Remark \ref{sub}, any quotient of a positively graded $A$-module is again positively graded; this proves (1). 
+
+As for (2), suppose $R$ is generated as an $R_0$-algebra by $y_1, \dots, y_m$. We may assume without loss that the $y_i$ are homogeneous of nonzero degree. Let $m_1, \dots, m_r$ be homogeneous generators of $M$, and let $a \in A$. It is clear that $M_a$ is generated over $R_0$ by the set
+$$
+\{f_im_i \text{ : } 1 \le i \le m \text{, } \text{$f_i$ a monomial in the variables $y_1, \dots, y_m$ of degree $a - |m_i| 
+$}\}
+$$
+Since $R$ is positively graded, this generating set is finite.
+\end{proof}
+
+\begin{rem}
+Part (1) of Proposition \ref{modules} also holds when $M$ is a locally finitely generated free flag resolution of a differential $R$-module, by the same proof. 
+\end{rem}
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Minimal free resolutions}
+\label{minsection}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 From now on, assume either
 \begin{itemize}
 \item[(1)] the grading group $A$ is trivial and $R$ is local, or
-\item[(2)] $R$ is positively graded and $R_0$ is local.
+\item[(2)] $R$ is positively graded, $R_0$ is a field, and $R$ is a quotient of a polynomial or exterior algebra over $R_0$. \michael{maybe $R_0$ can just be local. Also maybe remove the quotient of a polynomial of exterior algebra part and only add it to the results that really need it.}
 \end{itemize}
-Let $\m$ denote either the unique maximal ideal of $R$ in the first case or $R_+$ in the second case. We say a morphism $f : M \to N$ of $A$-graded $R$-modules is \emph{minimal} if $f(M) \subseteq \m N$.
+Let $\m$ denote either the unique maximal ideal of $R$ in the first case or $R_+$ in the second case. In either case, we let $k = R/\m$. We say a morphism $f : M \to N$ of $A$-graded $R$-modules is \emph{minimal} if $f(M) \subseteq \m N$.
 
 We now wish to define a notion of minimal free resolutions for differential $R$-modules. It is tempting to define such a resolution to be a minimal free flag resolution. But, we will see in Example \ref{DNE} that such resolutions do not exist in general. Instead, we proceed as follows. 
 
@@ -731,21 +790,41 @@ and a trivial differential module $(T, \del_T)$ satisfying $(F, \del_F) = (G, \d
 \end{defn}
 
 
+
+
+
 \begin{prop}
 \label{minresexists}
-Let $(D, \del_D) \in \DM(R, a)$, and suppose $(D, \del_D)$ admits a locally finitely generated free flag resolution. Then there exists a minimal resolution $(F, \del_F) \xra{\simeq} (D, \del_D)$.
- Moreover, when $R$ is nontrivially graded, $F$ may be chosen so that $\dim_{R_0} F_a < \infty$ for all $a$. 
+Let $(D, \del_D) \in \DM(R, a)$. If $(D, \del_D)$ admits a locally finitely generated free flag resolution, then $(D, \del_D)$ admits a minimal free resolution.
 \end{prop}
-
-\begin{rem}
-By Proposition \ref{resexists}, the assumption that $(D, \del_D)$ admits a locally finitely generated free flag resolution always holds when $H(D, \del_D)$ is finitely generated.
-\end{rem}
-
 \begin{proof}
-The first statement follows from Proposition \ref{decomp}. To prove the second \michael{Finish this. Note that this is essential for the proof of uniqueness of minimal free resolutions.}
+Combine Propositions \ref{resexists} and \ref{decomp}.
 \end{proof}
 
-To prove uniqueness of minimal free resolutions, we will need the following
+To prove uniqueness of minimal free resolutions, we will need the following results.
+
+
+
+\begin{lemma}
+Assume $R$ is positively graded, and $R_0$ is a field (or maybe just local), and $R$ is a quotient of a polynomial or exterior algebra over $R_0$. Let $(D, \del_D) \in \DM(R, a)$.
+\begin{itemize}
+\item[(a)] Let $(F, \del_F) \xra{\simeq} (D, \del_D)$ be a locally finitely generated free flag resolution.  If $\dim_k (F \otimes_R k)_a < \infty$ for all $a \in A$, then $\dim_k F_a < \infty$ for all $a \in A$.
+\item[(b)] Suppose $H(D, \del_D)$ is finitely generated. Let $(F, \del_F) \xra{\simeq} (D, \del_D)$ be a minimal free resolution that arises as a summand of a locally finitely generated free flag resolution. If $R$ satisfies Assumption (2) at the beginning of Subsection \ref{minsection}, then $\dim_k F_a < \infty$ for all $a \in A$. 
+\end{itemize}  
+\end{lemma}
+
+\begin{proof}
+By Proposition \ref{modules}, we need only show that each $F_a$ is contained in only finitely many summands of the flag $F$. \michael{finish this.} To prove (b), note that there is a convergent spectral sequence
+$$
+E^2_{pq} = \on{Tor}_p^R(H_{q}(\on{Ex}(D), k)) \Rightarrow \on{Tor}^R_{p + q}(\Ex(D), k),
+$$
+and so 
+$$
+\dim_k (F \otimes^{\DM}_R k)_a = \dim_k \on{Tor}^R_{\DM}(D, k)_a < \infty
+$$
+for all $a \in A$. Now apply (a).
+\end{proof}
+
 
 \begin{lemma}
 \label{factors}
@@ -753,7 +832,7 @@ Let $(M, \del_M), (M', \del_{M'})$ be minimal differential modules. If a morphis
 $$
 f : (M, \del_M) \to (M', \del_{M'})
 $$
-factors through a trivial differential module, $f$ is minimal.
+factors through a trivial differential module, $f$ is minimal. 
 \end{lemma}
 
 \begin{proof}
@@ -772,16 +851,20 @@ $$
 We conclude that $f(m) \in \m M'$.
 \end{proof}
 
+
+
+
+
 \begin{thm}
 \label{uniqueness}
-Let $(D, \del_D) \in \DM(R, a)$, and let
+Let $(D, \del_D) \in \DM(R, a)$, and suppose $H(D, \del_D)$ is finitely generated. Let
 $$
 \xymatrix{
 (M, \del_M) \oplus (T, \del_T) \ar[rd]^-{\epsilon}& &  (M', \del_{M'}) \oplus (T', \del_{T'}) \ar[ld]_-{\epsilon'}\\
 &(D, \del_D)&
 }
 $$
-be locally finite free flag resolutions, where $(M, \del_M)$, $(M', \del_{M'})$ are minimal and $(T, \del_T), (T', \del_{T'})$ are trivial. There is an isomorphism $(M, \del_M) \cong (M', \del_{M'})$. In particular, minimal free resolutions of differential modules are unique up to isomorphism.
+be locally finite free flag resolutions, where $(M, \del_M)$, $(M', \del_{M'})$ are minimal and $(T, \del_T), (T', \del_{T'})$ are trivial. There is an isomorphism $(M, \del_M) \cong (M', \del_{M'})$. In particular, minimal free resolutions of differential modules with finitely generated homology are unique up to isomorphism.
 \end{thm}
 
 \begin{proof} 
@@ -807,7 +890,7 @@ Reading off the top-left entry of the matrices on each side of these equations, 
 \end{align*}
 By Lemma \ref{factors}, $\a_2'\a_3$ and $\a_2\a_3'$ are minimal. We conclude that $\a_1'\a_1 = \id_M$ and $\a_1\a_1' = \id_{M'}$ modulo $\m$. 
 
-Now, assume $R$ is nontrivially graded. By the graded version of Nakayama's Lemma and the local finiteness of $M$ and $M'$, it follows that $\a_1'\a_1$ and $\a_1\a_1'$ are automorphisms. In particular, $\a_1$ is injective and surjective. In the case where $R$ is trivially graded... \michael{Not sure how this is going to work in non-graded case. May just need to assume $M$ and $M'$ are finitely generated in this case.}
+Now, assume $R$ satisfies Assumption (2) at the beginning of Subsection \ref{minsection}. By Example \ref{posgradingex}, $M$ and $M'$ are positively graded. By Lemma \ref{nak} and Proposition \ref{minresexists}, it follows that $\a_1'\a_1$ and $\a_1\a_1'$ are automorphisms. In particular, $\a_1$ is injective and surjective. In the case where $R$ is trivially graded... \michael{Not sure how this is going to work in non-graded case. May just need to assume $M$ and $M'$ are finitely generated in this case.}
 \end{proof}
 
 \begin{example}
@@ -934,6 +1017,7 @@ The rest of the statement is straightforward, though we need a hypothesis to gua
 
 %%%%%%%%%%%
 \section{The toric BGG correspondence}
+\label{BGGsection}
 %%%%%%%%%%%
 
 Let $k$ be a field and $V$ a $k$-vector space with basis $\{e_0, \dots, e_n\}$. Denote by $x_0, \dots, x_n$ the corresponding basis elements of $W = \Hom_k(V, k)$. Let $E = \bigwedge(V)$ and $S = \Sym(W)$. Equip $S$ (resp. $E$) with a $\Z$-grading such that $|x_i| = 1$ (resp. $|e_i| = -1$) for all $i$. The following theorem is called the \emph{Bernstein-Gel'fand-Gel'fand correspondence}:
@@ -1328,10 +1412,14 @@ is an equivalence.
 \end{prop}
 
 \begin{proof}
-\michael{This proof is under construction.}
-Let $N \in \DM(E)$. By Proposition \ref{minresexists}, we can choose a minimal free resolution $F$ of $N$. Moreover, since $H(N)$ is finitely generated over $E$, we can assume $\dim_k F_{(a, i)} < \infty$ for all $(a, i) \in A \times \Z$. 
-Using again that $H(N)$ is finitely generated over $E$, choose a finite subset $A' \subseteq A$ such that $H(N)_{(a, i)} = 0$ if $a \notin A'$. Let $F'$ denote the $E$-submodule of $F$ generated by elements of degree $(a', i)$ for some $a' \in A$ and $i \in \Z$. Notice that $F'$ is a differential submodule of $F$, and the inclusion $F' \into F$ is a quasi-isomorphism. Now, since $F'$ is minimal, and there are only 
+Let $N \in \DM(E)$. By Proposition \ref{minresexists}, we can choose a minimal free resolution $F$ of $N$. Since $H(N)$ is finitely generated over $E$, $\dim_k H(N)_{(a, i)} < \infty$ for all $(a, i) \in A \times \Z$. The convergence of the spectral sequence
+$$
+E^2_{pq} = \Tor_p^R(H_q \on{Ex}(N), k) \Rightarrow \Tor^R_{p + q}(\on{Ex}(N), k)
+$$
+implies that $\dim_k H(F \otimes k)_{(a, i)} < \infty$ for all $(a, i)$, and it follows that $\dim_k F_{(a,i)} < \infty$ for all $i$. Using again that $H(N)$ is finitely generated over $E$, choose a finite subset $A' \subseteq A$ such that $H(N)_{(a, i)} = 0$ if $a \notin A'$. Let $F'$ denote the $E$-submodule of $F$ generated by elements of degree $(a', i)$ for some $a' \in A$ and $i \in \Z$. Notice that $F'$ is a differential submodule of $F$, and the inclusion $F' \into F$ is a quasi-isomorphism. Finally, we observe that, since $F'$ is minimal, there are only finitely many $i$ such that $F'_{(a', i)} \ne 0$ for some $a' \in A'$. We conclude that $\dim_k F' < \infty$, and so $F'$ is a finitely generated $E$-module. 
 \end{proof}
+
+\michael{Is this statement true for general differential modules? Of course it's easy to prove the corresponding fact for complexes, by taking ``smart truncations". But there doesn't seem to be a way to do this with differential modules. This proof extends to somewhat greater generality, but it only extends so far. At the very least, we need to be in a setting where minimal resolutions exist; I think we need several other technical assumptions as well.}
 
 \begin{cor} 
 \label{bddderived}
@@ -1364,6 +1452,7 @@ Let $C \in \Com(S)$ be a bounded above complex, and let $N \in \DM(E)$ be a diff
 \end{prop}
 
 \begin{proof}
+\label{Under construction}
 Since $C$ is bounded, the bicomplex whose totalization is $\RR(C)$ has finitely many rows. Notice that the columns of this bicomplex split, and its vertical homology in position $(p,q)$ is $\bigoplus_{d \in A} H_q(C) \otimes_k \om(d, p)$. Part (a) therefore follows immediately from \cite[Lemma 3.5]{EFS}.
 
 Since $\LL(N)$ is not the totalization of a bicomplex, we need a slightly different argument for part (b). We will use the Basic Perturbation Lemma; see, for instance, \cite[Lemma A.4]{coanda} for the statement. Consider the complex $\overline{\LL(N)}$ with underlying $S$-module identical to $\LL(N)$ and $j^{\th}$ differential $(-1)^j \del_N$. This complex splits $S$-linearly; that is, letting $Z_j$ and $B_j$ denote the $j$-cycles and $j$-boundaries in $\overline{\LL(N)}$, we may choose an $S$-module decomposition
@@ -1394,7 +1483,6 @@ The $S$-linear endomorphism $\del_\LL$ of $\overline{\LL(N)}$ is a ``perturbatio
 \item $\del_\LL^2 = 0$, and
 \item if we add $\del_\LL$ to the differential on $\overline{\LL(N)}$, we again get a complex (namely $\LL(N)$). 
 \end{itemize}
-\michael{finish this.}
 \end{proof}
 
 \begin{rem}
@@ -1432,8 +1520,10 @@ be an object in $\on{Lin}(S)$. Let $N = \bigoplus_{d \in A, i \in \Z} N_{d, i}$.
 \end{proof}
 
 
+
 %%%%%%%%%%%%%%%%%%
 \section{A Fourier-Mukai definition of the Tate resolution over $\PP^n$}
+\label{FM}
 %%%%%%%%%%%%%%%%%%
 
 Suppose $S = k[x_0, \dots, x_n]$ is $\Z$-graded with $|x_i| = 1$. In this section, we temporarily revert back to the grading convention for $E = \Lambda_k(e_0, \dots, e_n)$ from the classical BGG correspondence, so that $E$ is $\Z$-graded with $|e_i| = -1$ for all $i$. 
@@ -1461,11 +1551,11 @@ F \to Y \xra{\cong} Y^{\vee \vee} \to G^{\vee}.
 $$
 The mapping cone of this quasi-isomorphism is called a (minimal) \emph{complete resolution} of $Y$. We define $C(Y)$ to be this minimal complete resolution.
 
-Set $T = C \circ \overline{\RR}_{\on{st}}$. When $\F \in \on{coh}(\PP^n)$, we call $T(\F)$ the \emph{Tate resolution of $\F$}. 
+Set $T_{\on{st}} = C \circ \overline{\RR}_{\on{st}}$. When $\F \in \on{coh}(\PP^n)$, we call $T_{\on{st}}(\F)$ the \emph{Tate resolution of $\F$}. Here again, the subscript ``st" stands for ``standard" and is meant to distinguish this original definition of the Tate resolution from the toric Tate resolutions we discuss later on. 
 
 \begin{example}
 \label{tateex}
-Let $\F \in \on{coh}(\PP^n)$; we apply the above description of the functor $C$ to compute $T(\F)$. Choose an $S$-module $M$ such that $\widetilde{M} = \F$, let $r = \on{reg}(\F)$, and denote by $M_{\ge r}$ the $S$-module $\bigoplus_{j \ge r} M_j$. We observe that $\overline{\RR}_{\on{st}}(\F)$ is the image of $\RR(M_{\ge r})$ in $\on{D}_{\on{sing}}(E)$, so $T(\F) = C(\RR(M_{\ge r}))$. Since $\RR(M_{\ge r})^\vee$ is itself a minimal free resolution, we take $G = \RR(M_{\ge r})^\vee$. On the other hand, $\RR(M_{\ge r})$ is typically not bounded below, so one cannot immediately take its minimal free resolution; we first have to choose a bounded complex to which $\RR(M_{\ge r})$ is quasi-isomorphic, and then we choose $F$ to be the minimal free resolution of this bounded object. By \cite[Corollary 2.4]{EFS}, $\RR(M_{\ge r})$ is an injective resolution of the kernel $K$ of the differential $\RR(M_{\ge r})_{-r} \to \RR(M_{\ge r})_{-r -1}$, so we take $F$ to be the minimal free resolution of $K$. There is a canonical quasi-isomorphism $F \to \RR(M_{\ge r})$, and $T(\F)$ is its mapping cone.
+Let $\F \in \on{coh}(\PP^n)$; we apply the above description of the functor $C$ to compute $T_{\on{st}} (\F)$. Choose an $S$-module $M$ such that $\widetilde{M} = \F$, let $r = \on{reg}(\F)$, and denote by $M_{\ge r}$ the $S$-module $\bigoplus_{j \ge r} M_j$. We observe that $\overline{\RR}_{\on{st}}(\F)$ is the image of $\RR(M_{\ge r})$ in $\on{D}_{\on{sing}}(E)$, so $T_{\on{st}} (\F) = C(\RR(M_{\ge r}))$. Since $\RR(M_{\ge r})^\vee$ is itself a minimal free resolution, we take $G = \RR(M_{\ge r})^\vee$. On the other hand, $\RR(M_{\ge r})$ is typically not bounded below, so one cannot immediately take its minimal free resolution; we first have to choose a bounded complex to which $\RR(M_{\ge r})$ is quasi-isomorphic, and then we choose $F$ to be the minimal free resolution of this bounded object. By \cite[Corollary 2.4]{EFS}, $\RR(M_{\ge r})$ is an injective resolution of the kernel $K$ of the differential $\RR(M_{\ge r})_{-r} \to \RR(M_{\ge r})_{-r -1}$, so we take $F$ to be the minimal free resolution of $K$. There is a canonical quasi-isomorphism $F \to \RR(M_{\ge r})$, and $T_{\on{st}} (\F)$ is its mapping cone.
 \end{example}
 
 
@@ -1473,7 +1563,7 @@ One of the main results of Eisenbud-Fl\o ystad-Schreyer in \cite{EFS} is that on
 
 \begin{thm}[\cite{EFS} Corollary 4.2]
 \label{EFS}
-For all $j, \l \in \Z$, $H^j(\PP^n, \F(\l)) = \Hom_E(K, T^{j + \l})_{-\l}$.
+For all $j, \l \in \Z$, $H^j(\PP^n, \F(\l)) = \Hom_E(K, T_{\on{st}} ^{j + \l})_{-\l}$.
 \end{thm}
 Theorem \ref{EFS} leads to an algorithm for computing sheaf cohomology over $\PP^n$ which is, in some cases, the fastest available. One of the main goals of this article is to generalize the Tate resolution, and Theorem \ref{EFS}, from $\PP^n$ to any projective toric variety \michael{or stack?}. We conclude this section with an alternative construction of the Tate resolution over $\PP^n$ that more easily generalizes to toric varieties. This alternative construction also clarifies the relationship between the Tate resolution, sheaf cohomology, and Beilinson's resolution of the diagonal. 
 
@@ -1495,7 +1585,7 @@ Some motivation for the definition of $\tR$ is in order. We recall from \cite[Se
 \end{equation}
 from complexes of free $\Z$-graded $E$-modules to complexes of sheaves on $\PP^n$ such that
 $$
-H_i(\Omega \circ T)(\F) = \begin{cases} \F & i = 0 \\ 0 & i \ne 0. \end{cases}
+H_i(\Omega \circ T_{\on{st}} )(\F) = \begin{cases} \F & i = 0 \\ 0 & i \ne 0. \end{cases}
 $$
 We briefly explain the definition of $\Omega$. By \cite[Proposition 5.6]{EFS}, there is a canonical map
 \begin{equation}
@@ -1509,7 +1599,7 @@ Now, let $\cR$ denote Beilinson's resolution of the diagonal over $\PP^n$ (\cite
 $$
 0 \from \OO \boxtimes \OO \from \cdots \from \OO(-n + 1) \boxtimes \Omega^{n-1}(n-1) \from \OO(-n) \boxtimes \Omega^n(n) \from 0
 $$
-of the section $\sum_{i = 0}^n x_i \boxtimes \frac{\partial}{\partial y_i} \in H^0(\PP^n \times \PP^n, \OO(1) \boxtimes T(-1))$, where the $x_i$ and $y_i$ are the coordinates of the first and second copies $\PP^n$, respectively. The intuition for the definition of $\tR$ is that, if we apply the functor $\Omega$ to the factors $\om(i)$ appearing in $\tR$ and to the maps given by contraction by $\frac{\partial}{\partial y_i}$, we get $\cR$. \michael{This still doesn't fully motivate the definition of $\Phi_{\tR}$. What I want to say is something like: $\Omega$ determines an equivalence $K^{\on{ex}}(E) \to \Db(\PP^n)$, and $\Omega \circ \Phi_{\tR} = \Phi_{\cR}$. Therefore, since $\Phi_{\cR}$ is isomorphic to the identity, $\Phi_{\tR}$ is an inverse of $\Omega$; in particular, it is an equivalence $\Db(\PP^n) \to K^{\on{ex}}(E)$, just like the Tate resolution functor. I'm not sure this is the right way to explain this. Need to think more about this.}
+of the section $\sum_{i = 0}^n x_i \boxtimes \frac{\partial}{\partial y_i} \in H^0(\PP^n \times \PP^n, \OO(1) \boxtimes T(-1))$, where the $x_i$ and $y_i$ are the coordinates of the first and second copies $\PP^n$, respectively. The intuition for the definition of $\tR$ is that, if we apply the functor $\Omega$ to the factors $\om(i)$ appearing in $\tR$ and to the maps given by contraction by $\frac{\partial}{\partial y_i}$, we get $\cR$. \michael{This still doesn't fully motivate the definition of $\Phi_{\tR}$. What I want to say is something like: $\Omega$ determines an equivalence $K^{\on{ex}}(E) \to \Db(\PP^n)$, and $\Omega \circ \Phi_{\tR} = \Phi_{\cR}$. Therefore, since $\Phi_{\cR}$ is isomorphic to the identity, $\Phi_{\tR}$ is an inverse of $\Omega$; in particular, it is an equivalence $\Db(\PP^n) \to K^{\on{ex}}(E)$, just like the Tate resolution functor. I'm not sure this is the right way to explain this. Need to think more about this. Also, it would be nice to have one diagram relating the Tate resolution, the resolution of the diagonal, and the functor $\RR$. Really want to completely clarify the relationship between the Beilinson, BGG, and EFS papers in this section.}
 \end{rem}
  
 
@@ -1540,7 +1630,7 @@ We define $\Phi_{\tR}(\F) \in K^{\on{ex}}$ to be a minimal complex as in Lemma \
 
 \begin{thm}
 \label{comparison1}
-For any $\F \in \on{coh}(\PP^n)$, there is an isomorphism $T(\F) \xra{\cong} \Phi_{\tR}(\F)$ of complexes of $E$-modules.
+For any $\F \in \on{coh}(\PP^n)$, there is an isomorphism $T_{\on{st}} (\F) \xra{\cong} \Phi_{\tR}(\F)$ of complexes of $E$-modules.
 \end{thm}
 
 \begin{proof}
@@ -1551,79 +1641,72 @@ It is immediate from Lemma \ref{splitting} and the construction of the Tate reso
 Eisenbud-Fl\o ystad-Schreyer's calculation of sheaf cohomology over $\PP^n$ in terms of the ranks of the terms in the Tate resolution (Theorem \ref{EFS} above) is an immediate consequence of Theorem \ref{comparison1}. 
 \end{rem}
 
+%%%%%%%%%%%%%%%%
+\section{Toric Tate resolutions}
+%%%%%%%%%%%%%%%%
+Let $k$ be a field, $N$ a finitely generated free abelian group, and $\Sigma$ a rational fan inside $N \otimes_\Z \Q$. We may associate to $\Sigma$ a toric \emph{variety} $X$ over $k$ and a toric \emph{stack} $\X$ over $k$. We briefly recall the constructions from \cite{cox} and \cite[Section 3]{BCS}, respectively. Let $\Sigma(1) = \{\rho_0, \dots \rho_n\}$ denote the rays of $\Sigma$, and let
+$$
+S = k[x_i \text{ : } \rho_i \in \Sigma(1)]
+$$
+denote the \emph{Cox ring} of $\Sigma$. The \emph{irrelevant ideal} of $\Sigma$ is the ideal 
+$$
+B_\Sigma = ( \prod_{\rho_i \nsubseteq \sigma} x_i \text{ : } \sigma \in \Sigma )
+$$ 
+of $S$. The variety $Z = \Spec(S) \setminus V(B_\Sigma)$ may be equipped with an action of a group $G$ associated to $\Sigma$. \michael{Fill in the description of $G$. It's $\Hom_\Z(A_{n-1}(X), k^*)$, but Borisov-Chen-Smith describe it without referring to $X$, which is better in this setting}. The categorical quotient of $Z$ by $G$ exists, and this is the toric variety $X$. We note that $S$ is $\Cl(X)$-graded. The toric stack $\X$ is the quotient stack $[Z/G]$. The stack $\X$ is Deligne-Mumford if and only if the fan $\Sigma$ is simplicial, and the natural map $\X \to X$ exhibits $X$ as the coarse moduli scheme of $\X$. Note that, when $X$ is smooth, $\X = X$.
 
-\section{Pushforward of differential modules}\label{sec:tau}
-\daniel{This section is in rough shape.}
-Here we give the explicit construction of the pushforward functor $\tau_*$.  We also prove results about a pushforward functor $\DM(X)\to \DM(k)$.
-\begin{lemma}\label{lemma:tau}
-Let $X$ be a toric variety over $k$ with Cox ring $S$, graded by $\Pic(X)$.  Let $E$ be the exterior algebra on the dual variables, with the $\Pic(X)\oplus \ZZ$-grading described above.
-\begin{enumerate}
-	\item There is an additive functor: $\pi_*\colon \DM(X)\to \DM^\circ (k)$ which preserves exactness and where $|\pi_* \mathcal D| =\oplus_{i=0}^{\dim X} H^i(X, |\mathcal D|)$, namely: the underlying module of $\pi_* \mathcal D$ is the total sheaf cohomology of the underlying module of $\mathcal D$.
-%	and
-%			\item  if $\mathcal D$ is exact, then so is $\pi_*\mathcal D$.
-%		\end{enumerate}
-	\item There is an additive functor: $\tau_*\colon \DM_{\free}(\PP^n_E)\to \DM^\circ(E)$ which preserves exactness and where the underlying module of $\tau_*\mathcal D$ satisfies: If $|\mathcal D| =\oplus_{\ell\in \Pic(X)} \cE_\ell\otimes_k E(\ell;0)$ then
-	\begin{equation}\label{eqn:underlying module}
-	 |\tau_*\mathcal D| =\bigoplus_{i=0}^{\dim X}\bigoplus_{\ell\in \Pic(X)} H^i(\cE_\ell)\otimes_k E(\ell;-i).
-	 \end{equation}
-	\end{enumerate}
-\end{lemma}
-\begin{proof}\daniel{Some notational bugs here.  I ran out of time but will fix soon.  All ideas correct.}
-We first prove (1).  Start with a differential $X$-module whose underlying sheaf is $\cF$.  
-By unfolding, we can realize this  in $\DD(\PP^n_E)$ as
-\[
-\cdots \overset{\partial}{\longrightarrow}\cF \overset{\partial}{\longrightarrow} \cF \overset{\partial}{\longrightarrow} \cF\overset{\partial}{\longrightarrow} \cdots
-\]
-Let $C^0\to C^1\to \cdots \to C^n$ be the Cech resolution for $\cF$, with $C^i$ an $S$-module.
-We build a double complex $F^i_j$ where $F^i_j=C^i$ (in particular $F^i_j$ only depends on $j$); the columns are Cech resolutions and the horizontal maps are localizations of the differential $\partial$.
+Let $E = \Lambda_k(e_i \text{ : } \rho_i \in \Sigma(1))$, equipped with the $\Cl(X) \times \Z$-grading given by $|e_i | = (-|x_i|, -1)$. Our goal in this section is to prove the following
 
-Each column of the double complex is the same, and taking vertical homology in the $i$'th spot gives $H^i(X,\cF)$. By choosing a splitting of $H^i(\cE_\ell)$ into the Cech complex for $\cF$, we get a splitting for the vertical homology in this double complex.  We can then apply~\cite[Lemma~3.5]{EFS}, to get a complex of $E$-modules:
-\[
-\cdots \overset{\partial}{\longrightarrow} G \overset{\partial}{\longrightarrow} G \overset{\partial}{\longrightarrow}G \overset{\partial}{\longrightarrow} \cdots
-\]
-where $G$ in column $0$ is
-\[
-G = \oplus_{i=0}^{\dim X} \HH^i(F^*_i) =  \oplus_{i=0}^{\dim X}H^i(\cF).
-\]
-A different splitting will induce the same complex, up to homotopy (since both would be homotopic to the original total complex, again by ~\cite[Lemma~3.5]{EFS}).  Applying Remark~\ref{rmk:cyclic} in reverse, $G$ induces a well-defined element of $\DM^\circ(k)$ as desired. 
+\begin{thm}
+There is a functor
+$$
+T : \on{Qcoh}(\X) \to \DM(E)
+$$
+such that $T(\F)$ is exact, and...\michael{sheaf cohomology calculation.}
+\end{thm}
 
-Exactness is nearly immediate from the construction.  By construction, the $i$th homology of the complex
-\[
-\cdots \overset{\partial}{\longrightarrow}\pi_*\mathcal D\overset{\partial}{\longrightarrow}\pi_*\mathcal D\overset{\partial}{\longrightarrow}\pi_*\mathcal D\overset{\partial}{\longrightarrow} \cdots
-\]
-in $\DD(k)$ is the hypercohomology of the complex
-\[
-\cdots \overset{\partial}{\longrightarrow}\mathcal D\overset{\partial}{\longrightarrow}\mathcal D\overset{\partial}{\longrightarrow}\mathcal D\overset{\partial}{\longrightarrow} \cdots
-\]
-But by the standard hypercohomology spectral sequence $E^{i,j}_2=H^i (\HH^j -) \Rightarrow H^{i+j}(-)$, if (the unfolded complex for) $\mathcal D$ is exact then so is (the unfolded complex for) $\pi_*\mathcal D$.
+Given $\F \in \on{Qcoh}(\X)$, we call $T(\F)$ the \emph{Tate resolution} of $\F$. 
 
-The proof of (2) is nearly identical as the proof of (1), though we need to track the gradings in more detail.  Starting with an object $\cF := \oplus_{\ell} \cE_\ell\otimes_k E(\ell;0)$ from $\DM_{\free}(\PP^n_E)$, we get the unfolded complex:
-\[
-\cdots \overset{\partial}{\longrightarrow} \oplus_{\ell} \cE_\ell\otimes_k E(\ell;-1) \overset{\partial}{\longrightarrow} \oplus_{\ell} \cE_\ell\otimes_k E(\ell;0) \overset{\partial}{\longrightarrow} \oplus_{\ell} \cE_\ell\otimes_k E(\ell;1)\overset{\partial}{\longrightarrow} \cdots
-\]
-For each $\ell$, we take a separate Cech resolution of $\cE_\ell$, tensor with $-\otimes_k E(\ell; 0)$, and then take the direct sum of these to get one of our vertical columns, $C^*_0$.  We then let $C^*_i = C^*_0\otimes_E E(0;i)$.  We again build a double complex from these, where the columns are twists of Cech resolutions, and the horizontal maps are localizations of the differential $\partial$.
 
-Each column is the same (up to a twist of the $E$-part), and taking vertical homology in the $i$'th spot gives $\HH(C^*_j)=\oplus_{\ell} H^i(\cE_\ell)\otimes_k E(\ell;-j)$.  Since the vertical differentials are defined entirely over $k$, we can still choose a splitting of the homology into the Cech complex, and thus obtain a splitting for the vertical homology in this double complex.  We apply~\cite[Lemma~3.5]{EFS}, to get a complex of $E$-modules:
-\[
-\cdots \overset{\partial}{\longrightarrow} G(0;-1) \overset{\partial}{\longrightarrow} G \overset{\partial}{\longrightarrow}G(0;1) \overset{\partial}{\longrightarrow} \cdots
-\]
-where $G$ in homological degree $0$ is
-\[
-G = \oplus_{i=0}^{\dim X} \HH^i(F^*_i) =  \oplus_{i=0}^{\dim X}\oplus_{\ell \in \Pic(X)} H^i(\cE_\ell )\otimes_k E(\ell;-i).
-\]
-We thus obtain a well-defined element of $\DM^\circ(E)$ as desired.  To check exactness, we can consider the commutative square
-\[
+The idea is to generalize the Fourier-Mukai construction of the Tate resolution over $\PP^n$ introduced in Section \ref{FM}. Our ``kernel" in this case is the differential $\OO_\X$-module
+$$
+\tR_{\DM} = (\bigoplus_{a \in \Cl(X)} \OO_\X (a) \otimes_k \om(-a, 0), \sum_{i = 0}^n x_i \otimes e_i).
+$$
+\michael{I guess we should introduce differential modules over ringed spaces rather than just rings, but that seems sort of pedantic.} When $\X = \PP^n$, $\tR_{\DM} = \Fold(\tR)$, where $\tR$ is as in Section \ref{FM}. Let $\F \in \on{Qcoh}(\X)$. Just as in Section \ref{FM}, the idea is to think of $\tR_{\DM}$ as a differential module over ``$\X \times E$'' and define $T_{\on{toric}}(\F)$ by ``pulling $\F$ back to $\X \times E$, tensoring with $\tR_{\DM}$, and pushing forward to $E$". 
+
+Let us now define the functor $T_{\on{toric}}$. We recall that there is an equivalence of categories $\on{Qcoh}(\X) \simeq \on{Qcoh}_G(Z)$, where the right-hand side denotes the category of $G$-equivariant quasi-coherent sheaves on the variety $Z$. Let $\fU$ denote the $G$-invariant affine open cover of $Z$, indexed by the cones of maximal dimension in $\Sigma$, described in \cite[Proposition 4.3]{BCS}. Let $\F \in \on{Qcoh}(\X)$, and let $\fC_\F$ denote the \v{C}ech complex of $\F$ associated to $\fU$. We have a bicomplex
+$$
 \xymatrix{
-\DM_{\free}(\PP^n_E)\ar[r]\ar[d]_{\tau_*} &\DM(\PP^n_k)\ar[d]_{\pi_*}\\
-\DM^\circ(E)\ar[r]&\DM^\circ(k)
+\cdots &  \bigoplus_{a \in \Cl(X)} \fC^0_{\F(a)} \otimes_k \om(-a, -1) \ar[l]\ar[d]  & \bigoplus_{a \in \Cl(X)} \fC^0_{\F(a)} \otimes_k \om(-a, 0) \ar[l] \ar[d] & \ar[l]  \cdots\\
+\cdots  &\bigoplus_{a \in \Cl(X)} \fC^1_{\F(a)} \otimes_k \om(-a, -1) \ar[l] \ar[d] & \bigoplus_{a \in \Cl(X)} \fC^1_{\F(a)} \otimes_k \om(-a, 0) \ar[l] \ar[d]  & \ar[l] \cdots \\
+& \vdots & \vdots  &\\
 }
-\]
-where the horizontal arrows simply forget the $E$-module structure.  Since forgetful maps respect exactness, exactness for part (2) follows from exactness for part (1).
+$$
+with $(p, q)$ term $ \bigoplus_{a \in \Cl(X)} \fC^{-p}_{\F(a)} \otimes_k \om(-a, q)$, vertical differentials given by direct sums of \v{C}ech differentials, and horizontal differentials given by multiplication by $\sum_{i = 0}^n x_i \otimes e_i$. Denote this $E$-linear bicomplex by $\B_{\on{per}}$. Notice that $\on{Tot}(\B_{\on{per}}) \in \Comper(E, (0,-1)),$ and so it corresponds via the equivalence $\on{Ex}$ to an object in $Y \in \DM(E)$. 
+
+\begin{lemma}
+\label{splitting2}
+The differential module $Y$ is homotopy equivalent to a minimal exact differential module with underlying $E$-module
+$$
+\bigoplus_{i \in \Z} \bigoplus_{a \in \Cl(X)} H^i(\X, \F(a)) \otimes_k \om(-a, i).
+$$
+\end{lemma} 
+
+\begin{proof}
+Same as the proof of Lemma \ref{splitting}.
 \end{proof}
+
+Now define $T$ (up to homotopy equivalence).
+
+\begin{rem}
+When $X = \PP^n$ (in which case $\X = \PP^n$), we have an isomorphism
+$$
+T(\F) \cong \Fold(T_{\on{st}}(\F)).
+$$ 
+\end{rem}
 
 
 \begin{example}
-Let's work on $\PP^1$.  Let $\mathcal D:= \cO_{\PP^1}\oplus \cO_{\PP^1}^2(-1) \oplus \cO_{\PP^1}(-2)$ with the Koszul differential on $\mathcal D$, so that $\mathcal D$ is exact.  Let $C^0\to C^1$ be the Cech resolution of $\mathcal D$. Under the construction above, we end up with a total complex
+\michael{Work this example in somehow.}Let's work on $\PP^1$.  Let $\mathcal D:= \cO_{\PP^1}\oplus \cO_{\PP^1}^2(-1) \oplus \cO_{\PP^1}(-2)$ with the Koszul differential on $\mathcal D$, so that $\mathcal D$ is exact.  Let $C^0\to C^1$ be the Cech resolution of $\mathcal D$. Under the construction above, we end up with a total complex
 $
 \cdots \overset{\partial}{\longrightarrow} G \overset{\partial}{\longrightarrow} G \overset{\partial}{\longrightarrow}G \overset{\partial}{\longrightarrow} \cdots
 $
@@ -1637,7 +1720,6 @@ G_i = \HH^0(C^\bullet_i)\oplus  \HH^1(C^\bullet_{i+1}).
 \]
 So to get the map $H^1\to H^0$ we would require at least $3$ copies of the Cech complex.  This explains why we can't just define the differential as ``the pushforward of the map $\partial$''.
 \end{example}
-
 
 
 
@@ -1921,6 +2003,96 @@ The irrelevant ideal is generated by monomials corresponding to the product of t
 \daniel{A remark:  Imagine we have fixed $S$ and $M$ but not $X$.  (In other words, imagine we have to toric varieities with the same cox ring $S$.  The choice of $d$ depends on $X$.  But the statement about the length of the minimal free resolution of $X$ does not.  In other words, all we seem to need is that $d$ is sufficiently ample for SOME $X$ whose Cox ring $S$.  This is a much less restrictive condition, which might be equivalent to being sufficiently far from the boundary of the effective cone.  But I'm not sure.}
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%
+%%CUTTING BOARD%%
+%%%%%%%%%%%%%
+\iffalse
+\section{Pushforward of differential modules}\label{sec:tau}
+\daniel{This section is in rough shape.}
+Here we give the explicit construction of the pushforward functor $\tau_*$.  We also prove results about a pushforward functor $\DM(X)\to \DM(k)$.
+\begin{lemma}\label{lemma:tau}
+Let $X$ be a toric variety over $k$ with Cox ring $S$, graded by $\Pic(X)$.  Let $E$ be the exterior algebra on the dual variables, with the $\Pic(X)\oplus \ZZ$-grading described above.
+\begin{enumerate}
+	\item There is an additive functor: $\pi_*\colon \DM(X)\to \DM^\circ (k)$ which preserves exactness and where $|\pi_* \mathcal D| =\oplus_{i=0}^{\dim X} H^i(X, |\mathcal D|)$, namely: the underlying module of $\pi_* \mathcal D$ is the total sheaf cohomology of the underlying module of $\mathcal D$.
+%	and
+%			\item  if $\mathcal D$ is exact, then so is $\pi_*\mathcal D$.
+%		\end{enumerate}
+	\item There is an additive functor: $\tau_*\colon \DM_{\free}(\PP^n_E)\to \DM^\circ(E)$ which preserves exactness and where the underlying module of $\tau_*\mathcal D$ satisfies: If $|\mathcal D| =\oplus_{\ell\in \Pic(X)} \cE_\ell\otimes_k E(\ell;0)$ then
+	\begin{equation}\label{eqn:underlying module}
+	 |\tau_*\mathcal D| =\bigoplus_{i=0}^{\dim X}\bigoplus_{\ell\in \Pic(X)} H^i(\cE_\ell)\otimes_k E(\ell;-i).
+	 \end{equation}
+	\end{enumerate}
+\end{lemma}
+\begin{proof}\daniel{Some notational bugs here.  I ran out of time but will fix soon.  All ideas correct.}
+We first prove (1).  Start with a differential $X$-module whose underlying sheaf is $\cF$.  
+By unfolding, we can realize this  in $\DD(\PP^n_E)$ as
+\[
+\cdots \overset{\partial}{\longrightarrow}\cF \overset{\partial}{\longrightarrow} \cF \overset{\partial}{\longrightarrow} \cF\overset{\partial}{\longrightarrow} \cdots
+\]
+Let $C^0\to C^1\to \cdots \to C^n$ be the Cech resolution for $\cF$, with $C^i$ an $S$-module.
+We build a double complex $F^i_j$ where $F^i_j=C^i$ (in particular $F^i_j$ only depends on $j$); the columns are Cech resolutions and the horizontal maps are localizations of the differential $\partial$.
+
+Each column of the double complex is the same, and taking vertical homology in the $i$'th spot gives $H^i(X,\cF)$. By choosing a splitting of $H^i(\cE_\ell)$ into the Cech complex for $\cF$, we get a splitting for the vertical homology in this double complex.  We can then apply~\cite[Lemma~3.5]{EFS}, to get a complex of $E$-modules:
+\[
+\cdots \overset{\partial}{\longrightarrow} G \overset{\partial}{\longrightarrow} G \overset{\partial}{\longrightarrow}G \overset{\partial}{\longrightarrow} \cdots
+\]
+where $G$ in column $0$ is
+\[
+G = \oplus_{i=0}^{\dim X} \HH^i(F^*_i) =  \oplus_{i=0}^{\dim X}H^i(\cF).
+\]
+A different splitting will induce the same complex, up to homotopy (since both would be homotopic to the original total complex, again by ~\cite[Lemma~3.5]{EFS}).  Applying Remark~\ref{rmk:cyclic} in reverse, $G$ induces a well-defined element of $\DM^\circ(k)$ as desired. 
+
+Exactness is nearly immediate from the construction.  By construction, the $i$th homology of the complex
+\[
+\cdots \overset{\partial}{\longrightarrow}\pi_*\mathcal D\overset{\partial}{\longrightarrow}\pi_*\mathcal D\overset{\partial}{\longrightarrow}\pi_*\mathcal D\overset{\partial}{\longrightarrow} \cdots
+\]
+in $\DD(k)$ is the hypercohomology of the complex
+\[
+\cdots \overset{\partial}{\longrightarrow}\mathcal D\overset{\partial}{\longrightarrow}\mathcal D\overset{\partial}{\longrightarrow}\mathcal D\overset{\partial}{\longrightarrow} \cdots
+\]
+But by the standard hypercohomology spectral sequence $E^{i,j}_2=H^i (\HH^j -) \Rightarrow H^{i+j}(-)$, if (the unfolded complex for) $\mathcal D$ is exact then so is (the unfolded complex for) $\pi_*\mathcal D$.
+
+The proof of (2) is nearly identical as the proof of (1), though we need to track the gradings in more detail.  Starting with an object $\cF := \oplus_{\ell} \cE_\ell\otimes_k E(\ell;0)$ from $\DM_{\free}(\PP^n_E)$, we get the unfolded complex:
+\[
+\cdots \overset{\partial}{\longrightarrow} \oplus_{\ell} \cE_\ell\otimes_k E(\ell;-1) \overset{\partial}{\longrightarrow} \oplus_{\ell} \cE_\ell\otimes_k E(\ell;0) \overset{\partial}{\longrightarrow} \oplus_{\ell} \cE_\ell\otimes_k E(\ell;1)\overset{\partial}{\longrightarrow} \cdots
+\]
+For each $\ell$, we take a separate Cech resolution of $\cE_\ell$, tensor with $-\otimes_k E(\ell; 0)$, and then take the direct sum of these to get one of our vertical columns, $C^*_0$.  We then let $C^*_i = C^*_0\otimes_E E(0;i)$.  We again build a double complex from these, where the columns are twists of Cech resolutions, and the horizontal maps are localizations of the differential $\partial$.
+
+Each column is the same (up to a twist of the $E$-part), and taking vertical homology in the $i$'th spot gives $\HH(C^*_j)=\oplus_{\ell} H^i(\cE_\ell)\otimes_k E(\ell;-j)$.  Since the vertical differentials are defined entirely over $k$, we can still choose a splitting of the homology into the Cech complex, and thus obtain a splitting for the vertical homology in this double complex.  We apply~\cite[Lemma~3.5]{EFS}, to get a complex of $E$-modules:
+\[
+\cdots \overset{\partial}{\longrightarrow} G(0;-1) \overset{\partial}{\longrightarrow} G \overset{\partial}{\longrightarrow}G(0;1) \overset{\partial}{\longrightarrow} \cdots
+\]
+where $G$ in homological degree $0$ is
+\[
+G = \oplus_{i=0}^{\dim X} \HH^i(F^*_i) =  \oplus_{i=0}^{\dim X}\oplus_{\ell \in \Pic(X)} H^i(\cE_\ell )\otimes_k E(\ell;-i).
+\]
+We thus obtain a well-defined element of $\DM^\circ(E)$ as desired.  To check exactness, we can consider the commutative square
+\[
+\xymatrix{
+\DM_{\free}(\PP^n_E)\ar[r]\ar[d]_{\tau_*} &\DM(\PP^n_k)\ar[d]_{\pi_*}\\
+\DM^\circ(E)\ar[r]&\DM^\circ(k)
+}
+\]
+where the horizontal arrows simply forget the $E$-module structure.  Since forgetful maps respect exactness, exactness for part (2) follows from exactness for part (1).
+\end{proof}
+
+
+\fi
+%%%%%%%%%%%
 
 
 
