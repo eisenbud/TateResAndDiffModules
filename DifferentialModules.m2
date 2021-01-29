@@ -38,6 +38,7 @@ differentialModule ChainComplex := C -> (
 
 differentialModule Matrix := phi -> (
     --check if the source and target are the same up to a twist
+    R := ring phi;
     d := (degrees source phi)_0 - (degrees target phi)_0;
     if target phi != source phi**R^{d} then error "source and target of map are not the same, up to a twist";
     new DifferentialModule from (chainComplex(phi**R^{d},phi)[1]));
@@ -131,7 +132,6 @@ betti res image D
 rank(r.dd_1 % ideal(x,y,z))
 -- 22 - 14 = 8
 tally degrees minimalPart r
-
 ///
 
 
