@@ -137,15 +137,15 @@ tally degrees minimalPart r
 
 
 --killing cycles algorithm for resolution
---CAVEAT:  seems to assume that you start w/ a free differential module
+--CAVEAT:  maybe assumes that you start w/ a free differential module??
 --         
 killingCyclesOneStep = method();
 killingCyclesOneStep(DifferentialModule) := (D)->(
     G := res HH_0 D;
-    psi := map(D_0,G_0,gens (HH_0 D));
-    d := degree D;    
-    newDiff := matrix{{D.dd_1,psi},{map(G_0,D_0,0),map(G_0,G_0,0)}};
-    assert (newDiff^2 == 0);
+    psi := map(D_0,G_0,(gens (HH_0 D)) % image D.dd_1);
+    d := degree D;  
+    newDiff := matrix{{D.dd_1,psi},{map(G_0**R^{d},D_1,0),map(G_0**R^{d},G_0,0)}};
+    assert (newDiff*(newDiff**R^{-d}) == 0);
     differentialModule newDiff
     )
 
