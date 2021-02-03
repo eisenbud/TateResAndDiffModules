@@ -141,15 +141,24 @@ tally degrees minimalPart r
 --         
 killingCyclesOneStep = method();
 killingCyclesOneStep(DifferentialModule) := (D)->(
-    G := res HH_0 D;
-    psi := map(D_0,G_0,(gens (HH_0 D)) % image D.dd_1);
-    d := degree D;  
+--  commented out code was working but I'm trying to improve
+--    G := res HH_0 D;
+--    psi := map(D_0,G_0,(gens (HH_0 D)) %  (image D.dd_1));
+--    d := degree D;
+--    R := ring D;
+--    newDiff := matrix{{D.dd_1,psi},{map(G_0**R^{d},D_1,0),map(G_0**R^{d},G_0,0)}};
+--    assert (newDiff*(newDiff**R^{-d}) == 0);
+--    differentialModule newDiff
+--    )
+    homMat := mingens image((gens HH_0 D) %  (image D.dd_1));
+    G := res image homMat;
+    psi := map(D_0,G_0,homMat);
+    d := degree D;
+    R := ring D;  
     newDiff := matrix{{D.dd_1,psi},{map(G_0**R^{d},D_1,0),map(G_0**R^{d},G_0,0)}};
     assert (newDiff*(newDiff**R^{-d}) == 0);
     differentialModule newDiff
     )
-
-
 --killing cycles resolution
 --Input:  a free(?) differential module D and an integer k
 --Output:  the killing cycles resolution of D after k steps.
@@ -275,6 +284,44 @@ resDMwMap(DifferentialModule) := opts -> (D) ->(
     eps := epsCyc|epsBou;
     (RD,eps)
 	)
+
+--  Subroutines and routines to produce the minimal part of a matrix.
+--  NEEDS TO BE A SQUARE MATRIX
+minimizeDiffOnce = method();
+minimizeDiffOnce(Matrix,ZZ,ZZ) := (A,u,v) -> (
+    a := rank target A;
+    R := ring A;
+    inv := (A_(u,v))^(-1);
+    N := map(R^a,R^a, (i,j) -> if i == v and j != v then -inv*A_(u,j) else 0) + id_(R^a);
+    Q := map(R^a,R^a, (i,j) -> if j == u and i != u then -inv*A_(i,v) else 0) + id_(R^a);
+    A' = Q*N^(-1)*A*N*Q^(-1);
+    newRows = select(a,i-> i != u and i != v);
+    newCols = select(a,i-> i != u and i != v);
+    A'_(newCols)^(newRows)
+    )
+
+units = method();
+units(Matrix) := A->(
+    a = rank source A;
+    L = select((0,0)..(a-1,a-1), (i,j)->  isUnit A_(i,j));
+    L
+    )
+
+--  Input: A SQUARE matrix
+--  Output: a minimization of it.
+minimizeDiff = method();
+minimizeDiff(Matrix) := A ->(
+    NU = #(units A);
+    while NU > 0 do(
+ 	L = units A;
+	(u,v) = L_0;
+	A = minimizeDiffOnce(A,u,v);
+	NU = #(units A);
+	);
+    A
+    )
+---
+---
 
 
 --  Input: a free differential module D
