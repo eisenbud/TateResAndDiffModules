@@ -162,10 +162,27 @@ killingCyclesOneStep(DifferentialModule) := (D)->(
 --killing cycles resolution
 --Input:  a free(?) differential module D and an integer k
 --Output:  the killing cycles resolution of D after k steps.
+-- NOTE:  until recently this produced the CONE over the resolution.
+--        but I'm interested in the resolution itself so the last few lines change that
 resKC = method();
 resKC(DifferentialModule,ZZ) := (D,k)->(
+    d := degree D;
+    s := numgens D_0;
     scan(k,i-> D = killingCyclesOneStep(D));
-    D
+    t := numgens D_0;
+    newDiff = submatrix(D.dd_1, toList(s..t-1),toList(s..t-1));
+    differentialModule (chainComplex(newDiff**R^{d},newDiff)[1])
+    )
+
+--same as above, but default value of 
+resKC(DifferentialModule) := (D)->(
+    k := dim ring D + 1;
+    d := degree D;
+    s := numgens D_0;
+    scan(k,i-> D = killingCyclesOneStep(D));
+    t := numgens D_0;
+    newDiff = submatrix(D.dd_1, toList(s..t-1),toList(s..t-1));
+    differentialModule (chainComplex(newDiff**R^{d},newDiff)[1])
     )
 
 
@@ -320,6 +337,17 @@ minimizeDiff(Matrix) := A ->(
 	);
     A
     )
+
+--  Input:  A (finite, free) differential module
+--  Output: A minimization of that DM.
+minimize = method();
+minimize(DifferentialModule) := r ->(
+    R := ring r;
+    d := degree r;
+    A := minimizeDiff(r.dd_1);
+    differentialModule (chainComplex(A**R^{d},A)[1])
+    )
+
 ---
 ---
 
