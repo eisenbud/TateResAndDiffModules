@@ -199,6 +199,7 @@ resDM(DifferentialModule) := opts -> (D) ->(
 
 --  same as resDM except it outputs a pair (r,eps)
 --  where r is the resDM and epsilon is the map r-->D.
+--  mostly used to check that resDM produced actual resolutions.
 resDMwMap = method(TypicalValue => DifferentialModule,
             Options => {
     	    LengthLimit => 3
